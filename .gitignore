@@ -1,0 +1,12 @@
+# Dependencia  instaladas
+node_modules/
+
+# Archivos generados
+dist/
+coverage/
+*.log
+
+# Variables de entorno y secretos locales
+.env
+.env.*
+!.env.example
