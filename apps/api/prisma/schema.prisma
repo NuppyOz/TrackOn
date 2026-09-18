@@ -1,8 +1,17 @@
 generator client {
-    provider = "prisma-client"
-    output = "../src/generated/prisma"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
-    provider = "postgresql"
+  provider = "postgresql"
+}
+
+model Rol {
+  id          Int     @id @default(autoincrement())
+  cod         String  @unique @db.VarChar(30)
+  nombre      String  @db.VarChar(60)
+  descripcion String? @db.VarChar(250)
+
+  @@map("roles")
 }
