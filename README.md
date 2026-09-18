@@ -13,3 +13,7 @@ Sistema web de uso interno para gestionar órdenes de trabajo para un taller de 
 ## Estado
 
 Preparación inicial del entorno de desarrollo.
+
+## Documentación
+
+- [Configuración del backend, Prisma y creación del primer módulo como base](docs/backend-prisma.md)
