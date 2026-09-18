@@ -20,7 +20,7 @@ const roles = [
     {
         cod: 'GTE_OPE',
         nombre: 'Gerente Operativo',
-        descripcion: 'Programa y asina órdenes, revisa trabajos y aprueba cierres',
+        descripcion: 'Programa y asigna órdenes, revisa trabajos y aprueba cierres',
     },
     {
         cod: 'TEC',
