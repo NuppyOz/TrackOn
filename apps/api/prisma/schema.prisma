@@ -15,3 +15,17 @@ model Rol {
 
   @@map("roles")
 }
+
+model Persona {
+  id             Int     @id @default(autoincrement())
+  firstName      String  @db.VarChar(100)
+  secondName     String? @db.VarChar(100)
+  firstLastName  String  @db.VarChar(100)
+  secondLastName String? @db.VarChar(100)
+  typeDocument   String? @db.VarChar(30)
+  numberDocument String? @db.VarChar(50)
+  telephone      String? @db.VarChar(25)
+  correo         String? @db.VarChar(254)
+
+  @@map("personas")
+}
