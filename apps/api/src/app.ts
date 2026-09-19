@@ -1,5 +1,5 @@
 import express from 'express';
-import type { ErrorRequestHandler } from 'express';
+import { manageErrors } from './middlewares/error-handler.js';
 import { prisma } from './infrastructure/prisma.js';
 
 // Modulos importados
@@ -35,19 +35,4 @@ app.get('/api/ready', async (_req, res) => {
 app.use('/api/roles', rolesRouter);
 
 // Manejador de errores
-const manejarErrores: ErrorRequestHandler = (
-  error,
-  _req,
-  res,
-  _next,
-) => {
-  console.error('Error al procesar la solicitud:', error)
-
-  res.status(500).json({
-    error: {
-      message: 'No se pudo completar la solicitud.',
-    },
-  })
-}
-
-app.use(manejarErrores)
+app.use(manageErrors)
