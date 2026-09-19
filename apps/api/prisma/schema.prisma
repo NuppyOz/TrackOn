@@ -27,5 +27,18 @@ model Persona {
   telephone      String? @db.VarChar(25)
   correo         String? @db.VarChar(254)
 
+  empleado Empleado?
+
   @@map("personas")
+}
+
+model Empleado {
+  id          Int     @id @default(autoincrement())
+  codEmpleado String  @unique @db.VarChar(30)
+  active      Boolean @default(true)
+  personaId   Int     @unique
+
+  persona Persona @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@map("empleados")
 }
