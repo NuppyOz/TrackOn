@@ -1,6 +1,8 @@
 import './App.css'
 import { useState } from 'react'
 
+import RolesList from './features/roles/RolesList';
+
 function App() {
   const [mensaje, setMensaje] = useState('Conexión sin comprobar');
   const [cargando, setCargando] = useState(false);
@@ -56,6 +58,7 @@ function App() {
               {cargando ? 'Comprobando...' : 'Comprobar conexión'}
           </button>
         </div>
+        <RolesList />
       </div>
     </main>
   )
