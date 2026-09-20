@@ -1,3 +1,6 @@
+// TrackOn: propuesta consolidada a partir del ER y del esquema existente.
+// Conserva Int y nombres existentes. Aplicar mediante una migración revisada.
+// Las restricciones CHECK e índices parciales están en restricciones.sql.
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -7,38 +10,477 @@ datasource db {
   provider = "postgresql"
 }
 
+// Catálogos de valores propuestos: confirmar con el equipo antes de migrar.
+enum PrioridadOrden {
+  BAJA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum EstadoCargaEvidencia {
+  PENDIENTE
+  DISPONIBLE
+  FALLIDA
+}
+
+enum DecisionEvidencia {
+  ACEPTADA
+  RECHAZADA
+}
+
+enum TipoActorAuditoria {
+  USUARIO
+  SISTEMA
+}
+
 model Rol {
-  id          Int     @id @default(autoincrement())
-  cod         String  @unique @db.VarChar(30)
-  nombre      String  @db.VarChar(60)
-  descripcion String? @db.VarChar(250)
+  id          Int       @id @default(autoincrement())
+  cod         String    @unique @db.VarChar(30)
+  nombre      String    @db.VarChar(60)
+  descripcion String?   @db.VarChar(250)
+  usuarios    Usuario[]
 
   @@map("roles")
 }
 
 model Persona {
-  id             Int     @id @default(autoincrement())
-  firstName      String  @db.VarChar(100)
-  secondName     String? @db.VarChar(100)
-  firstLastName  String  @db.VarChar(100)
-  secondLastName String? @db.VarChar(100)
-  typeDocument   String? @db.VarChar(30)
-  numberDocument String? @db.VarChar(50)
-  telephone      String? @db.VarChar(25)
-  correo         String? @db.VarChar(254)
+  id             Int       @id @default(autoincrement())
+  firstName      String    @db.VarChar(100)
+  secondName     String?   @db.VarChar(100)
+  firstLastName  String    @db.VarChar(100)
+  secondLastName String?   @db.VarChar(100)
+  typeDocument   String?   @db.VarChar(30)
+  numberDocument String?   @db.VarChar(50)
+  telephone      String?   @db.VarChar(25)
+  correo         String?   @db.VarChar(254)
+  creadaEn       DateTime  @default(now()) @db.Timestamptz(6)
+  actualizadaEn  DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  empleado       Empleado?
+  cliente        Cliente?
 
-  empleado Empleado?
-
+  // No se introduce unicidad de documento sin país/tipo/normalización acordados.
   @@map("personas")
 }
 
 model Empleado {
-  id          Int     @id @default(autoincrement())
-  codEmpleado String  @unique @db.VarChar(30)
-  active      Boolean @default(true)
-  personaId   Int     @unique
-
-  persona Persona @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  id                       Int                 @id @default(autoincrement())
+  codEmpleado              String              @unique @db.VarChar(30)
+  active                   Boolean             @default(true)
+  personaId                Int                 @unique
+  habilitadoComoTecnico    Boolean             @default(false)
+  creadoEn                 DateTime            @default(now()) @db.Timestamptz(6)
+  actualizadoEn            DateTime            @default(now()) @updatedAt @db.Timestamptz(6)
+  persona                  Persona             @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  usuario                  Usuario?
+  membresias               MiembroCuadrilla[]
+  asignacionesIndividuales Asignacion[]        @relation("ResponsableIndividual")
+  participaciones          AsignacionTecnico[]
 
   @@map("empleados")
+}
+
+model Organizacion {
+  id                       Int      @id @default(autoincrement())
+  razonSocial              String   @db.VarChar(200)
+  nombreComercial          String?  @db.VarChar(200)
+  identificacionTributaria String?  @unique @db.VarChar(50)
+  creadaEn                 DateTime @default(now()) @db.Timestamptz(6)
+  actualizadaEn            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  cliente                  Cliente?
+
+  @@map("organizaciones")
+}
+
+model Cliente {
+  id                Int           @id @default(autoincrement())
+  codigo            String        @unique @db.VarChar(30)
+  personaId         Int?          @unique
+  organizacionId    Int?          @unique
+  telefonoComercial String?       @db.VarChar(25)
+  correoComercial   String?       @db.VarChar(254)
+  activo            Boolean       @default(true)
+  creadoEn          DateTime      @default(now()) @db.Timestamptz(6)
+  actualizadoEn     DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+  persona           Persona?      @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  organizacion      Organizacion? @relation(fields: [organizacionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  ubicaciones       Ubicacion[]
+
+  @@map("clientes")
+}
+
+model Ubicacion {
+  id               Int            @id @default(autoincrement())
+  clienteId        Int
+  nombre           String         @db.VarChar(150)
+  direccion        String         @db.Text
+  referencia       String?        @db.Text
+  contactoNombre   String?        @db.VarChar(200)
+  contactoTelefono String?        @db.VarChar(25)
+  activa           Boolean        @default(true)
+  creadaEn         DateTime       @default(now()) @db.Timestamptz(6)
+  actualizadaEn    DateTime       @default(now()) @updatedAt @db.Timestamptz(6)
+  cliente          Cliente        @relation(fields: [clienteId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  equipos          Equipo[]
+  ordenes          OrdenTrabajo[]
+
+  @@index([clienteId, activa])
+  @@map("ubicaciones")
+}
+
+model Usuario {
+  id                         Int                          @id @default(autoincrement())
+  empleadoId                 Int                          @unique
+  rolId                      Int
+  identificador              String                       @unique @db.VarChar(100)
+  passwordHash               String                       @db.VarChar(255)
+  activo                     Boolean                      @default(true)
+  creadoEn                   DateTime                     @default(now()) @db.Timestamptz(6)
+  actualizadoEn              DateTime                     @default(now()) @updatedAt @db.Timestamptz(6)
+  empleado                   Empleado                     @relation(fields: [empleadoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  rol                        Rol                          @relation(fields: [rolId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  ordenesCreadas             OrdenTrabajo[]               @relation("CreadorOrden")
+  identificaciones           OrdenEquipo[]                @relation("IdentificadorEquipo")
+  evidenciasCargadas         EvidenciaEquipo[]            @relation("CargadorEvidencia")
+  revisiones                 RevisionEvidencia[]          @relation("RevisorEvidencia")
+  asignaciones               Asignacion[]                 @relation("AutorAsignacion")
+  cambiosEstado              HistorialEstado[]            @relation("AutorCambioEstado")
+  auditorias                 Auditoria[]
+  notificaciones             Notificacion[]
+  sesiones                   Sesion[]
+  restablecimientosRecibidos RestablecimientoCredencial[] @relation("DestinatarioRestablecimiento")
+  restablecimientosIniciados RestablecimientoCredencial[] @relation("IniciadorRestablecimiento")
+
+  @@index([rolId])
+  @@map("usuarios")
+}
+
+model Cuadrilla {
+  id           Int                @id @default(autoincrement())
+  nombre       String             @unique @db.VarChar(100)
+  activa       Boolean            @default(true)
+  creadaEn     DateTime           @default(now()) @db.Timestamptz(6)
+  miembros     MiembroCuadrilla[]
+  asignaciones Asignacion[]
+
+  @@map("cuadrillas")
+}
+
+model MiembroCuadrilla {
+  id          Int       @id @default(autoincrement())
+  cuadrillaId Int
+  empleadoId  Int
+  inicio      DateTime  @default(now()) @db.Timestamptz(6)
+  fin         DateTime? @db.Timestamptz(6)
+  cuadrilla   Cuadrilla @relation(fields: [cuadrillaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  empleado    Empleado  @relation(fields: [empleadoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([cuadrillaId, fin])
+  @@index([empleadoId, fin])
+  @@map("miembros_cuadrilla")
+}
+
+model Equipo {
+  id             Int           @id @default(autoincrement())
+  ubicacionId    Int
+  codigo         String        @unique @db.VarChar(40)
+  tipo           String        @db.VarChar(100)
+  marca          String?       @db.VarChar(100)
+  modelo         String?       @db.VarChar(100)
+  numeroSerie    String?       @db.VarChar(150)
+  activo         Boolean       @default(true)
+  creadoEn       DateTime      @default(now()) @db.Timestamptz(6)
+  actualizadoEn  DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+  ubicacion      Ubicacion     @relation(fields: [ubicacionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  intervenciones OrdenEquipo[]
+
+  @@index([ubicacionId, activo])
+  @@index([numeroSerie])
+  @@map("equipos")
+}
+
+model EstadoOrden {
+  codigo       String            @id @db.VarChar(30)
+  nombre       String            @db.VarChar(60)
+  ordenes      OrdenTrabajo[]
+  cambiosDesde HistorialEstado[] @relation("EstadoAnterior")
+  cambiosHacia HistorialEstado[] @relation("EstadoNuevo")
+
+  @@map("estados_orden")
+}
+
+model OrdenTrabajo {
+  id                              Int               @id @default(autoincrement())
+  numero                          BigInt            @unique @default(autoincrement())
+  ubicacionId                     Int
+  estadoCodigo                    String            @db.VarChar(30)
+  creadaPorId                     Int
+  solicitud                       String            @db.Text
+  prioridad                       PrioridadOrden    @default(MEDIA)
+  fechaProgramada                 DateTime?         @db.Timestamptz(6)
+  creadaEn                        DateTime          @default(now()) @db.Timestamptz(6)
+  actualizadaEn                   DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
+  cerradaEn                       DateTime?         @db.Timestamptz(6)
+  version                         Int               @default(1)
+  clienteNombreRegistrado         String            @db.VarChar(200)
+  clienteIdentificacionRegistrada String?           @db.VarChar(50)
+  ubicacionNombreRegistrado       String            @db.VarChar(150)
+  direccionRegistrada             String            @db.Text
+  ubicacion                       Ubicacion         @relation(fields: [ubicacionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  estado                          EstadoOrden       @relation(fields: [estadoCodigo], references: [codigo], onDelete: Restrict, onUpdate: Cascade)
+  creadaPor                       Usuario           @relation("CreadorOrden", fields: [creadaPorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  equipos                         OrdenEquipo[]
+  asignaciones                    Asignacion[]
+  historial                       HistorialEstado[]
+  notificaciones                  Notificacion[]
+
+  @@index([ubicacionId])
+  @@index([estadoCodigo, fechaProgramada])
+  @@index([creadaPorId])
+  @@map("ordenes_trabajo")
+}
+
+model OrdenEquipo {
+  id                     Int               @id @default(autoincrement())
+  ordenId                Int
+  equipoId               Int?
+  identificadaPorId      Int?
+  descripcionProvisional String?           @db.Text
+  tipoRegistrado         String?           @db.VarChar(100)
+  marcaRegistrada        String?           @db.VarChar(100)
+  modeloRegistrado       String?           @db.VarChar(100)
+  serieRegistrada        String?           @db.VarChar(150)
+  motivoMarcaNoVisible   String?           @db.Text
+  motivoModeloNoVisible  String?           @db.Text
+  motivoSerieNoVisible   String?           @db.Text
+  identificadaEn         DateTime?         @db.Timestamptz(6)
+  diagnostico            String?           @db.Text
+  observaciones          String?           @db.Text
+  resultado              String?           @db.Text
+  creadaEn               DateTime          @default(now()) @db.Timestamptz(6)
+  actualizadaEn          DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
+  orden                  OrdenTrabajo      @relation(fields: [ordenId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  equipo                 Equipo?           @relation(fields: [equipoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  identificadaPor        Usuario?          @relation("IdentificadorEquipo", fields: [identificadaPorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  evidencias             EvidenciaEquipo[]
+  servicios              OrdenServicio[]
+  materiales             OrdenMaterial[]
+
+  @@index([ordenId])
+  @@index([equipoId])
+  @@index([identificadaPorId])
+  @@map("ordenes_equipos")
+}
+
+model EvidenciaEquipo {
+  id             Int                  @id @default(autoincrement())
+  ordenEquipoId  Int
+  cargadaPorId   Int
+  reemplazaAId   Int?
+  claveArchivo   String               @unique @db.VarChar(512)
+  nombreOriginal String               @db.VarChar(255)
+  tipoArchivo    String               @db.VarChar(100)
+  tamanoBytes    BigInt
+  hashArchivo    String?              @db.VarChar(128)
+  estadoCarga    EstadoCargaEvidencia @default(PENDIENTE)
+  creadaEn       DateTime             @default(now()) @db.Timestamptz(6)
+  disponibleEn   DateTime?            @db.Timestamptz(6)
+  ordenEquipo    OrdenEquipo          @relation(fields: [ordenEquipoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  cargadaPor     Usuario              @relation("CargadorEvidencia", fields: [cargadaPorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  reemplazaA     EvidenciaEquipo?     @relation("ReemplazosEvidencia", fields: [reemplazaAId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  reemplazos     EvidenciaEquipo[]    @relation("ReemplazosEvidencia")
+  revisiones     RevisionEvidencia[]
+
+  @@index([ordenEquipoId, estadoCarga])
+  @@index([cargadaPorId])
+  @@index([reemplazaAId])
+  @@map("evidencias_equipo")
+}
+
+model RevisionEvidencia {
+  id            Int               @id @default(autoincrement())
+  evidenciaId   Int
+  revisadaPorId Int
+  decision      DecisionEvidencia
+  observacion   String?           @db.Text
+  revisadaEn    DateTime          @default(now()) @db.Timestamptz(6)
+  evidencia     EvidenciaEquipo   @relation(fields: [evidenciaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  revisadaPor   Usuario           @relation("RevisorEvidencia", fields: [revisadaPorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([evidenciaId, revisadaEn])
+  @@index([revisadaPorId])
+  @@map("revisiones_evidencia")
+}
+
+model Servicio {
+  id          Int             @id @default(autoincrement())
+  codigo      String          @unique @db.VarChar(30)
+  nombre      String          @db.VarChar(150)
+  descripcion String?         @db.Text
+  activo      Boolean         @default(true)
+  trabajos    OrdenServicio[]
+
+  @@map("servicios")
+}
+
+model OrdenServicio {
+  id                 Int         @id @default(autoincrement())
+  ordenEquipoId      Int
+  servicioId         Int
+  nombreRegistrado   String      @db.VarChar(150)
+  cantidad           Decimal     @db.Decimal(12, 3)
+  descripcionTrabajo String      @db.Text
+  ordenEquipo        OrdenEquipo @relation(fields: [ordenEquipoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  servicio           Servicio    @relation(fields: [servicioId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([ordenEquipoId])
+  @@index([servicioId])
+  @@map("ordenes_servicios")
+}
+
+model Material {
+  id           Int             @id @default(autoincrement())
+  codigo       String          @unique @db.VarChar(30)
+  nombre       String          @db.VarChar(150)
+  unidadMedida String          @db.VarChar(30)
+  activo       Boolean         @default(true)
+  consumos     OrdenMaterial[]
+
+  @@map("materiales")
+}
+
+model OrdenMaterial {
+  id               Int         @id @default(autoincrement())
+  ordenEquipoId    Int
+  materialId       Int
+  nombreRegistrado String      @db.VarChar(150)
+  unidadRegistrada String      @db.VarChar(30)
+  cantidad         Decimal     @db.Decimal(12, 3)
+  observacion      String?     @db.Text
+  ordenEquipo      OrdenEquipo @relation(fields: [ordenEquipoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  material         Material    @relation(fields: [materialId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([ordenEquipoId])
+  @@index([materialId])
+  @@map("ordenes_materiales")
+}
+
+model Asignacion {
+  id                    Int                 @id @default(autoincrement())
+  ordenId               Int
+  empleadoResponsableId Int?
+  cuadrillaId           Int?
+  asignadaPorId         Int
+  inicio                DateTime            @default(now()) @db.Timestamptz(6)
+  fin                   DateTime?           @db.Timestamptz(6)
+  motivo                String              @db.Text
+  orden                 OrdenTrabajo        @relation(fields: [ordenId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  empleadoResponsable   Empleado?           @relation("ResponsableIndividual", fields: [empleadoResponsableId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  cuadrilla             Cuadrilla?          @relation(fields: [cuadrillaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  asignadaPor           Usuario             @relation("AutorAsignacion", fields: [asignadaPorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  tecnicos              AsignacionTecnico[]
+
+  @@index([ordenId, inicio])
+  @@index([empleadoResponsableId])
+  @@index([cuadrillaId])
+  @@index([asignadaPorId])
+  @@map("asignaciones")
+}
+
+model AsignacionTecnico {
+  id           Int        @id @default(autoincrement())
+  asignacionId Int
+  empleadoId   Int
+  asignacion   Asignacion @relation(fields: [asignacionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  empleado     Empleado   @relation(fields: [empleadoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([asignacionId, empleadoId])
+  @@index([empleadoId])
+  @@map("asignaciones_tecnicos")
+}
+
+model HistorialEstado {
+  id             Int          @id @default(autoincrement())
+  ordenId        Int
+  estadoAnterior String?      @db.VarChar(30)
+  estadoNuevo    String       @db.VarChar(30)
+  cambiadoPorId  Int
+  motivo         String?      @db.Text
+  fecha          DateTime     @default(now()) @db.Timestamptz(6)
+  orden          OrdenTrabajo @relation(fields: [ordenId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  anterior       EstadoOrden? @relation("EstadoAnterior", fields: [estadoAnterior], references: [codigo], onDelete: Restrict, onUpdate: Cascade)
+  nuevo          EstadoOrden  @relation("EstadoNuevo", fields: [estadoNuevo], references: [codigo], onDelete: Restrict, onUpdate: Cascade)
+  cambiadoPor    Usuario      @relation("AutorCambioEstado", fields: [cambiadoPorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([ordenId, fecha])
+  @@index([estadoAnterior])
+  @@index([estadoNuevo])
+  @@index([cambiadoPorId])
+  @@map("historiales_estado")
+}
+
+model Auditoria {
+  id              Int                @id @default(autoincrement())
+  usuarioId       Int?
+  tipoActor       TipoActorAuditoria
+  entidad         String             @db.VarChar(80)
+  entidadId       String             @db.VarChar(100)
+  accion          String             @db.VarChar(80)
+  datosAnteriores Json?              @db.JsonB
+  datosNuevos     Json?              @db.JsonB
+  correlacionId   String?            @db.VarChar(100)
+  fecha           DateTime           @default(now()) @db.Timestamptz(6)
+  usuario         Usuario?           @relation(fields: [usuarioId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  // Referencia polimórfica: entidadId NO es una FK a todas las tablas.
+  @@index([entidad, entidadId, fecha])
+  @@index([usuarioId, fecha])
+  @@map("auditorias")
+}
+
+model Notificacion {
+  id        Int           @id @default(autoincrement())
+  usuarioId Int
+  ordenId   Int?
+  tipo      String        @db.VarChar(60)
+  mensaje   String        @db.Text
+  creadaEn  DateTime      @default(now()) @db.Timestamptz(6)
+  leidaEn   DateTime?     @db.Timestamptz(6)
+  usuario   Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  orden     OrdenTrabajo? @relation(fields: [ordenId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([usuarioId, leidaEn, creadaEn])
+  @@index([ordenId])
+  @@map("notificaciones")
+}
+
+model Sesion {
+  id                  Int       @id @default(autoincrement())
+  usuarioId           Int
+  tokenRenovacionHash String    @unique @db.VarChar(128)
+  creadaEn            DateTime  @default(now()) @db.Timestamptz(6)
+  expiraEn            DateTime  @db.Timestamptz(6)
+  revocadaEn          DateTime? @db.Timestamptz(6)
+  usuario             Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([usuarioId, revocadaEn])
+  @@index([expiraEn])
+  @@map("sesiones")
+}
+
+model RestablecimientoCredencial {
+  id            Int       @id @default(autoincrement())
+  usuarioId     Int
+  iniciadoPorId Int
+  tokenHash     String    @unique @db.VarChar(128)
+  creadoEn      DateTime  @default(now()) @db.Timestamptz(6)
+  expiraEn      DateTime  @db.Timestamptz(6)
+  utilizadoEn   DateTime? @db.Timestamptz(6)
+  revocadoEn    DateTime? @db.Timestamptz(6)
+  usuario       Usuario   @relation("DestinatarioRestablecimiento", fields: [usuarioId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  iniciadoPor   Usuario   @relation("IniciadorRestablecimiento", fields: [iniciadoPorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([usuarioId, expiraEn])
+  @@index([iniciadoPorId])
+  @@map("restablecimientos_credencial")
 }
