@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { createEmpleadoSchema, empleadoParamsSchema } from "./empleados.schema.js";
+import { createEmpleadoSchema, empleadoParamsSchema, updateEmpleadoSchema } from "./empleados.schema.js";
 import * as empleadosService from './empleados.service.js';
 
 
@@ -48,6 +48,26 @@ export async function obtenerEmpleadoPorId(
 
         const empleado =
             await empleadosService.obtenerEmpleadoPorId(id);
+
+        res.status(200).json({
+            data: empleado,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function actualizarEmpleado(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const { id } = empleadoParamsSchema.parse(req.params);
+        const datos = updateEmpleadoSchema.parse(req.body);
+
+        const empleado =
+            await empleadosService.actualizarEmpleado(id, datos);
 
         res.status(200).json({
             data: empleado,

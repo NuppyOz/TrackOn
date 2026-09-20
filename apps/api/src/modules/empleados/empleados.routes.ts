@@ -3,6 +3,7 @@ import * as empleadosController from './empleados.controller.js'
 
 export const empleadosRouter = Router()
 
-empleadosRouter.post('/', empleadosController.crearEmpleado)
-empleadosRouter.get('/', empleadosController.listarEmpleado)
+empleadosRouter.post('/', empleadosController.crearEmpleado);
+empleadosRouter.get('/', empleadosController.listarEmpleado);
 empleadosRouter.get('/:id', empleadosController.obtenerEmpleadoPorId);
+empleadosRouter.patch('/:id', empleadosController.actualizarEmpleado);

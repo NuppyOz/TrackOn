@@ -51,6 +51,36 @@ export const createPersonaSchema = z
     })
 
 
+export const updatePersonaSchema = z
+    .strictObject({
+        firstName: createPersonaSchema.shape.firstName.optional(),
+        secondName: createPersonaSchema.shape.secondName.optional(),
+
+        firstLastName:
+            createPersonaSchema.shape.firstLastName.optional(),
+
+        secondLastName:
+            createPersonaSchema.shape.secondLastName.optional(),
+
+        typeDocument:
+            createPersonaSchema.shape.typeDocument.optional(),
+
+        numberDocument:
+            createPersonaSchema.shape.numberDocument.optional(),
+
+        telephone: createPersonaSchema.shape.telephone.optional(),
+        correo: createPersonaSchema.shape.correo.optional(),
+    })
+    .refine(
+        (datos) =>
+            Object.values(datos).some((valor) => valor !== undefined),
+        {
+            error: 'Debes enviar al menos un dato de la persona para actualizar.',
+        },
+    );
+
+export type UpdatePersonaInput = z.infer<typeof updatePersonaSchema>;
+
 export type CreatePersonaInput = z.infer<typeof createPersonaSchema>
 
 

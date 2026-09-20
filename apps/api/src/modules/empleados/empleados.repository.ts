@@ -1,5 +1,5 @@
 import { prisma } from '../../infrastructure/prisma.js'
-import type { CreateEmpleadoInput } from './empleados.schema.js'
+import type { CreateEmpleadoInput, UpdateEmpleadoInput} from './empleados.schema.js'
 
 export function crearEmpleado(datos: CreateEmpleadoInput) {
     return prisma.empleado.create({
@@ -81,6 +81,99 @@ export function buscarEmpleadoPorId(id: number) {
                     secondName: true,
                     firstLastName: true,
                     secondLastName: true,
+                    typeDocument: true,
+                    numberDocument: true,
+                    telephone: true,
+                    correo: true,
+                },
+            },
+        },
+    });
+}
+
+export function actualizarEmpleado(
+    id: number,
+    datos: UpdateEmpleadoInput,
+) {
+    const persona = datos.persona;
+
+    return prisma.empleado.update({
+        where: { id },
+
+        data: {
+            ...(datos.codEmpleado !== undefined
+                ? { codEmpleado: datos.codEmpleado }
+                : {}),
+
+            ...(persona !== undefined
+                ? {
+                      persona: {
+                          update: {
+                              ...(persona.firstName !== undefined
+                                  ? { firstName: persona.firstName }
+                                  : {}),
+
+                              ...(persona.secondName !== undefined
+                                  ? { secondName: persona.secondName }
+                                  : {}),
+
+                              ...(persona.firstLastName !== undefined
+                                  ? {
+                                        firstLastName:
+                                            persona.firstLastName,
+                                    }
+                                  : {}),
+
+                              ...(persona.secondLastName !== undefined
+                                  ? {
+                                        secondLastName:
+                                            persona.secondLastName,
+                                    }
+                                  : {}),
+
+                              ...(persona.typeDocument !== undefined
+                                  ? {
+                                        typeDocument:
+                                            persona.typeDocument,
+                                    }
+                                  : {}),
+
+                              ...(persona.numberDocument !== undefined
+                                  ? {
+                                        numberDocument:
+                                            persona.numberDocument,
+                                    }
+                                  : {}),
+
+                              ...(persona.telephone !== undefined
+                                  ? { telephone: persona.telephone }
+                                  : {}),
+
+                              ...(persona.correo !== undefined
+                                  ? { correo: persona.correo }
+                                  : {}),
+                          },
+                      },
+                  }
+                : {}),
+        },
+
+        select: {
+            id: true,
+            codEmpleado: true,
+            active: true,
+            habilitadoComoTecnico: true,
+            personaId: true,
+
+            persona: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    secondName: true,
+                    firstLastName: true,
+                    secondLastName: true,
+                    typeDocument: true,
+                    numberDocument: true,
                     telephone: true,
                     correo: true,
                 },

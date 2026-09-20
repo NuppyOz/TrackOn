@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createPersonaSchema } from '../personas/personas.schema.js';
+import { createPersonaSchema, updatePersonaSchema } from '../personas/personas.schema.js';
 
 export const createEmpleadoSchema = z.strictObject({
     codEmpleado: z
@@ -27,5 +27,22 @@ export const empleadoParamsSchema = z.strictObject({
             }),
         ),
 });
+
+export const updateEmpleadoSchema = z
+    .strictObject({
+        codEmpleado:
+            createEmpleadoSchema.shape.codEmpleado.optional(),
+
+        persona: updatePersonaSchema.optional(),
+    })
+    .refine(
+        (datos) =>
+            Object.values(datos).some((valor) => valor !== undefined),
+        {
+            error: 'Debes enviar al menos un dato del empleado para actualizar.',
+        },
+    );
+
+export type UpdateEmpleadoInput = z.infer<typeof updateEmpleadoSchema>;
 
 export type CreateEmpleadoInput = z.infer<typeof createEmpleadoSchema>
