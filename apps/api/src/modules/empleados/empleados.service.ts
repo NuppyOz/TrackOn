@@ -23,3 +23,14 @@ export async function crearEmpleado(datos:CreateEmpleadoInput) {
 export function listarEmpleados(){
     return empleadosRepository.listarEmpleados()
 }
+
+export async function obtenerEmpleadoPorId(id: number) {
+    const empleado =
+        await empleadosRepository.buscarEmpleadoPorId(id);
+
+    if (!empleado) {
+        throw new AppError(404, 'El empleado no existe.');
+    }
+
+    return empleado;
+}

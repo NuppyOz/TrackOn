@@ -5,3 +5,4 @@ export const empleadosRouter = Router()
 
 empleadosRouter.post('/', empleadosController.crearEmpleado)
 empleadosRouter.get('/', empleadosController.listarEmpleado)
+empleadosRouter.get('/:id', empleadosController.obtenerEmpleadoPorId);

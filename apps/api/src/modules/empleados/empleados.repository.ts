@@ -9,7 +9,7 @@ export function crearEmpleado(datos: CreateEmpleadoInput) {
             persona: {
                 create: {
                     firstName: datos.persona.firstName,
-                    secondName: datos.persona.secondLastName ?? null,
+                    secondName: datos.persona.secondName ?? null,
                     firstLastName: datos.persona.firstLastName,
                     secondLastName: datos.persona.secondLastName ?? null,
                     typeDocument: datos.persona.typeDocument ?? null,
@@ -62,4 +62,29 @@ export function listarEmpleados () {
             codEmpleado: 'asc',
         },
     })
+}
+
+export function buscarEmpleadoPorId(id: number) {
+    return prisma.empleado.findUnique({
+        where: { id },
+
+        select: {
+            id: true,
+            codEmpleado: true,
+            active: true,
+            personaId: true,
+
+            persona: {
+                select: {
+                    id: true,
+                    firstName: true,
+                    secondName: true,
+                    firstLastName: true,
+                    secondLastName: true,
+                    telephone: true,
+                    correo: true,
+                },
+            },
+        },
+    });
 }

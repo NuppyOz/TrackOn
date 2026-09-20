@@ -1,6 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
-import { createEmpleadoSchema } from "./empleados.schema.js";
+import { createEmpleadoSchema, empleadoParamsSchema } from "./empleados.schema.js";
 import * as empleadosService from './empleados.service.js';
+
+
 
 export async function crearEmpleado(
     req: Request,
@@ -33,5 +35,24 @@ export async function listarEmpleado(
         })
     } catch (error) {
         next(error)
+    }
+}
+
+export async function obtenerEmpleadoPorId(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const { id } = empleadoParamsSchema.parse(req.params);
+
+        const empleado =
+            await empleadosService.obtenerEmpleadoPorId(id);
+
+        res.status(200).json({
+            data: empleado,
+        });
+    } catch (error) {
+        next(error);
     }
 }
