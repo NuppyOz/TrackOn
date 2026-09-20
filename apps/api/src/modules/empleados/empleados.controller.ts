@@ -19,3 +19,19 @@ export async function crearEmpleado(
         next(error)
     }
 }
+
+export async function listarEmpleado(
+    _req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try{
+        const empleados = await empleadosService.listarEmpleados();
+
+        res.status(200).json ({
+            data: empleados,
+        })
+    } catch (error) {
+        next(error)
+    }
+}

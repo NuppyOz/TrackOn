@@ -2,6 +2,7 @@ import { Prisma } from '../../generated/prisma/client.js';
 import { AppError } from '../../errors/AppError.js';
 import * as empleadosRepository from './empleados.repository.js';
 import type { CreateEmpleadoInput } from './empleados.schema.js';
+import type { NextFunction, Response } from 'express';
 
 export async function crearEmpleado(datos:CreateEmpleadoInput) {
     try{
@@ -17,4 +18,8 @@ export async function crearEmpleado(datos:CreateEmpleadoInput) {
         }
         throw error
     }
+}
+
+export function listarEmpleados(){
+    return empleadosRepository.listarEmpleados()
 }

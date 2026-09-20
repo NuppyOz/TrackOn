@@ -40,3 +40,26 @@ export function crearEmpleado(datos: CreateEmpleadoInput) {
         },
     })
 }
+
+export function listarEmpleados () {
+    return prisma.empleado.findMany({
+        select: {
+            id: true,
+            codEmpleado: true,
+            active: true,
+
+            persona:{
+                select: {
+                    firstName: true,
+                    secondName: true,
+                    firstLastName: true,
+                    secondLastName: true,
+                },
+            },
+        },
+
+        orderBy: {
+            codEmpleado: 'asc',
+        },
+    })
+}
