@@ -181,3 +181,36 @@ export function actualizarEmpleado(
         },
     });
 }
+
+export function actualizarEstadoEmpleado(
+    id: number,
+    active: boolean,
+) {
+    return prisma.empleado.update({
+        where: {id},
+        data: {active},
+        select: {
+            id: true,
+            codEmpleado: true,
+            active: true,
+            habilitadoComoTecnico: true,
+        },
+    });
+}
+
+
+export function actualizarHabilitacionTecnica(
+    id: number,
+    habilitadoComoTecnico: boolean,
+) {
+    return prisma.empleado.update({
+        where: {id},
+        data: {habilitadoComoTecnico},
+        select: {
+            id: true,
+            codEmpleado: true,
+            active: true,
+            habilitadoComoTecnico: true,
+        },
+    });
+}

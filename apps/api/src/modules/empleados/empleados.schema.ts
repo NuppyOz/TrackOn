@@ -43,6 +43,24 @@ export const updateEmpleadoSchema = z
         },
     );
 
-export type UpdateEmpleadoInput = z.infer<typeof updateEmpleadoSchema>;
 
+export const updateEstadoEmpleadoSchema = z
+    .strictObject({
+        active: z.boolean({
+            error: 'El estado del empleado debe ser verdadero o falso.',
+        }),
+    });
+
+
+export const updateHabilitacionTecnicaSchema = z
+    .strictObject({
+        habilitadoComoTecnico: z.boolean({
+            error: 'La habilitación técnica debe de ser verdadera o falsa.'
+        }),
+    });
+
+
+export type UpdateHabilitacionTecnicaInput = z.infer<typeof updateHabilitacionTecnicaSchema>
+export type UpdateEstadoEmpleadoInput = z.infer<typeof updateEstadoEmpleadoSchema>
+export type UpdateEmpleadoInput = z.infer<typeof updateEmpleadoSchema>;
 export type CreateEmpleadoInput = z.infer<typeof createEmpleadoSchema>

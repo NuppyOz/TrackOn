@@ -170,6 +170,7 @@ model MiembroCuadrilla {
   id          Int       @id @default(autoincrement())
   cuadrillaId Int
   empleadoId  Int
+  esLider     Boolean   @default(false)
   inicio      DateTime  @default(now()) @db.Timestamptz(6)
   fin         DateTime? @db.Timestamptz(6)
   cuadrilla   Cuadrilla @relation(fields: [cuadrillaId], references: [id], onDelete: Restrict, onUpdate: Cascade)

@@ -120,3 +120,65 @@ export async function actualizarEmpleado(
         throw error;
     }
 }
+
+export async function actualizarEstadoEmpleado(
+    id: number,
+    active: boolean,
+) {
+    const empleado =
+        await empleadosRepository.buscarEmpleadoPorId(id);
+
+    if (!empleado) {
+        throw new AppError(404, 'El empleado no existe.');
+    }
+
+    try {
+        return await empleadosRepository.actualizarEstadoEmpleado(
+            id,
+            active,
+        );
+    } catch (error) {
+        if (
+            error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === 'P2025'
+        ) {
+            throw new AppError(404, 'El empleado no existe.')
+        }
+
+        throw error;
+    }
+}
+
+export async function actualizarHabilitacionTecnica(
+    id: number,
+    habilitadoComoTecnico: boolean,
+) {
+    const empleado =
+        await empleadosRepository.buscarEmpleadoPorId(id);
+
+    if (!empleado) {
+        throw new AppError(404, 'El empleado no existe.');
+    }
+
+    if (!empleado.active && habilitadoComoTecnico) {
+        throw new AppError(409,
+            'No se puede habilitar como técnico a un empleado inactivo'
+        );
+    }
+
+    try {
+        return await empleadosRepository.actualizarHabilitacionTecnica(
+            id,
+            habilitadoComoTecnico,
+        );
+    } catch (error) {
+        if (
+            error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === 'P2025'
+        ) {
+            throw new AppError(404, 'El empleado no existe.');
+        }
+
+        throw error;
+    }
+}

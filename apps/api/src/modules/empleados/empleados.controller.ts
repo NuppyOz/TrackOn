@@ -1,5 +1,11 @@
-import type { Request, Response, NextFunction } from "express";
-import { createEmpleadoSchema, empleadoParamsSchema, updateEmpleadoSchema } from "./empleados.schema.js";
+import { type Request, type Response, type NextFunction, response } from "express";
+import { 
+    createEmpleadoSchema, 
+    empleadoParamsSchema, 
+    updateEmpleadoSchema,
+    updateEstadoEmpleadoSchema,
+    updateHabilitacionTecnicaSchema
+ } from "./empleados.schema.js";
 import * as empleadosService from './empleados.service.js';
 
 
@@ -68,6 +74,53 @@ export async function actualizarEmpleado(
 
         const empleado =
             await empleadosService.actualizarEmpleado(id, datos);
+
+        res.status(200).json({
+            data: empleado,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function actualizarEstadoEmpleado (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    try {
+        const {id} = empleadoParamsSchema.parse(req.params);
+        const {active} = updateEstadoEmpleadoSchema.parse(req.body);
+
+        const empleado = await empleadosService.actualizarEstadoEmpleado(
+            id,
+            active
+        );
+
+        res.status(200).json({
+            data:empleado
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function actualizarHabilitacionTecnica(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const { id } = empleadoParamsSchema.parse(req.params);
+
+        const { habilitadoComoTecnico } =
+            updateHabilitacionTecnicaSchema.parse(req.body);
+
+        const empleado =
+            await empleadosService.actualizarHabilitacionTecnica(
+                id,
+                habilitadoComoTecnico,
+            );
 
         res.status(200).json({
             data: empleado,
