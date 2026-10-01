@@ -14,7 +14,6 @@ import {
 } from '../../security/access-token.js';
 
 import * as authRepository from './auth.repository.js';
-import { findSessionByRefreshTokenHash, revokeSessionByRefreshTokenHash } from './auth.repository.js';
 
 import type {
     LoginInput,
@@ -119,7 +118,7 @@ export async function refreshSession(
         hashRefreshToken(refreshToken);
 
     const session =
-        await findSessionByRefreshTokenHash(
+        await authRepository.findSessionByRefreshTokenHash(
             tokenHash,
         );
 
@@ -177,12 +176,12 @@ export async function refreshSession(
             rol: usuario.rol.cod,
         });
 
-    return {
+        return {
         accessToken,
         tokenType: 'Bearer' as const,
-        expiresIn: 900,
+        expiresIn: ACCESS_TOKEN_SECONDS,
 
-        user: {
+        usuario: {
             id: usuario.id,
             identificador:
                 usuario.identificador,
@@ -204,7 +203,7 @@ export async function logoutSession(
     const tokenHash =
         hashRefreshToken(refreshToken);
 
-    await revokeSessionByRefreshTokenHash(
+    await authRepository.revokeSessionByRefreshTokenHash(
         tokenHash,
     );
 }
