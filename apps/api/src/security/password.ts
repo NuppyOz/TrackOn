@@ -1,4 +1,4 @@
-import { randomBytes, scrypt } from "node:crypto";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
 const KEY_LENGTH = 64;
 const COST = 16384;
@@ -48,4 +48,82 @@ export async function hashPassword(
         derivedKey.toString('base64url'),
     ].join('$');
     
+}
+
+export async function verifyPassword (
+    password: string,
+    storedHash: string
+): Promise<boolean> {
+    const parts = storedHash.split('$');
+
+    if (parts.length !== 6){
+        return false;
+    }
+
+    const [
+        algorithm,
+        costText,
+        blockSizeText,
+        parallelizationText,
+        saltText,
+        hashText,
+    ] = parts;
+
+    if (algorithm !== 'scrypt') {
+        return false;
+    }
+
+    const cost = Number(costText)
+    const blockSize = Number(blockSizeText)
+    const parallelization = Number(parallelizationText)
+
+    if (
+        !Number.isInteger(cost) ||
+        !Number.isInteger(blockSize) ||
+        !Number.isInteger(parallelization)
+    ) {
+        return false
+    }
+
+    try {
+        const salt = Buffer.from(
+            saltText, 'base64url'
+        )
+
+        const expectedHash = Buffer.from(
+            hashText, 'base64url'
+        )
+
+        const actualHash = await new Promise <Buffer>(
+            (resolve, reject) => {
+                scrypt(
+                    password,
+                    salt,
+                    expectedHash.length,
+                    {
+                        cost, blockSize, parallelization, maxmem: MAX_MEMORY
+                    },
+                    (error, derivedKey) => {
+                        if (error) {
+                            reject(error);
+                            return;
+                        }
+
+                        resolve(derivedKey)
+                    },
+                );
+            },
+        );
+        
+        if ( actualHash.length !== expectedHash.length) {
+            return false
+        }
+
+        return timingSafeEqual(
+            actualHash, expectedHash
+        );
+    } catch {
+        return false
+    }
+
 }
