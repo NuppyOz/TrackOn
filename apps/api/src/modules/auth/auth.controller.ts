@@ -161,9 +161,7 @@ export async function me(
         res.status(200).json({
             data: {
                 usuario:
-                    req.auth.usuario,
-                sesionId:
-                    req.auth.sesionId,
+                    req.auth.usuario
             },
         });
     } catch (error) {
