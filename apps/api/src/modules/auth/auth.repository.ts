@@ -119,3 +119,54 @@ export async function revokeSessionByRefreshTokenHash(
         },
     });
 }
+
+export function buscarSesionParaAutenticacion(
+    sesionId: number,
+) {
+    return prisma.sesion.findUnique({
+        where: {
+            id: sesionId,
+        },
+
+        select: {
+            id: true,
+            creadaEn: true,
+            expiraEn: true,
+            revocadaEn: true,
+
+            usuario: {
+                select: {
+                    id: true,
+                    identificador: true,
+                    activo: true,
+
+                    rol: {
+                        select: {
+                            id: true,
+                            cod: true,
+                            nombre: true,
+                        },
+                    },
+
+                    empleado: {
+                        select: {
+                            id: true,
+                            codEmpleado: true,
+                            active: true,
+                            habilitadoComoTecnico: true,
+
+                            persona: {
+                                select: {
+                                    firstName: true,
+                                    secondName: true,
+                                    firstLastName: true,
+                                    secondLastName: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    });
+}
