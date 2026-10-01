@@ -6,6 +6,7 @@ import { prisma } from './infrastructure/prisma.js';
 import { rolesRouter } from './modules/roles/roles.routes.js';
 import { empleadosRouter } from './modules/empleados/empleados.routes.js'
 import { usuariosRouter } from './modules/usuarios/usuarios.routes.js';
+import { authRouter } from './modules/auth/auth.routes.js';
 
 export const app = express();
 app.use(express.json({ limit: '1mb'}))
@@ -38,6 +39,7 @@ app.get('/api/ready', async (_req, res) => {
 app.use('/api/roles', rolesRouter);
 app.use('/api/empleados', empleadosRouter);
 app.use('/api/usuarios', usuariosRouter);
+app.use('/api/auth', authRouter)
 
 // Manejador de errores
 app.use(manageErrors)

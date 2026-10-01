@@ -13,3 +13,9 @@ coverage/
 
 # Cliente generado por Prisma
 apps/api/src/generated/prisma/
+
+# Cookies locales de pruebas
+cookies*.txt
+
+# Script temporal de pruebas para establecer contraseña de test
+apps/api/src/scripts/set-test-password.ts
