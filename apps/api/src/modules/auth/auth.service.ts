@@ -13,6 +13,10 @@ import {
     ACCESS_TOKEN_SECONDS,
 } from '../../security/access-token.js';
 
+import type {
+    VerifiedAccessToken,
+} from '../../security/access-token.js';
+
 import * as authRepository from './auth.repository.js';
 
 import type {
@@ -206,4 +210,81 @@ export async function logoutSession(
     await authRepository.revokeSessionByRefreshTokenHash(
         tokenHash,
     );
+}
+
+export async function validarSesionAutenticada(
+    token: VerifiedAccessToken,
+) {
+    const sesion =
+        await authRepository.buscarSesionParaAutenticacion(
+            token.sesionId,
+        );
+
+    if (!sesion) {
+        throw new AppError(
+            401,
+            'La sesión no es válida.',
+        );
+    }
+
+    if (sesion.revocadaEn) {
+        throw new AppError(
+            401,
+            'La sesión no es válida.',
+        );
+    }
+
+    if (sesion.expiraEn <= new Date()) {
+        throw new AppError(
+            401,
+            'La sesión no es válida.',
+        );
+    }
+
+    const { usuario } = sesion;
+
+    if (usuario.id !== token.usuarioId) {
+        throw new AppError(
+            401,
+            'La sesión no es válida.',
+        );
+    }
+
+    if (!usuario.activo) {
+        throw new AppError(
+            403,
+            'La cuenta de usuario está desactivada.',
+        );
+    }
+
+    if (!usuario.empleado.active) {
+        throw new AppError(
+            403,
+            'El empleado está inactivo.',
+        );
+    }
+
+    if (
+        usuario.rol.cod === 'TEC' &&
+        !usuario.empleado.habilitadoComoTecnico
+    ) {
+        throw new AppError(
+            403,
+            'El empleado no está habilitado como técnico.',
+        );
+    }
+
+    return {
+        sesionId: sesion.id,
+
+        usuario: {
+            id: usuario.id,
+            identificador:
+                usuario.identificador,
+
+            rol: usuario.rol,
+
+            empleado: usuario.empleado,
+        },
+    };
 }

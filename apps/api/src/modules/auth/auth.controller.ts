@@ -144,3 +144,29 @@ export async function logout(
         next(error);
     }
 }
+
+export async function me(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        if (!req.auth) {
+            throw new AppError(
+                401,
+                'Se requiere autenticación.',
+            );
+        }
+
+        res.status(200).json({
+            data: {
+                usuario:
+                    req.auth.usuario,
+                sesionId:
+                    req.auth.sesionId,
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+}
