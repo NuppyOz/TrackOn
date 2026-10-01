@@ -12,4 +12,6 @@ coverage/
 !.env.example
 
 # Cliente generado por Prisma
-apps/api/src/generated/prisma/
+apps/api/src/generated/prisma/cookies*.txt
+cookies*.txt
+apps/api/src/scripts/set-test-password.ts
