@@ -10,7 +10,9 @@ Todas las rutas requieren `Authorization: Bearer <accessToken>`. El usuario y se
 
 ## Interfaz
 
-Después de iniciar sesión, la campana consulta el contador. Al abrirla solicita la primera página y permite cargar más mediante cursor. Marcar una notificación como leída actualiza la fila y el contador localmente. La interfaz tiene estados vacíos, cargando, error y reintento.
+La campana está en la barra superior de `apps/web/src/App.tsx`; su popover está implementado en `apps/web/src/features/notificaciones/NotificationsBell.tsx`. Con una sesión restaurada y válida consulta el contador. Al abrirla solicita la primera página y permite cargar más mediante cursor. Marcar una notificación como leída actualiza la fila y el contador localmente. La interfaz tiene estados vacíos, cargando, error y reintento. Sin sesión muestra un aviso para explicar por qué la bandeja personal no puede consultarse. No hay una página independiente `/notifications` en el router actual.
+
+El cliente HTTP está en `apps/web/src/features/notificaciones/notificaciones.api.ts`. En el backend, las rutas se registran en `apps/api/src/app.ts` y se implementan bajo `apps/api/src/modules/notificaciones/` (rutas, controller, servicio, repositorio y schema). Todas requieren autenticación.
 
 ## Límite funcional actual
 

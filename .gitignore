@@ -27,6 +27,7 @@ apps/api/src/generated/prisma/
 
 # Herramientas, cachés y cobertura
 .cache/
+.scannerwork/
 .vite/
 apps/*/.vite/
 coverage/
