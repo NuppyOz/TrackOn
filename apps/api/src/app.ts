@@ -8,9 +8,15 @@ import { empleadosRouter } from "./modules/empleados/empleados.routes.js";
 import { usuariosRouter } from "./modules/usuarios/usuarios.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { clientesRouter } from "./modules/clientes/clientes.routes.js";
+import { equiposRouter } from './modules/equipos/equipos.routes.js';
+import { serviciosRouter } from './modules/servicios/servicios.routes.js';
+import { cuadrillasRouter } from './modules/cuadrillas/cuadrillas.routes.js';
+import { notificacionesRouter } from './modules/notificaciones/notificaciones.routes.js';
+import { requestObservability } from './middlewares/request-observability.js';
 
 export const app = express();
 app.use(express.json({ limit: '1mb'}))
+app.use(requestObservability);
 
 app.get("/api/health", (_req, res) => {
     res.json({
@@ -41,6 +47,11 @@ app.use('/api/roles', rolesRouter);
 app.use('/api/empleados', empleadosRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/auth', authRouter)
+app.use('/api/clientes', clientesRouter);
+app.use('/api/equipos', equiposRouter);
+app.use('/api/servicios', serviciosRouter);
+app.use('/api/cuadrillas', cuadrillasRouter);
+app.use('/api/notificaciones', notificacionesRouter);
 
 // Manejador de errores
 app.use(manageErrors)
