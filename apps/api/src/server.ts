@@ -1,7 +1,8 @@
 import { app } from './app.js';
 
-const port = 3000;
+const port = Number(process.env.PORT ?? 3000);
+const host = process.env.HOST ?? '0.0.0.0';
 
-app.listen(port, '127.0.0.1', () => {
-    console.log(`API de TrackOn disponible en http://localhost:${port}`);
+app.listen(port, host, () => {
+    console.log(`API de TrackOn disponible en http://${host}:${port}`);
 })

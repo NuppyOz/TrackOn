@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginacionQueryShape } from '../../shared/pagination.js';
 
 const codigoSchema = z.string({ error: 'El código debe ser texto.' })
     .trim().min(1, { error: 'El código es obligatorio.' }).max(30).toUpperCase();
@@ -34,6 +35,7 @@ export const updateEstadoServicioSchema = z.strictObject({
 export const listarServiciosQuerySchema = z.strictObject({
     estado: z.enum(['todos', 'activos', 'inactivos']).default('todos'),
     buscar: z.preprocess((valor) => valor === '' ? undefined : valor, z.string().trim().max(150).optional()),
+    ...paginacionQueryShape,
 });
 
 export type CreateServicioInput = z.infer<typeof createServicioSchema>;

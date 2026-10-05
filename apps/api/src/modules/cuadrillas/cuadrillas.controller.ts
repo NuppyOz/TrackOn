@@ -1,0 +1,13 @@
+import type { NextFunction, Request, Response } from 'express';
+import * as service from './cuadrillas.service.js';
+import { agregarMiembroSchema, createCuadrillaSchema, cuadrillaParamsSchema, definirLiderSchema, listarCuadrillasQuerySchema, miembroParamsSchema, updateCuadrillaSchema, updateEstadoCuadrillaSchema } from './cuadrillas.schema.js';
+
+export async function crear(req: Request, res: Response, next: NextFunction) { try { res.status(201).json({ data: await service.crearCuadrilla(createCuadrillaSchema.parse(req.body)) }); } catch (error) { next(error); } }
+export async function listar(req: Request, res: Response, next: NextFunction) { try { res.json({ data: await service.listarCuadrillas(listarCuadrillasQuerySchema.parse(req.query)) }); } catch (error) { next(error); } }
+export async function listarEmpleados(req: Request, res: Response, next: NextFunction) { try { res.json({ data: await service.listarEmpleadosElegibles() }); } catch (error) { next(error); } }
+export async function obtener(req: Request, res: Response, next: NextFunction) { try { const { id } = cuadrillaParamsSchema.parse(req.params); res.json({ data: await service.obtenerCuadrillaPorId(id) }); } catch (error) { next(error); } }
+export async function actualizar(req: Request, res: Response, next: NextFunction) { try { const { id } = cuadrillaParamsSchema.parse(req.params); res.json({ data: await service.actualizarCuadrilla(id, updateCuadrillaSchema.parse(req.body)) }); } catch (error) { next(error); } }
+export async function actualizarEstado(req: Request, res: Response, next: NextFunction) { try { const { id } = cuadrillaParamsSchema.parse(req.params); const { activa } = updateEstadoCuadrillaSchema.parse(req.body); res.json({ data: await service.actualizarEstadoCuadrilla(id, activa) }); } catch (error) { next(error); } }
+export async function agregarMiembro(req: Request, res: Response, next: NextFunction) { try { const { id } = cuadrillaParamsSchema.parse(req.params); const { empleadoId } = agregarMiembroSchema.parse(req.body); res.status(201).json({ data: await service.agregarMiembro(id, empleadoId) }); } catch (error) { next(error); } }
+export async function retirarMiembro(req: Request, res: Response, next: NextFunction) { try { const { id, miembroId } = miembroParamsSchema.parse(req.params); res.json({ data: await service.retirarMiembro(id, miembroId) }); } catch (error) { next(error); } }
+export async function definirLider(req: Request, res: Response, next: NextFunction) { try { const { id } = cuadrillaParamsSchema.parse(req.params); const { empleadoId } = definirLiderSchema.parse(req.body); res.json({ data: await service.definirLider(id, empleadoId) }); } catch (error) { next(error); } }

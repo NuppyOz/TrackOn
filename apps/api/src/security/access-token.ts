@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { SignJWT } from 'jose';
 
 const ACCESS_TOKEN_SECONDS = 15 * 60;

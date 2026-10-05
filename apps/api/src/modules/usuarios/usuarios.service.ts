@@ -1,4 +1,4 @@
-import { Prisma } from '../../generated/prisma/client.js';
+import { Prisma } from '@prisma/client';
 import { AppError } from '../../errors/AppError.js';
 import { hashPassword } from '../../security/password.js';
 

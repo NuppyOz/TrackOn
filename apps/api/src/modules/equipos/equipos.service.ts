@@ -1,4 +1,4 @@
-import { Prisma } from '../../generated/prisma/client.js';
+import { Prisma } from '@prisma/client';
 import { AppError } from '../../errors/AppError.js';
 import * as repository from './equipos.repository.js';
 import type { CreateEquipoInput, EquipoFilters, UpdateEquipoInput } from './equipos.schema.js';
@@ -10,10 +10,11 @@ async function validarUbicacion(ubicacionId: number) {
 }
 
 function traducirErrorPersistencia(error: unknown): never {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    const prismaError = error as Prisma.PrismaClientKnownRequestError;
+    if (error instanceof Prisma.PrismaClientKnownRequestError && prismaError.code === 'P2002') {
         throw new AppError(409, 'Ya existe un equipo con el mismo código.');
     }
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && prismaError.code === 'P2025') {
         throw new AppError(404, 'El equipo no existe.');
     }
     throw error;

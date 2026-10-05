@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginacionQueryShape } from '../../shared/pagination.js';
 
 const idSchema = z
     .string()
@@ -47,6 +48,7 @@ export const listarEquiposQuerySchema = z.strictObject({
     codigo: queryTexto(40),
     numeroSerie: queryTexto(150),
     estado: z.enum(['todos', 'activos', 'inactivos']).default('activos'),
+    ...paginacionQueryShape,
 });
 
 export type CreateEquipoInput = z.infer<typeof createEquipoSchema>;

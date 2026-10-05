@@ -19,3 +19,31 @@ cookies*.txt
 
 # Script temporal de pruebas para establecer contraseña de test
 apps/api/src/scripts/set-test-password.ts
+
+# Prisma generado y bases locales
+apps/api/src/generated/prisma/
+*.db
+*.db-journal
+
+# Herramientas, cachés y cobertura
+.cache/
+.vite/
+apps/*/.vite/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Archivos de sistema y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# Artefactos de agentes y asistentes locales
+.agents/
+.claude/
+.windsurf/
+skills-lock.json

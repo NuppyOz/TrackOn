@@ -1,5 +1,6 @@
 import { prisma } from '../../infrastructure/prisma.js';
 import type { CreateEquipoInput, EquipoFilters, UpdateEquipoInput } from './equipos.schema.js';
+import { paginaDesde } from '../../shared/pagination.js';
 
 const equipoSelect = {
     id: true,
@@ -45,8 +46,8 @@ export function crearEquipo(datos: CreateEquipoInput) {
     });
 }
 
-export function listarEquipos(filtros: EquipoFilters) {
-    return prisma.equipo.findMany({
+export async function listarEquipos(filtros: EquipoFilters) {
+    const items = await prisma.equipo.findMany({
         where: {
             ...(filtros.estado !== 'todos' ? { activo: filtros.estado === 'activos' } : {}),
             ...(filtros.ubicacionId ? { ubicacionId: filtros.ubicacionId } : {}),
@@ -56,7 +57,10 @@ export function listarEquipos(filtros: EquipoFilters) {
         },
         select: equipoSelect,
         orderBy: { codigo: 'asc' },
+        skip: (filtros.pagina - 1) * filtros.limite,
+        take: filtros.limite + 1,
     });
+    return paginaDesde(items, filtros);
 }
 
 export function buscarEquipoPorId(id: number) {
