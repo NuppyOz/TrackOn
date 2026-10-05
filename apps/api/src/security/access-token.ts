@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { SignJWT, jwtVerify } from 'jose';
 
 const ACCESS_TOKEN_SECONDS = 15 * 60;
@@ -55,62 +56,19 @@ export async function createAccessToken(
         .sign(secretKey);
 }
 
-export async function verifyAccessToken(
-    token: string,
-): Promise<VerifiedAccessToken> {
-    const { payload } =
-        await jwtVerify(
-            token,
-            secretKey,
-            {
-                issuer: 'trackon-api',
-                audience: 'trackon-web',
-                algorithms: ['HS256'],
-            },
-        );
-
-    const usuarioId =
-        Number(payload.sub);
-
-    const sesionId =
-        payload.sid;
-
-    const rol =
-        payload.rol;
-
-    if (
-        !Number.isInteger(usuarioId) ||
-        usuarioId <= 0
-    ) {
-        throw new Error(
-            'El access token no contiene un usuario válido.',
-        );
+export async function verifyAccessToken(token: string): Promise<VerifiedAccessToken> {
+    const { payload } = await jwtVerify(token, secretKey, {
+        issuer: 'trackon-api',
+        audience: 'trackon-web',
+        algorithms: ['HS256'],
+    });
+    const usuarioId = Number(payload.sub);
+    const sesionId = Number(payload.sid);
+    const rol = payload.rol;
+    if (!Number.isSafeInteger(usuarioId) || usuarioId < 1 || !Number.isSafeInteger(sesionId) || sesionId < 1 || typeof rol !== 'string') {
+        throw new Error('El token no contiene claims válidos.');
     }
-
-    if (
-        typeof sesionId !== 'number' ||
-        !Number.isInteger(sesionId) ||
-        sesionId <= 0
-    ) {
-        throw new Error(
-            'El access token no contiene una sesión válida.',
-        );
-    }
-
-    if (
-        typeof rol !== 'string' ||
-        rol.trim().length === 0
-    ) {
-        throw new Error(
-            'El access token no contiene un rol válido.',
-        );
-    }
-
-    return {
-        usuarioId,
-        sesionId,
-        rol,
-    };
+    return { usuarioId, sesionId, rol };
 }
 
 export {
