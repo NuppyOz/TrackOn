@@ -70,8 +70,25 @@ export default function EquiposManager() {
     catch (error) { setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudo cambiar el estado.' }) }
   }
 
+  let titulo = 'Equipos'
+  let descripcion = 'Controla los activos instalados por cliente y ubicación.'
+  if (formularioVisible) {
+    titulo = editando ? 'Editar equipo' : 'Registrar equipo'
+    descripcion = 'Completa la información del activo técnico.'
+  }
+  let textoGuardar = 'Registrar equipo'
+  if (editando) textoGuardar = 'Guardar cambios'
+  if (guardando) textoGuardar = 'Guardando…'
+
+  function contenidoLista() {
+    if (cargando) return <p className="empty">Cargando inventario…</p>
+    if (equipos.length === 0) return <p className="empty">No hay equipos que coincidan con los filtros.</p>
+
+    return <div className="table-wrap"><table><thead><tr><th>Equipo</th><th>Cliente / ubicación</th><th>Serie</th><th>Estado</th><th></th></tr></thead><tbody>{equipos.map((equipo) => <tr key={equipo.id}><td><strong>{equipo.codigo}</strong><span>{equipo.tipo} · {[equipo.marca, equipo.modelo].filter(Boolean).join(' ') || 'Sin marca/modelo'}</span></td><td><strong>{nombreCliente(equipo.ubicacion)}</strong><span>{equipo.ubicacion.nombre}</span></td><td>{equipo.numeroSerie ?? '—'}</td><td><span className={`status ${equipo.activo ? 'active' : 'inactive'}`}>{equipo.activo ? 'Activo' : 'Inactivo'}</span></td><td className="actions"><button type="button" onClick={() => comenzarEdicion(equipo)}>Editar</button><button type="button" onClick={() => void cambiarEstado(equipo)}>{equipo.activo ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody></table></div>
+  }
+
   return <section aria-labelledby="equipos-titulo">
-    <div className="section-heading"><div><p className="eyebrow">Inventario</p><h2 id="equipos-titulo">{formularioVisible ? (editando ? 'Editar equipo' : 'Registrar equipo') : 'Equipos'}</h2><p>{formularioVisible ? 'Completa la información del activo técnico.' : 'Controla los activos instalados por cliente y ubicación.'}</p></div>{!formularioVisible && <button className="primary-button" onClick={() => { cancelarEdicion(); setFormularioVisible(true) }}>+ Registrar equipo</button>}</div>
+    <div className="section-heading"><div><p className="eyebrow">Inventario</p><h2 id="equipos-titulo">{titulo}</h2><p>{descripcion}</p></div>{!formularioVisible && <button type="button" className="primary-button" onClick={() => { cancelarEdicion(); setFormularioVisible(true) }}>+ Registrar equipo</button>}</div>
 
     {mensaje && <div className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</div>}
 
@@ -82,7 +99,7 @@ export default function EquiposManager() {
         <div className="two-columns"><label>Código<input required maxLength={40} value={formulario.codigo} onChange={(e) => input('codigo', e.target.value)} /></label><label>Tipo<input required maxLength={100} value={formulario.tipo} onChange={(e) => input('tipo', e.target.value)} /></label></div>
         <div className="two-columns"><label>Marca<input maxLength={100} value={formulario.marca} onChange={(e) => input('marca', e.target.value)} /></label><label>Modelo<input maxLength={100} value={formulario.modelo} onChange={(e) => input('modelo', e.target.value)} /></label></div>
         <label>Número de serie<input maxLength={150} value={formulario.numeroSerie} onChange={(e) => input('numeroSerie', e.target.value)} /></label>
-        <button className="primary-button" disabled={guardando}>{guardando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Registrar equipo'}</button>
+        <button type="submit" className="primary-button" disabled={guardando}>{textoGuardar}</button>
       </form>}
 
       {!formularioVisible && <div className="card list-card">
@@ -92,9 +109,9 @@ export default function EquiposManager() {
           <input aria-label="Buscar por código" placeholder="Código" value={filtros.codigo} onChange={(e) => setFiltros({ ...filtros, codigo: e.target.value })} />
           <input aria-label="Buscar por serie" placeholder="N.º de serie" value={filtros.numeroSerie} onChange={(e) => setFiltros({ ...filtros, numeroSerie: e.target.value })} />
           <select aria-label="Filtrar por estado" value={filtros.estado} onChange={(e) => setFiltros({ ...filtros, estado: e.target.value as EquipoFiltros['estado'] })}><option value="activos">Activos</option><option value="inactivos">Inactivos</option><option value="todos">Todos</option></select>
-          <button className="secondary-button">Buscar</button>
+          <button type="submit" className="secondary-button">Buscar</button>
         </form>
-        {cargando ? <p className="empty">Cargando inventario…</p> : equipos.length === 0 ? <p className="empty">No hay equipos que coincidan con los filtros.</p> : <div className="table-wrap"><table><thead><tr><th>Equipo</th><th>Cliente / ubicación</th><th>Serie</th><th>Estado</th><th></th></tr></thead><tbody>{equipos.map((equipo) => <tr key={equipo.id}><td><strong>{equipo.codigo}</strong><span>{equipo.tipo} · {[equipo.marca, equipo.modelo].filter(Boolean).join(' ') || 'Sin marca/modelo'}</span></td><td><strong>{nombreCliente(equipo.ubicacion)}</strong><span>{equipo.ubicacion.nombre}</span></td><td>{equipo.numeroSerie ?? '—'}</td><td><span className={`status ${equipo.activo ? 'active' : 'inactive'}`}>{equipo.activo ? 'Activo' : 'Inactivo'}</span></td><td className="actions"><button onClick={() => comenzarEdicion(equipo)}>Editar</button><button onClick={() => void cambiarEstado(equipo)}>{equipo.activo ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody></table></div>}
+        {contenidoLista()}
       </div>}
     </div>
   </section>
