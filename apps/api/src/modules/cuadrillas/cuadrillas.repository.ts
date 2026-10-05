@@ -25,9 +25,13 @@ export function crearCuadrilla(datos: CreateCuadrillaInput) {
 }
 
 export async function listarCuadrillas(filtros: CuadrillaFilters) {
+    let estadoWhere: Prisma.CuadrillaWhereInput = {};
+    if (filtros.estado === 'activas') estadoWhere = { activa: true };
+    else if (filtros.estado === 'inactivas') estadoWhere = { activa: false };
+
     const items = await prisma.cuadrilla.findMany({
         where: {
-            ...(filtros.estado === 'activas' ? { activa: true } : filtros.estado === 'inactivas' ? { activa: false } : {}),
+            ...estadoWhere,
             ...(filtros.nombre ? { nombre: { contains: filtros.nombre, mode: 'insensitive' } } : {}),
         },
         select: cuadrillaSelect,
@@ -55,7 +59,7 @@ export function retirarMiembro(id: number) {
     // Se cierra la vigencia; esLider se conserva como parte del historial de la membresía.
     return prisma.miembroCuadrilla.update({ where: { id }, data: { fin: new Date() }, select: miembroSelect });
 }
-export async function definirLider(cuadrillaId: number, empleadoId: number) {
+export function definirLider(cuadrillaId: number, empleadoId: number) {
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         await tx.miembroCuadrilla.updateMany({ where: { cuadrillaId, fin: null }, data: { esLider: false } });
         await tx.miembroCuadrilla.updateMany({ where: { cuadrillaId, empleadoId, fin: null }, data: { esLider: true } });

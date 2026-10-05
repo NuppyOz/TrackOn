@@ -11,7 +11,9 @@ const fechaRelativa = (date: string) => {
   return new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium' }).format(new Date(date))
 }
 
-export default function NotificationsBell({ habilitada }: { habilitada: boolean }) {
+type NotificationsBellProps = Readonly<{ habilitada: boolean }>
+
+export default function NotificationsBell({ habilitada }: NotificationsBellProps) {
   const [abierto, setAbierto] = useState(false)
   const [items, setItems] = useState<Notificacion[]>([])
   const [noLeidas, setNoLeidas] = useState(0)
@@ -49,5 +51,37 @@ export default function NotificationsBell({ habilitada }: { habilitada: boolean 
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo marcar como leída.') }
   }
 
-  return <div className="notification-area"><button className="notification-button" title="Notificaciones" aria-label={`Notificaciones${noLeidas ? `, ${noLeidas} sin leer` : ''}`} aria-expanded={abierto} onClick={() => void abrir()}><svg aria-hidden="true" viewBox="0 0 24 24" className="notification-icon"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>{noLeidas > 0 && <span className="notification-count">{noLeidas > 99 ? '99+' : noLeidas}</span>}</button>{abierto && <><button className="notification-dismiss" aria-label="Cerrar notificaciones" onClick={() => setAbierto(false)} /><section className="notification-panel" aria-label="Notificaciones"><header><div><h2>Notificaciones</h2><span>{habilitada ? `${noLeidas} sin leer` : 'Bandeja personal'}</span></div><button aria-label="Cerrar" onClick={() => setAbierto(false)}>×</button></header>{!habilitada ? <p className="notification-state">Necesitas una sesión activa para consultar tus notificaciones.</p> : error && <div className="notice error notification-error" role="alert">{error}<button onClick={() => void cargar()}>Reintentar</button></div>}{habilitada && cargando && items.length === 0 ? <p className="notification-state">Cargando notificaciones…</p> : habilitada && items.length === 0 && !error ? <p className="notification-state">No tienes notificaciones.</p> : habilitada && items.length > 0 && <div className="notification-list">{items.map((item) => <button className={`notification-item ${item.leidaEn ? '' : 'unread'}`} key={item.id} onClick={() => void leer(item)}><span className="notification-dot" aria-hidden="true">{item.leidaEn ? '○' : '●'}</span><span className="notification-copy"><strong>{item.tipo.replaceAll('_', ' ')}</strong><span>{item.mensaje}</span><small>{fechaRelativa(item.creadaEn)}{item.ordenId ? ` · OT-${item.ordenId}` : ''}</small></span></button>)}</div>}{habilitada && cursor && <button className="notification-more" disabled={cargando} onClick={() => void cargar(true)}>{cargando ? 'Cargando…' : 'Cargar más'}</button>}</section></>}</div>
+  function contenidoPanel() {
+    if (!habilitada) return <p className="notification-state">Necesitas una sesión activa para consultar tus notificaciones.</p>
+    if (error) return <div className="notice error notification-error" role="alert">{error}<button type="button" onClick={() => void cargar()}>Reintentar</button></div>
+    if (cargando && items.length === 0) return <p className="notification-state">Cargando notificaciones…</p>
+    if (items.length === 0) return <p className="notification-state">No tienes notificaciones.</p>
+
+    return <div className="notification-list">{items.map((item) => {
+      const estadoLectura = item.leidaEn ? '' : 'unread'
+      const identificadorOrden = item.ordenId ? ` · OT-${item.ordenId}` : ''
+      return <button type="button" className={`notification-item ${estadoLectura}`} key={item.id} onClick={() => void leer(item)}>
+        <span className="notification-dot" aria-hidden="true">{item.leidaEn ? '○' : '●'}</span>
+        <span className="notification-copy"><strong>{item.tipo.replaceAll('_', ' ')}</strong><span>{item.mensaje}</span><small>{fechaRelativa(item.creadaEn)}{identificadorOrden}</small></span>
+      </button>
+    })}</div>
+  }
+
+  const etiquetaCampana = noLeidas > 0 ? `Notificaciones, ${noLeidas} sin leer` : 'Notificaciones'
+  const subtituloPanel = habilitada ? `${noLeidas} sin leer` : 'Bandeja personal'
+
+  return <div className="notification-area">
+    <button type="button" className="notification-button" title="Notificaciones" aria-label={etiquetaCampana} aria-expanded={abierto} onClick={() => void abrir()}>
+      <svg aria-hidden="true" viewBox="0 0 24 24" className="notification-icon"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+      {noLeidas > 0 && <span className="notification-count">{noLeidas > 99 ? '99+' : noLeidas}</span>}
+    </button>
+    {abierto && <>
+      <button type="button" className="notification-dismiss" aria-label="Cerrar notificaciones" onClick={() => setAbierto(false)} />
+      <section className="notification-panel" aria-label="Notificaciones">
+        <header><div><h2>Notificaciones</h2><span>{subtituloPanel}</span></div><button type="button" aria-label="Cerrar" onClick={() => setAbierto(false)}>×</button></header>
+        {contenidoPanel()}
+        {habilitada && cursor && <button type="button" className="notification-more" disabled={cargando} onClick={() => void cargar(true)}>{cargando ? 'Cargando…' : 'Cargar más'}</button>}
+      </section>
+    </>}
+  </div>
 }

@@ -5,11 +5,12 @@ import { verifyAccessToken } from '../security/access-token.js';
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
     try {
-        const authorization = req.header('authorization');
-        const match = authorization?.match(/^Bearer\s+(.+)$/i);
-        if (!match) throw new AppError(401, 'Debes iniciar sesión.');
+        const authorization = req.header('authorization')?.trim();
+        const [scheme, ...credentials] = authorization?.split(/\s+/) ?? [];
+        const token = credentials.join(' ');
+        if (scheme?.toLowerCase() !== 'bearer' || !token) throw new AppError(401, 'Debes iniciar sesión.');
         let claims: { usuarioId: number; sesionId: number };
-        try { claims = await verifyAccessToken(match[1]); }
+        try { claims = await verifyAccessToken(token); }
         catch { throw new AppError(401, 'La sesión no es válida o expiró.'); }
         const { usuarioId, sesionId } = claims;
         const session = await prisma.sesion.findFirst({
