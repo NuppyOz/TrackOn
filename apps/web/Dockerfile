@@ -14,7 +14,8 @@ RUN pnpm install --frozen-lockfile --filter web...
 COPY apps/web apps/web
 RUN pnpm --filter web build
 
-FROM nginx:stable-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:stable-alpine AS runtime
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /workspace/apps/web/dist /usr/share/nginx/html
+USER 101
 EXPOSE 8080
