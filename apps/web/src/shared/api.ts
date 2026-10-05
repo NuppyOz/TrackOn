@@ -1,5 +1,8 @@
 export class ApiError extends Error {}
 
+let accessToken: string | null = null
+export function setAccessToken(token: string | null) { accessToken = token }
+
 async function mensajeError(response: Response): Promise<string> {
   try {
     const body: unknown = await response.json()
@@ -24,7 +27,7 @@ async function mensajeError(response: Response): Promise<string> {
 export async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...init?.headers },
     signal: init?.signal ?? AbortSignal.timeout(8000),
   })
   if (!response.ok) throw new ApiError(await mensajeError(response))

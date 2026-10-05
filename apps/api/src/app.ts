@@ -11,6 +11,7 @@ import { equiposRouter } from './modules/equipos/equipos.routes.js';
 import { serviciosRouter } from './modules/servicios/servicios.routes.js';
 import { cuadrillasRouter } from './modules/cuadrillas/cuadrillas.routes.js';
 import { requestObservability } from './middlewares/request-observability.js';
+import { notificacionesRouter } from './modules/notificaciones/notificaciones.routes.js';
 
 export const app = express();
 app.use(express.json({ limit: '1mb'}))
@@ -48,6 +49,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/equipos', equiposRouter);
 app.use('/api/servicios', serviciosRouter);
 app.use('/api/cuadrillas', cuadrillasRouter);
+app.use('/api/notificaciones', notificacionesRouter);
 
 // Manejador de errores
 app.use(manageErrors)
