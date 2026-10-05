@@ -1,101 +1,150 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-function textObligatorio (etiqueta: string, maximo: number) {
+function textObligatorio(etiqueta: string, maximo: number) {
     return z
-    .string({ error: `${etiqueta} debe ser texto`})
-    .trim()
-    .min(1, { error: `${etiqueta} no puede estar vacío.`})
-    .max(maximo, {
-        error: `${etiqueta} no debe superar ${maximo} caracteres.`
-    })
+        .string({
+            error: `${etiqueta} debe ser texto`,
+        })
+        .trim()
+        .min(1, {
+            error: `${etiqueta} no puede estar vacío.`,
+        })
+        .max(maximo, {
+            error: `${etiqueta} no debe superar ${maximo} caracteres.`,
+        });
 }
+
+export const tiposDocumentoPersona = ["CEDULA_NIC", "CEDULA_RESIDENCIA", "PASAPORTE"] as const;
+
+export const tipoDocumentoPersonaSchema = z.enum(tiposDocumentoPersona, {
+    error: "El tipo de documento no es válido.",
+});
+
+export type TipoDocumentoPersona = (typeof tiposDocumentoPersona)[number];
+
+export function normalizarCedulaNicaraguense(numero: string) {
+    return numero.trim().replace(/[\s-]/g, "").toUpperCase();
+}
+
+export function normalizarNumeroDocumento(tipo: TipoDocumentoPersona, numero: string) {
+    if (tipo === "CEDULA_NIC") {
+        return normalizarCedulaNicaraguense(numero);
+    }
+
+    return numero.trim().toUpperCase();
+}
+
+export function esCedulaNicaraguenseValida(numero: string) {
+    const normalizada = normalizarCedulaNicaraguense(numero);
+
+    return /^\d{13}[A-Z]$/.test(normalizada);
+}
+
+const firstNameSchema = textObligatorio("El primer nombre", 100);
+
+const secondNameSchema = textObligatorio("El segundo nombre", 100).nullish();
+
+const firstLastNameSchema = textObligatorio("El primer apellido", 100);
+
+const secondLastNameSchema = textObligatorio("El segundo apellido", 100).nullish();
+
+const typeDocumentSchema = tipoDocumentoPersonaSchema.nullish();
+
+const numberDocumentSchema = textObligatorio("El número de documento", 50).nullish();
+
+const telephoneSchema = textObligatorio("El teléfono", 25).nullish();
+
+const correoSchema = textObligatorio("El correo", 254)
+    .pipe(
+        z.email({
+            error: "El correo no tiene un formato válido.",
+        }),
+    )
+    .nullish();
 
 export const createPersonaSchema = z
     .strictObject({
-        firstName: textObligatorio('El primer nombre', 100),
-        secondName: textObligatorio('El segundo nombre', 100)
-            .nullish(),
-        firstLastName: textObligatorio('El primer apellido', 100),
-        secondLastName: textObligatorio('El segundo apellido', 100)
-            .nullish(),
-        typeDocument: textObligatorio('El tipo de documento', 30)
-            .nullish(),
-        numberDocument: textObligatorio('El número de documento', 50)
-            .nullish(),
-        telephone: textObligatorio('El teléfono', 25)
-            .nullish(),
-        correo: textObligatorio('El correo', 254)
-            .pipe(z.email({ error: 'El correo no tiene un formato válido'}))
-            .nullish(),
-    })
+        firstName: firstNameSchema,
 
+        secondName: secondNameSchema,
+
+        firstLastName: firstLastNameSchema,
+
+        secondLastName: secondLastNameSchema,
+
+        typeDocument: typeDocumentSchema,
+
+        numberDocument: numberDocumentSchema,
+
+        telephone: telephoneSchema,
+
+        correo: correoSchema,
+    })
     .superRefine((persona, contexto) => {
         const tieneTipo = persona.typeDocument != null;
+
         const tieneNumero = persona.numberDocument != null;
 
         if (tieneTipo && !tieneNumero) {
             contexto.addIssue({
-                code: 'custom',
-                path: ['numberDocument'],
-                message: 'Debes indicar el número del documento.'
-            })
+                code: "custom",
+                path: ["numberDocument"],
+                message: "Debes indicar el número del documento.",
+            });
         }
 
         if (tieneNumero && !tieneTipo) {
             contexto.addIssue({
-                code: 'custom',
-                path: ['typeDocument'],
-                message: 'Debes indicar el tipo del docuemnto.'
-            })
+                code: "custom",
+                path: ["typeDocument"],
+                message: "Debes indicar el tipo del documento.",
+            });
+        }
+
+        if (
+            persona.typeDocument === "CEDULA_NIC" &&
+            persona.numberDocument &&
+            !esCedulaNicaraguenseValida(persona.numberDocument)
+        ) {
+            contexto.addIssue({
+                code: "custom",
+                path: ["numberDocument"],
+                message:
+                    "La cédula nicaragüense debe contener 13 cifras y una letra final; puede escribirse con o sin guiones.",
+            });
         }
     })
+    .transform(persona => ({
+        ...persona,
 
+        numberDocument:
+            persona.typeDocument && persona.numberDocument
+                ? normalizarNumeroDocumento(persona.typeDocument, persona.numberDocument)
+                : persona.numberDocument,
+    }));
 
 export const updatePersonaSchema = z
     .strictObject({
-        firstName: createPersonaSchema.shape.firstName.optional(),
-        secondName: createPersonaSchema.shape.secondName.optional(),
+        firstName: firstNameSchema.optional(),
 
-        firstLastName:
-            createPersonaSchema.shape.firstLastName.optional(),
+        secondName: secondNameSchema.optional(),
 
-        secondLastName:
-            createPersonaSchema.shape.secondLastName.optional(),
+        firstLastName: firstLastNameSchema.optional(),
 
-        typeDocument:
-            createPersonaSchema.shape.typeDocument.optional(),
+        secondLastName: secondLastNameSchema.optional(),
 
-        numberDocument:
-            createPersonaSchema.shape.numberDocument.optional(),
+        typeDocument: typeDocumentSchema.optional(),
 
-        telephone: createPersonaSchema.shape.telephone.optional(),
-        correo: createPersonaSchema.shape.correo.optional(),
+        numberDocument: numberDocumentSchema.optional(),
+
+        telephone: telephoneSchema.optional(),
+
+        correo: correoSchema.optional(),
     })
-    .refine(
-        (datos) =>
-            Object.values(datos).some((valor) => valor !== undefined),
-        {
-            error: 'Debes enviar al menos un dato de la persona para actualizar.',
-        },
-    );
+    .refine(datos => Object.values(datos).some(valor => valor !== undefined), {
+        error: "Debes enviar al menos un dato de la persona para actualizar.",
+    });
 
 export type UpdatePersonaInput = z.infer<typeof updatePersonaSchema>;
 
-export type CreatePersonaInput = z.infer<typeof createPersonaSchema>
-
-
-/* @id @default(autoincrement())
-  firstName String  @db.VarChar(100)
-  secondName  String?  @db.VarChar(100)
-  firstLastName String @db.VarChar(100)
-  secondLastName String? @db.VarChar(100)
-  typeDocument String? @db.VarChar(30)
-  numberDocument String? @db.VarChar(50)
-  telephone String? @db.VarChar(25)
-  correo String? @db.VarChar(254)
-
-  @@map("personas")
-}
-
-
-*/
+export type CreatePersonaInput = z.infer<typeof createPersonaSchema>;

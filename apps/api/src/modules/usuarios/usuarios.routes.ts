@@ -1,29 +1,22 @@
-import { Router } from 'express';
-import * as usuariosController from './usuarios.controller.js';
+import { Router } from "express";
+import * as usuariosController from "./usuarios.controller.js";
+
+import { authenticate } from "../../middlewares/authenticate.js";
+
+import { authorize } from "../../middlewares/authorize.js";
+
+import { ROLE_CODES } from "../../security/roles.js";
 
 export const usuariosRouter = Router();
 
-usuariosRouter.post(
-    '/',
-    usuariosController.crearUsuario,
-);
+usuariosRouter.use(authenticate, authorize(ROLE_CODES.ADMIN));
 
-usuariosRouter.get(
-    '/',
-    usuariosController.listarUsuarios,
-);
+usuariosRouter.post("/", usuariosController.crearUsuario);
 
-usuariosRouter.get(
-    '/:id',
-    usuariosController.obtenerUsuarioPorId,
-);
+usuariosRouter.get("/", usuariosController.listarUsuarios);
 
-usuariosRouter.patch(
-    '/:id/estado',
-    usuariosController.actualizarEstadoUsuario,
-);
+usuariosRouter.get("/:id", usuariosController.obtenerUsuarioPorId);
 
-usuariosRouter.patch(
-    '/:id',
-    usuariosController.actualizarUsuario,
-);
+usuariosRouter.patch("/:id/estado", usuariosController.actualizarEstadoUsuario);
+
+usuariosRouter.patch("/:id", usuariosController.actualizarUsuario);

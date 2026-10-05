@@ -1,4 +1,4 @@
-import { SignJWT } from 'jose';
+import { SignJWT, jwtVerify } from 'jose';
 
 const ACCESS_TOKEN_SECONDS = 15 * 60;
 
@@ -26,6 +26,12 @@ type AccessTokenInput = {
     rol: string;
 };
 
+export type VerifiedAccessToken = {
+    usuarioId: number;
+    sesionId: number;
+    rol: string;
+}
+
 export async function createAccessToken(
     datos: AccessTokenInput,
 ): Promise<string> {
@@ -47,6 +53,64 @@ export async function createAccessToken(
             `${ACCESS_TOKEN_SECONDS}s`,
         )
         .sign(secretKey);
+}
+
+export async function verifyAccessToken(
+    token: string,
+): Promise<VerifiedAccessToken> {
+    const { payload } =
+        await jwtVerify(
+            token,
+            secretKey,
+            {
+                issuer: 'trackon-api',
+                audience: 'trackon-web',
+                algorithms: ['HS256'],
+            },
+        );
+
+    const usuarioId =
+        Number(payload.sub);
+
+    const sesionId =
+        payload.sid;
+
+    const rol =
+        payload.rol;
+
+    if (
+        !Number.isInteger(usuarioId) ||
+        usuarioId <= 0
+    ) {
+        throw new Error(
+            'El access token no contiene un usuario válido.',
+        );
+    }
+
+    if (
+        typeof sesionId !== 'number' ||
+        !Number.isInteger(sesionId) ||
+        sesionId <= 0
+    ) {
+        throw new Error(
+            'El access token no contiene una sesión válida.',
+        );
+    }
+
+    if (
+        typeof rol !== 'string' ||
+        rol.trim().length === 0
+    ) {
+        throw new Error(
+            'El access token no contiene un rol válido.',
+        );
+    }
+
+    return {
+        usuarioId,
+        sesionId,
+        rol,
+    };
 }
 
 export {
