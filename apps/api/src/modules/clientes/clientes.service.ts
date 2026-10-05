@@ -58,3 +58,46 @@ export async function crearCliente(datos: CreateClienteInput) {
         throw error;
     }
 }
+
+export async function listarClientes() {
+    return clientesRepository.listarClientes();
+}
+
+export async function obtenerClientePorId(
+    id: number,
+) {
+    const cliente =
+        await clientesRepository
+            .buscarClientePorId(id);
+
+    if (!cliente) {
+        throw new AppError(
+            404,
+            "Cliente no encontrado.",
+        );
+    }
+
+    return cliente;
+}
+
+export async function actualizarEstadoCliente(
+    id: number,
+    activo: boolean,
+) {
+    const cliente =
+        await clientesRepository
+            .buscarClientePorId(id);
+
+    if (!cliente) {
+        throw new AppError(
+            404,
+            "Cliente no encontrado.",
+        );
+    }
+
+    return clientesRepository
+        .actualizarEstadoCliente(
+            id,
+            activo,
+        );
+}

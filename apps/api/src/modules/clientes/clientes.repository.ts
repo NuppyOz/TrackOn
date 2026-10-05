@@ -154,3 +154,37 @@ export function crearCliente(datos: CreateClienteInput, personaIdExistente?: num
         select: clienteSelect,
     });
 }
+
+export function listarClientes() {
+    return prisma.cliente.findMany({
+        select: clienteSelect,
+
+        orderBy: {
+            id: "asc",
+        },
+    });
+}
+
+export function buscarClientePorId(id: number) {
+    return prisma.cliente.findUnique({
+        where: {
+            id,
+        },
+
+        select: clienteSelect,
+    });
+}
+
+export function actualizarEstadoCliente(id: number, activo: boolean) {
+    return prisma.cliente.update({
+        where: {
+            id,
+        },
+
+        data: {
+            activo,
+        },
+
+        select: clienteSelect,
+    });
+}
