@@ -6,7 +6,7 @@ nuevas en cada petición.
 
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../generated/prisma/client.js';
+import { PrismaClient } from '@prisma/client';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -16,7 +16,7 @@ if (!connectionString) {
 
 const adapter = new PrismaPg({ 
     connectionString,
-    connectionTimeoutMillis: 3000, // 30 segundos
+    connectionTimeoutMillis: 3000, // 3 segundos
 });
 
 export const prisma = new PrismaClient({ adapter });

@@ -1,8 +1,2 @@
-body {
-  min-height: 100vh;
-}
-
-.trackon-welcome {
-  max-width: 640px;
-  margin-inline: auto;
-}
+html, body, #root { min-height: 100%; margin: 0; }
+body { min-height: 100vh; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }

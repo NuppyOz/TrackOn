@@ -2,8 +2,9 @@
 // Conserva Int y nombres existentes. Aplicar mediante una migración revisada.
 // Las restricciones CHECK e índices parciales están en restricciones.sql.
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  // prisma-client-js genera el cliente en @prisma/client de forma atómica.
+  // Evita que tsx intente cargar una salida local incompleta.
+  provider = "prisma-client-js"
 }
 
 datasource db {

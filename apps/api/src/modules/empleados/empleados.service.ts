@@ -1,4 +1,4 @@
-import { Prisma } from '../../generated/prisma/client.js';
+import { Prisma } from '@prisma/client';
 import { AppError } from '../../errors/AppError.js';
 import * as empleadosRepository from './empleados.repository.js';
 import type { CreateEmpleadoInput, UpdateEmpleadoInput } from './empleados.schema.js';
