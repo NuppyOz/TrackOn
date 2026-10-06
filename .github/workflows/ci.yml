@@ -1,0 +1,112 @@
+name: TrackOn CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+  pull_request:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trackon-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Show Docker versions
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Build API production image
+        run: |
+          docker build \
+            --target runtime \
+            -f apps/api/Dockerfile \
+            -t trackon-api-ci .
+
+      - name: Build web production image
+        run: |
+          docker build \
+            -f apps/web/Dockerfile \
+            -t trackon-web-ci .
+
+      - name: Build test images
+        run: |
+          docker compose \
+            -f compose.test.yaml \
+            build migrate-test api-test
+
+      - name: Start isolated test database
+        run: |
+          docker compose \
+            -f compose.test.yaml \
+            up -d --wait db-test
+
+      - name: Apply database migrations
+        run: |
+          docker compose \
+            -f compose.test.yaml \
+            run --rm --no-deps migrate-test
+
+      - name: Run API integration tests
+        run: |
+          docker rm -f trackon-api-test-coverage >/dev/null 2>&1 || true
+
+          docker compose \
+            -f compose.test.yaml \
+            run \
+            --name trackon-api-test-coverage \
+            --no-deps \
+            api-test
+
+      - name: Extract coverage report
+        run: |
+          mkdir -p apps/api/coverage
+
+          docker cp \
+            trackon-api-test-coverage:/workspace/apps/api/coverage/lcov.info \
+            apps/api/coverage/lcov.info
+
+          docker rm trackon-api-test-coverage
+
+          sed -i \
+            -e 's#^SF:/workspace/apps/api/#SF:apps/api/#' \
+            -e 's#^SF:src/#SF:apps/api/src/#' \
+            apps/api/coverage/lcov.info
+
+          test -s apps/api/coverage/lcov.info
+
+          echo "LCOV generado correctamente:"
+          grep '^SF:' apps/api/coverage/lcov.info | head
+
+      - name: SonarQube Cloud analysis
+        uses: SonarSource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Cleanup test environment
+        if: always()
+        run: |
+          docker rm -f trackon-api-test-coverage >/dev/null 2>&1 || true
+
+          docker compose \
+            -f compose.test.yaml \
+            down -v --remove-orphans
