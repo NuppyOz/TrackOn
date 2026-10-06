@@ -373,3 +373,107 @@ describe('Rol ADMIN', () => {
         ).toBe('ADMIN');
     });
 });
+
+describe('Notificaciones autenticadas', () => {
+    it('permite listar, contar y marcar una notificación como leída', async () => {
+        const admin =
+            await prisma.usuario.findUniqueOrThrow({
+                where: {
+                    identificador:
+                        cuentas.ADMIN.identificador,
+                },
+                select: {
+                    id: true,
+                },
+            });
+
+        const notificacion =
+            await prisma.notificacion.create({
+                data: {
+                    usuarioId: admin.id,
+                    tipo: 'PRUEBA',
+                    mensaje:
+                        'Notificación creada para pruebas de integración',
+                },
+            });
+
+        const conteoInicial =
+            await request(app)
+                .get(
+                    '/api/notificaciones/unread-count',
+                )
+                .set(
+                    'Authorization',
+                    `Bearer ${token('ADMIN')}`,
+                );
+
+        expect(conteoInicial.status)
+            .toBe(200);
+
+        expect(
+            conteoInicial.body.data.noLeidas,
+        ).toBeGreaterThanOrEqual(1);
+
+        const listado =
+            await request(app)
+                .get('/api/notificaciones')
+                .set(
+                    'Authorization',
+                    `Bearer ${token('ADMIN')}`,
+                );
+
+        expect(listado.status)
+            .toBe(200);
+
+        expect(
+            listado.body.data.items.some(
+                (item: { id: number }) =>
+                    item.id === notificacion.id,
+            ),
+        ).toBe(true);
+
+        const marcada =
+            await request(app)
+                .patch(
+                    `/api/notificaciones/${notificacion.id}/leida`,
+                )
+                .set(
+                    'Authorization',
+                    `Bearer ${token('ADMIN')}`,
+                );
+
+        expect(marcada.status)
+            .toBe(200);
+
+        expect(marcada.body.data.id)
+            .toBe(notificacion.id);
+
+        const guardada =
+            await prisma.notificacion.findUniqueOrThrow({
+                where: {
+                    id: notificacion.id,
+                },
+                select: {
+                    leidaEn: true,
+                },
+            });
+
+        expect(guardada.leidaEn)
+            .not.toBeNull();
+    });
+
+    it('responde 404 al marcar una notificación inexistente', async () => {
+        const respuesta =
+            await request(app)
+                .patch(
+                    '/api/notificaciones/2147483647/leida',
+                )
+                .set(
+                    'Authorization',
+                    `Bearer ${token('ADMIN')}`,
+                );
+
+        expect(respuesta.status)
+            .toBe(404);
+    });
+});
