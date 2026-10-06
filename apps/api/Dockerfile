@@ -25,7 +25,8 @@ RUN pnpm install \
 
 COPY apps/api apps/api
 
-RUN pnpm --filter @trackon/api exec prisma generate \
+RUN DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public" \
+    pnpm --filter @trackon/api exec prisma generate \
     && pnpm --filter @trackon/api build
 
 
