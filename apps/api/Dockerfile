@@ -3,6 +3,7 @@
 FROM node:24-bookworm-slim AS workspace
 
 ENV PNPM_HOME="/pnpm"
+ENV COREPACK_HOME="/corepack"
 ENV PATH="$PNPM_HOME:$PATH"
 
 WORKDIR /workspace
@@ -10,10 +11,11 @@ WORKDIR /workspace
 # Prisma necesita OpenSSL dentro de la imagen.
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends openssl \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN corepack enable \
-    && corepack prepare pnpm@10.34.5 --activate
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p "$COREPACK_HOME" "$PNPM_HOME" \
+    && corepack enable \
+    && corepack prepare pnpm@10.34.5 --activate \
+    && chown -R node:node "$COREPACK_HOME" "$PNPM_HOME"
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/package.json
@@ -37,6 +39,8 @@ RUN DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public" \
 FROM workspace AS migrate
 
 WORKDIR /workspace/apps/api
+
+USER node
 
 CMD ["pnpm", "exec", "prisma", "migrate", "deploy"]
 
@@ -94,5 +98,9 @@ FROM workspace AS test
 ENV NODE_ENV=test
 
 WORKDIR /workspace/apps/api
+
+RUN chown -R node:node /workspace/apps/api
+
+USER node
 
 CMD ["pnpm", "test:coverage"]
