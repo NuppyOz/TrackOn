@@ -83,3 +83,15 @@ USER node
 EXPOSE 3000
 
 CMD ["node", "dist/server.js"]
+
+# ---------------------------------------------------------
+# Tests
+# ---------------------------------------------------------
+
+FROM workspace AS test
+
+ENV NODE_ENV=test
+
+WORKDIR /workspace/apps/api
+
+CMD ["pnpm", "test:coverage"]
