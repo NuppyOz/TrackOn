@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler } from "express";
-import { string, ZodError } from 'zod';
+import { ZodError } from 'zod';
 import { AppError } from "../errors/AppError.js";
 
 export const manageErrors: ErrorRequestHandler = (
