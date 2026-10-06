@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - chore/hardening-ci-tests
 
   pull_request:
     branches:
@@ -67,41 +66,41 @@ jobs:
             -f compose.test.yaml \
             run --rm --no-deps migrate-test
 
-          - name: Run API integration tests
-            run: |
-              docker rm -f trackon-api-test-coverage >/dev/null 2>&1 || true
+      - name: Run API integration tests
+        run: |
+          docker rm -f trackon-api-test-coverage >/dev/null 2>&1 || true
 
-              docker compose \
-                -f compose.test.yaml \
-                run \
-                --name trackon-api-test-coverage \
-                --no-deps \
-                api-test
+          docker compose \
+            -f compose.test.yaml \
+            run \
+            --name trackon-api-test-coverage \
+            --no-deps \
+            api-test
 
-          - name: Extract coverage report
-            run: |
-              mkdir -p apps/api/coverage
+      - name: Extract coverage report
+        run: |
+          mkdir -p apps/api/coverage
 
-              docker cp \
-                trackon-api-test-coverage:/workspace/apps/api/coverage/lcov.info \
-                apps/api/coverage/lcov.info
+          docker cp \
+            trackon-api-test-coverage:/workspace/apps/api/coverage/lcov.info \
+            apps/api/coverage/lcov.info
 
-              docker rm trackon-api-test-coverage
+          docker rm trackon-api-test-coverage
 
-              sed -i \
-                -e 's#^SF:/workspace/apps/api/#SF:apps/api/#' \
-                -e 's#^SF:src/#SF:apps/api/src/#' \
-                apps/api/coverage/lcov.info
+          sed -i \
+            -e 's#^SF:/workspace/apps/api/#SF:apps/api/#' \
+            -e 's#^SF:src/#SF:apps/api/src/#' \
+            apps/api/coverage/lcov.info
 
-              test -s apps/api/coverage/lcov.info
+          test -s apps/api/coverage/lcov.info
 
-              echo "LCOV generado correctamente:"
-              grep '^SF:' apps/api/coverage/lcov.info | head
+          echo "LCOV generado correctamente:"
+          grep '^SF:' apps/api/coverage/lcov.info | head
 
-          - name: SonarQube Cloud analysis
-            uses: SonarSource/sonarqube-scan-action@v7
-            env:
-              SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarQube Cloud analysis
+        uses: SonarSource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Cleanup test environment
         if: always()
