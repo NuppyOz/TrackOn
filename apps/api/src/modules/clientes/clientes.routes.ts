@@ -32,6 +32,13 @@ clientesRouter.get(
 );
 
 clientesRouter.patch(
+    "/:id",
+    authenticate,
+    authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE),
+    clientesController.actualizarCliente,
+);
+
+clientesRouter.patch(
     "/:id/estado",
     authenticate,
     authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE),

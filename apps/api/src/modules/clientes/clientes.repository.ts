@@ -1,6 +1,6 @@
 import { prisma } from "../../infrastructure/prisma.js";
 
-import type { CreateClienteInput } from "./clientes.schema.js";
+import type { CreateClienteInput, UpdateClienteInput } from "./clientes.schema.js";
 
 const clienteSelect = {
     id: true,
@@ -183,6 +183,58 @@ export function actualizarEstadoCliente(id: number, activo: boolean) {
 
         data: {
             activo,
+        },
+
+        select: clienteSelect,
+    });
+}
+
+export function actualizarCliente(
+    id: number,
+    datos: UpdateClienteInput,
+) {
+    return prisma.cliente.update({
+        where: {
+            id,
+        },
+
+        data: {
+            ...(datos.codigo !== undefined
+                ? {
+                      codigo: datos.codigo,
+                  }
+                : {}),
+
+            ...(datos.telefonoComercial !== undefined
+                ? {
+                      telefonoComercial:
+                          datos.telefonoComercial,
+                  }
+                : {}),
+
+            ...(datos.correoComercial !== undefined
+                ? {
+                      correoComercial:
+                          datos.correoComercial,
+                  }
+                : {}),
+
+            ...(datos.persona !== undefined
+                ? {
+                      persona: {
+                          update: datos.persona,
+                      },
+                  }
+                : {}),
+
+            ...(datos.organizacion !== undefined
+                ? {
+                      organizacion: {
+                          update:
+                              datos.organizacion,
+                      },
+                  }
+                : {}),
         },
 
         select: clienteSelect,

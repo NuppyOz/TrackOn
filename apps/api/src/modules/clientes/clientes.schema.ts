@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createPersonaSchema } from "../personas/personas.schema.js";
+import { createPersonaSchema, updatePersonaSchema } from "../personas/personas.schema.js";
 
 const codigoClienteSchema = z
     .string({
@@ -80,6 +80,49 @@ const organizacionSchema = z.strictObject({
         }),
 });
 
+const updateOrganizacionSchema = z
+    .strictObject({
+        razonSocial: z
+            .string({
+                error: "La razón social debe ser texto.",
+            })
+            .trim()
+            .min(1, {
+                error: "La razón social no puede estar vacía.",
+            })
+            .max(200, {
+                error: "La razón social no debe superar 200 caracteres.",
+            })
+            .optional(),
+
+        nombreComercial: z
+            .string({
+                error: "El nombre comercial debe ser texto.",
+            })
+            .trim()
+            .min(1, {
+                error: "El nombre comercial no puede estar vacío.",
+            })
+            .max(200, {
+                error: "El nombre comercial no debe superar 200 caracteres.",
+            })
+            .nullish(),
+
+        identificacionTributaria: z
+            .string({
+                error: "El RUC debe ser texto.",
+            })
+            .trim()
+            .toUpperCase()
+            .regex(/^J\d{13}$/, {
+                error: "El RUC de una persona jurídica debe iniciar con J seguido de 13 dígitos.",
+            })
+            .optional(),
+    })
+    .refine(datos => Object.values(datos).some(valor => valor !== undefined), {
+        error: "Debes enviar al menos un dato de la organización para actualizar.",
+    });
+
 const camposComunesCliente = {
     codigo: codigoClienteSchema,
 
@@ -128,6 +171,25 @@ export const createClienteSchema = z
         }
     });
 
+export const updateClienteSchema = z
+    .strictObject({
+        codigo: codigoClienteSchema.optional(),
+
+        telefonoComercial: telefonoComercialSchema.optional(),
+
+        correoComercial: correoComercialSchema.optional(),
+
+        persona: updatePersonaSchema.optional(),
+
+        organizacion: updateOrganizacionSchema.optional(),
+    })
+    .refine(datos => Object.values(datos).some(valor => valor !== undefined), {
+        error: "Debes enviar al menos un dato del cliente para actualizar.",
+    })
+    .refine(datos => !(datos.persona !== undefined && datos.organizacion !== undefined), {
+        error: "No puedes actualizar datos de persona y organización en la misma operación.",
+    });
+
 export const clienteParamsSchema = z.strictObject({
     id: z
         .string()
@@ -151,3 +213,5 @@ export const updateEstadoClienteSchema = z.strictObject({
 export type CreateClienteInput = z.infer<typeof createClienteSchema>;
 
 export type UpdateEstadoClienteInput = z.infer<typeof updateEstadoClienteSchema>;
+
+export type UpdateClienteInput = z.infer<typeof updateClienteSchema>;
