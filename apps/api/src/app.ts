@@ -17,6 +17,9 @@ import { ubicacionesRouter } from "./modules/ubicaciones/ubicaciones.routes.js";
 
 
 export const app = express();
+
+app.disable("x-powered-by");
+
 app.use(express.json({ limit: '1mb'}))
 app.use(requestObservability);
 
@@ -33,7 +36,7 @@ app.get("/api/ready", async (_req, res) => {
 
         res.status(200).json({
             status: "ok",
-            database: "connected",
+            database: "connected"
         });
     } catch (error: unknown) {
         console.error(
