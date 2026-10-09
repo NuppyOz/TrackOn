@@ -289,7 +289,7 @@ describe("Gestión de clientes", () => {
         await prisma.cliente.deleteMany({
             where: {
                 codigo: {
-                    in: ["TEST-CLI-NAT-01", "TEST-CLI-NAT-02", "TEST-CLI-EMP-01", "TEST-CLI-EMP-02"],
+                    in: ["TEST-CLI-NAT-01", "TEST-CLI-NAT-02", "TEST-CLI-NAT-03", "TEST-CLI-EMP-01", "TEST-CLI-EMP-02"],
                 },
             },
         });
@@ -297,7 +297,7 @@ describe("Gestión de clientes", () => {
         await prisma.persona.deleteMany({
             where: {
                 numberDocument: {
-                    in: ["PASS-TRACKON-001", "PASS-TRACKON-002"],
+                    in: ["PASS-TRACKON-001", "PASS-TRACKON-002", "1234567890123A"],
                 },
             },
         });
@@ -305,7 +305,7 @@ describe("Gestión de clientes", () => {
         await prisma.organizacion.deleteMany({
             where: {
                 identificacionTributaria: {
-                    in: ["J1234567890123", "J9876543210123"],
+                    in: ["J1234567890123", "J9876543210123", "J1111222233334"],
                 },
             },
         });
@@ -509,6 +509,64 @@ describe("Gestión de clientes", () => {
             });
 
         expect(respuesta.status).toBe(403);
+    });
+
+    it("permite actualizar el código de un cliente", async () => {
+        const respuesta = await request(app)
+            .patch(`/api/clientes/${clienteNaturalSecundarioId}`)
+            .set("Authorization", `Bearer ${token("ADMIN")}`)
+            .send({
+                codigo: "TEST-CLI-NAT-03",
+            });
+
+        expect(respuesta.status).toBe(200);
+        expect(respuesta.body.data.codigo).toBe("TEST-CLI-NAT-03");
+    });
+
+    it("permite actualizar y normalizar el documento de un cliente natural", async () => {
+        const respuesta = await request(app)
+            .patch(`/api/clientes/${clienteNaturalId}`)
+            .set("Authorization", `Bearer ${token("ADMIN")}`)
+            .send({
+                persona: {
+                    typeDocument: "CEDULA_NIC",
+                    numberDocument: "123-456789-0123A",
+                },
+            });
+
+        expect(respuesta.status).toBe(200);
+
+        expect(respuesta.body.data.persona.typeDocument).toBe("CEDULA_NIC");
+
+        expect(respuesta.body.data.persona.numberDocument).toBe("1234567890123A");
+    });
+
+    it("rechaza eliminar el documento obligatorio de un cliente natural", async () => {
+        const respuesta = await request(app)
+            .patch(`/api/clientes/${clienteNaturalId}`)
+            .set("Authorization", `Bearer ${token("ADMIN")}`)
+            .send({
+                persona: {
+                    numberDocument: null,
+                },
+            });
+
+        expect(respuesta.status).toBe(400);
+    });
+
+    it("permite actualizar el RUC de una empresa", async () => {
+        const respuesta = await request(app)
+            .patch(`/api/clientes/${clienteEmpresaSecundariaId}`)
+            .set("Authorization", `Bearer ${token("ADMIN")}`)
+            .send({
+                organizacion: {
+                    identificacionTributaria: "J1111222233334",
+                },
+            });
+
+        expect(respuesta.status).toBe(200);
+
+        expect(respuesta.body.data.organizacion.identificacionTributaria).toBe("J1111222233334");
     });
 });
 
