@@ -45,7 +45,11 @@ function textoError(error: unknown, mensaje: string): string {
     return error instanceof Error ? error.message : mensaje;
 }
 
-export default function EquiposManager() {
+interface EquiposManagerProps {
+    puedeGestionar?: boolean;
+}
+
+export default function EquiposManager({ puedeGestionar = true }: Readonly<EquiposManagerProps>) {
     const [equipos, setEquipos] = useState<Equipo[]>([]);
     const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
     const [filtros, setFiltros] = useState<EquipoFiltros>(filtrosIniciales);
@@ -141,12 +145,14 @@ export default function EquiposManager() {
     }
 
     function comenzarRegistro() {
+        if (!puedeGestionar) return;
         cerrarFormulario();
         setMensaje(null);
         setFormularioVisible(true);
     }
 
     function comenzarEdicion(equipo: Equipo) {
+        if (!puedeGestionar) return;
         setEquipoEnEdicion(equipo);
         setFormulario({
             ubicacionId: String(equipo.ubicacion.id),
@@ -185,6 +191,7 @@ export default function EquiposManager() {
 
     async function guardar(event: SyntheticEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (!puedeGestionar) return;
         if (guardando) return;
         setMensaje(null);
         const ubicacionId = Number(formulario.ubicacionId);
@@ -238,6 +245,7 @@ export default function EquiposManager() {
     }
 
     async function cambiarEstado(equipo: Equipo) {
+        if (!puedeGestionar) return;
         if (cambiandoEstadoId !== null) return;
         setCambiandoEstadoId(equipo.id);
         setMensaje(null);
@@ -275,7 +283,7 @@ export default function EquiposManager() {
                     <h2 id="equipos-titulo">{titulo}</h2>
                     <p>{descripcion}</p>
                 </div>
-                {!formularioVisible && (
+                {puedeGestionar && !formularioVisible && (
                     <button className="primary-button" type="button" onClick={comenzarRegistro}>
                         + Registrar equipo
                     </button>
@@ -483,20 +491,25 @@ export default function EquiposManager() {
                                                     </span>
                                                 </td>
                                                 <td className="actions">
-                                                    <button
-                                                        type="button"
-                                                        disabled={cambiandoEstadoId !== null}
-                                                        onClick={() => comenzarEdicion(equipo)}
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        disabled={cambiandoEstadoId !== null}
-                                                        onClick={() => void cambiarEstado(equipo)}
-                                                    >
-                                                        {textoAccionEstado(equipo, cambiandoEstadoId)}
-                                                    </button>
+                                                    {puedeGestionar && (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                disabled={cambiandoEstadoId !== null}
+                                                                onClick={() => comenzarEdicion(equipo)}
+                                                            >
+                                                                Editar
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                disabled={cambiandoEstadoId !== null}
+                                                                onClick={() => void cambiarEstado(equipo)}
+                                                            >
+                                                                {textoAccionEstado(equipo, cambiandoEstadoId)}
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}
