@@ -3,7 +3,7 @@ import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { type UsuarioSesion } from '../features/auth/auth.api';
 
-type Seccion = 'equipos' | 'servicios' | 'cuadrillas';
+type Seccion = 'equipos' | 'servicios' | 'cuadrillas' | 'ordenes';
 
 interface AuthenticatedLayoutProps {
   usuario: UsuarioSesion | null;

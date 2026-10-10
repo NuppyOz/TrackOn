@@ -1,6 +1,6 @@
 import React from 'react';
 
-type Seccion = 'equipos' | 'servicios' | 'cuadrillas';
+type Seccion = 'equipos' | 'servicios' | 'cuadrillas' | 'ordenes';
 
 interface SidebarProps {
   menuAbierto: boolean;
@@ -25,6 +25,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ menuAbierto, seccionActual, on
         <button type="button" className={seccionActual === 'servicios' ? 'selected' : ''} onClick={() => onNavigate('servicios')}><span>≡</span> Servicios</button>
         <button type="button" className={seccionActual === 'cuadrillas' ? 'selected' : ''} onClick={() => onNavigate('cuadrillas')}><span>♟</span> Cuadrillas</button>
         <div className="sidebar-note"><strong>MULTICAS</strong><span>Gestión técnica centralizada</span></div>
+
+        <button 
+        type="button" 
+        className={seccionActual === 'ordenes' ? 'selected' : ''} 
+        onClick={() => onNavigate('ordenes')}
+        >
+        <span>📋</span> Órdenes
+        </button>
+
       </aside>
     </>
   );
