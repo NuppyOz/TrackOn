@@ -1,6 +1,6 @@
 import { api } from '../../shared/api';
 import type { Pagina } from '../../shared/pagination';
-import type { EstadoOrden, FiltrosOrdenes, OrdenDetalle, OrdenNueva, OrdenResumen } from './ordenes.types';
+import type { AsignarOrdenInput, EstadoOrden, FiltrosOrdenes, OrdenDetalle, OrdenNueva, OrdenResumen } from './ordenes.types';
 
 export function listarOrdenes(filtros: FiltrosOrdenes) {
     const query = new URLSearchParams({ pagina: String(filtros.pagina), limite: String(filtros.limite) });
@@ -20,5 +20,11 @@ export function obtenerOrden(id: number) {
 export function cambiarEstadoOrden(id: number, estado: EstadoOrden, motivo: string) {
     return api<OrdenDetalle>(`/api/ordenes/${id}/estado`, {
         method: 'PATCH', body: JSON.stringify({ estado, motivo }),
+    });
+}
+
+export function asignarOrden(id: number, datos: AsignarOrdenInput) {
+    return api<OrdenDetalle>(`/api/ordenes/${id}/asignacion`, {
+        method: 'POST', body: JSON.stringify(datos),
     });
 }

@@ -1,6 +1,7 @@
 import "./App.css";
 import "./shared/styles/figma-ui.css";
 import "./shared/styles/responsive.css";
+import "./shared/styles/asignaciones.css";
 import { useEffect, useState } from "react";
 import EquiposManager from "./features/equipos/EquiposManager";
 import ServiciosManager from "./features/servicios/ServiciosManager";

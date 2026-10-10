@@ -3,6 +3,20 @@ export type EstadoOrden = 'BORRADOR' | 'PENDIENTE' | 'ASIGNADA' | 'EN_EJECUCION'
 
 export type PrioridadOrden = 'BAJA' | 'MEDIA' | 'ALTA' | 'URGENTE';
 
+export interface AsignacionResumen {
+    id: number;
+    inicio: string;
+    motivo: string;
+    cuadrilla: { id: number; nombre: string } | null;
+    empleadoResponsable: { id: number; persona: { firstName: string; firstLastName: string } } | null;
+}
+
+export interface AsignarOrdenInput {
+    cuadrillaId: number;
+    motivo: string;
+    fechaProgramada?: string;
+}
+
 export interface OrdenResumen {
     id: number;
     numero: string;
@@ -18,6 +32,7 @@ export interface OrdenResumen {
     clienteNombreRegistrado: string;
     ubicacionNombreRegistrado: string;
     direccionRegistrada: string;
+    asignaciones?: AsignacionResumen[];
 }
 
 export interface OrdenDetalle extends OrdenResumen {

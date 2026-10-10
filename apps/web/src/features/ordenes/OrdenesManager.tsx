@@ -1,4 +1,5 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
+import AsignarOrdenPanel from './AsignarOrdenPanel';
 import { listarUbicaciones } from '../equipos/equipos.api';
 import type { Ubicacion } from '../equipos/equipos.types';
 import { cambiarEstadoOrden, crearOrden, listarOrdenes, obtenerOrden } from './ordenes.api';
@@ -28,6 +29,8 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
     const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
     const [detalle, setDetalle] = useState<OrdenDetalle | null>(null);
     const [creando, setCreando] = useState(false);
+    const [asignando, setAsignando] = useState(false);
+    const [clienteId, setClienteId] = useState('');
     const [ubicacionId, setUbicacionId] = useState('');
     const [solicitud, setSolicitud] = useState('');
     const [prioridad, setPrioridad] = useState<PrioridadOrden>('MEDIA');
@@ -37,6 +40,19 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
     const [cargando, setCargando] = useState(true);
     const [guardando, setGuardando] = useState(false);
     const [mensaje, setMensaje] = useState<{ tipo: 'error' | 'exito'; texto: string } | null>(null);
+
+    // GET /api/equipos/ubicaciones ya devuelve únicamente ubicaciones activas
+    // con clientes activos. La identidad del cliente deriva de cada ubicación.
+    const clientesDisponibles = Array.from(
+        new Map(ubicaciones.map(item => [item.cliente.id, item])).values(),
+    ).sort((primero, segundo) => nombreCliente(primero).localeCompare(nombreCliente(segundo), 'es'));
+
+    const ubicacionesCliente = ubicaciones.filter(item => String(item.cliente.id) === clienteId);
+
+    function seleccionarCliente(id: string) {
+        setClienteId(id);
+        setUbicacionId('');
+    }
 
     useEffect(() => {
         let vigente = true;
@@ -71,12 +87,16 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
     }
 
     function limpiarFormulario() {
-        setUbicacionId(''); setSolicitud(''); setPrioridad('MEDIA'); setFechaProgramada(''); setCreando(false);
+        setClienteId(''); setUbicacionId(''); setSolicitud(''); setPrioridad('MEDIA'); setFechaProgramada(''); setCreando(false);
     }
 
     async function guardar(event: SyntheticEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!puedeGestionar || guardando) return;
+        if (!clienteId || !ubicacionesCliente.some(item => item.id === Number(ubicacionId))) {
+            setMensaje({ tipo: 'error', texto: 'Selecciona un cliente y una de sus ubicaciones activas.' });
+            return;
+        }
         setGuardando(true); setMensaje(null);
         try {
             const datos: OrdenNueva = {
@@ -99,6 +119,7 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
         try {
             const orden = await obtenerOrden(id);
             setDetalle(orden);
+            setAsignando(false);
             setNuevoEstado(''); setMotivo('');
         } catch (error) {
             mostrarError(error, 'No se pudo consultar la orden.');
@@ -140,7 +161,7 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
                             {nombreEstado(detalle.estadoCodigo)}
                         </span>
                     </div>
-                    <button type="button" className="tk-action-button" onClick={() => setDetalle(null)}>
+                    <button type="button" className="tk-action-button" onClick={() => { setAsignando(false); setDetalle(null); }}>
                         Cerrar detalle
                     </button>
                 </div>
@@ -152,6 +173,24 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
                         <p>{detalle.fechaProgramada ? fecha(detalle.fechaProgramada) : 'Sin programar'}</p>
                     </div>
                 </div>
+                <div className="tk-assignment-overview">
+                    <h4>Asignación actual</h4>
+                    <p>{detalle.asignaciones?.[0]?.cuadrilla?.nombre ?? 'Sin asignar'}</p>
+                    {detalle.asignaciones?.[0]?.empleadoResponsable && (
+                        <small>{`${detalle.asignaciones[0].empleadoResponsable.persona.firstName} ${detalle.asignaciones[0].empleadoResponsable.persona.firstLastName}`}</small>
+                    )}
+                </div>
+                {puedeGestionar && detalle.estadoCodigo === 'PENDIENTE' && (
+                    asignando ? <AsignarOrdenPanel orden={detalle} onCancel={() => setAsignando(false)}
+                        onAssigned={ordenActualizada => {
+                            setDetalle(ordenActualizada);
+                            setAsignando(false);
+                            setMensaje({ tipo: 'exito', texto: 'Orden asignada correctamente.' });
+                            void cargar();
+                        }} /> : <button type="button" className="primary-button" onClick={() => setAsignando(true)}>
+                        Asignar orden
+                    </button>
+                )}
                 <h4>Historial de estados</h4>
                 {detalle.historial.length === 0 ? (
                     <p>Sin movimientos.</p>
@@ -226,8 +265,10 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
                                     <small className="tk-order-desc" title={orden.solicitud}>{orden.solicitud}</small>
                                 </td>
                                 <td data-label="Asignación">
-                                    <strong className="tk-cell-muted">Sin asignar</strong>
-                                    <small>{orden.ubicacionNombreRegistrado}</small>
+                                    <strong className="tk-cell-muted">{orden.asignaciones?.[0]?.cuadrilla?.nombre ?? 'Sin asignar'}</strong>
+                                    <small>{orden.asignaciones?.[0]?.empleadoResponsable
+                                        ? `${orden.asignaciones[0].empleadoResponsable.persona.firstName} ${orden.asignaciones[0].empleadoResponsable.persona.firstLastName}`
+                                        : orden.ubicacionNombreRegistrado}</small>
                                 </td>
                                 <td data-label="Programación">
                                     <strong>{orden.fechaProgramada ? fecha(orden.fechaProgramada) : 'Sin programar'}</strong>
@@ -259,17 +300,34 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
                         <button type="button" className="text-button" onClick={limpiarFormulario}>Cancelar</button>
                     </div>
                     <div className="tk-form-fields">
-                        <label className="tk-wide">Ubicación
-                            <select aria-label="Ubicación" required value={ubicacionId}
-                                onChange={event => setUbicacionId(event.target.value)}>
-                                <option value="">Selecciona una ubicación</option>
-                                {ubicaciones.map(item => (
-                                    <option key={item.id} value={item.id}>
-                                        {nombreCliente(item)} · {item.nombre}
+                        <label>Cliente *
+                            <select aria-label="Cliente" required value={clienteId}
+                                onChange={event => seleccionarCliente(event.target.value)}>
+                                <option value="">Selecciona un cliente</option>
+                                {clientesDisponibles.map(item => (
+                                    <option key={item.cliente.id} value={item.cliente.id}>
+                                        {nombreCliente(item)} · {item.cliente.codigo}
                                     </option>
                                 ))}
                             </select>
                         </label>
+                        <label>Ubicación *
+                            <select aria-label="Ubicación" required value={ubicacionId}
+                                disabled={!clienteId}
+                                onChange={event => setUbicacionId(event.target.value)}>
+                                <option value="">{clienteId ? 'Selecciona una ubicación' : 'Selecciona primero un cliente'}</option>
+                                {ubicacionesCliente.map(item => (
+                                    <option key={item.id} value={item.id}>
+                                        {item.nombre} · {item.direccion}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        {clientesDisponibles.length === 0 && (
+                            <p className="tk-wide form-hint" role="status">
+                                No hay clientes con ubicaciones activas. Registra primero una ubicación para crear la orden.
+                            </p>
+                        )}
                         <label>Prioridad
                             <select aria-label="Prioridad" value={prioridad}
                                 onChange={event => setPrioridad(event.target.value as PrioridadOrden)}>
@@ -301,7 +359,7 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
                     <p>Esta orden se guardará con el cliente y la dirección de la ubicación seleccionada.</p>
                     <ul>
                         <li>Estado inicial: pendiente</li>
-                        <li>Asignación: disponible en una fase posterior</li>
+                        <li>Asignación: desde el detalle de la orden pendiente</li>
                         <li>El número de OT lo genera el sistema</li>
                     </ul>
                 </aside>

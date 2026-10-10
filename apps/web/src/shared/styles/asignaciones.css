@@ -1,0 +1,13 @@
+/* Pantalla de asignación: Figma Desktop / Administración / Asignar orden. */
+.tk-orders .tk-assign-layout { display:grid; grid-template-columns:minmax(0,2fr) minmax(220px,1fr); gap:18px; align-items:start; margin:18px 0; }
+.tk-orders .tk-assign-form { min-width:0; padding:20px; }
+.tk-orders .tk-assign-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.tk-orders .tk-assign-fields label { display:flex; flex-direction:column; min-width:0; gap:7px; color:#202124; font-size:12px; font-weight:600; }
+.tk-orders .tk-assign-fields input, .tk-orders .tk-assign-fields select, .tk-orders .tk-assign-fields textarea { box-sizing:border-box; display:block; width:100%; min-width:0; padding:10px 12px; border:1px solid #dbdbdb; border-radius:6px; background:#fff; color:#202124; font:inherit; font-size:14px; }
+.tk-orders .tk-assign-fields input[readonly] { background:#f7f6fa; }
+.tk-orders .tk-assign-fields .tk-assign-wide { grid-column:1/-1; }
+.tk-orders .tk-assign-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:10px; margin-top:22px; }
+.tk-orders .tk-assign-layout .tk-summary-panel { min-width:0; }
+.tk-orders .tk-assign-layout .tk-summary-panel h4 { margin:0 0 16px; font-size:15px; color:#2f254d; }
+@media(max-width:1100px){ .tk-orders .tk-assign-layout { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:600px){ .tk-orders .tk-assign-fields { grid-template-columns:minmax(0,1fr); } .tk-orders .tk-assign-actions button { flex:1 1 100%; } }

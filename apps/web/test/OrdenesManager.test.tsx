@@ -104,6 +104,7 @@ describe('Gestión web de órdenes de trabajo', () => {
         render(<OrdenesManager />);
         await esperarListado();
         abrirAlta();
+        fireEvent.change(screen.getByRole('combobox', { name: 'Cliente' }), { target: { value: '2' } });
         fireEvent.change(screen.getByRole('combobox', { name: 'Ubicación' }), { target: { value: '3' } });
         fireEvent.change(screen.getByRole('textbox', { name: 'Solicitud' }), { target: { value: 'Revisar el compresor' } });
         fireEvent.change(screen.getByRole('combobox', { name: 'Prioridad' }), { target: { value: 'URGENTE' } });
@@ -119,6 +120,7 @@ describe('Gestión web de órdenes de trabajo', () => {
         render(<OrdenesManager />);
         await esperarListado();
         abrirAlta();
+        fireEvent.change(screen.getByRole('combobox', { name: 'Cliente' }), { target: { value: '2' } });
         fireEvent.change(screen.getByRole('combobox', { name: 'Ubicación' }), { target: { value: '3' } });
         fireEvent.change(screen.getByRole('textbox', { name: 'Solicitud' }), { target: { value: 'Revisar el compresor' } });
         fireEvent.click(screen.getByRole('button', { name: 'Registrar orden' }));
