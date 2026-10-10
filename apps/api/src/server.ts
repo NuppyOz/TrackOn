@@ -1,5 +1,7 @@
 import { app } from './app.js';
 import { prisma } from './infrastructure/prisma.js';
+import ordenesRoutes from './features/ordenes/ordenes.routes.js';
+app.use('/api/ordenes', ordenesRoutes);
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '0.0.0.0';

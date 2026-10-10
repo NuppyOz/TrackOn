@@ -1,20 +1,26 @@
-import { Outlet } from 'react-router-dom';
-import { Sidebar } from './Sidebar';
-import { Header } from './Header';
+import { NavLink } from 'react-router-dom';
 
-export function MainLayout() {
+export function Sidebar({ menuAbierto, onCloseMenu }: Readonly<{ 
+  menuAbierto: boolean; 
+  onCloseMenu: () => void 
+}>) {
   return (
-    <div className="flex h-screen bg-gray-50 font-sans">
-      <Sidebar />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+    <>
+      {menuAbierto && <button type="button" className="nav-backdrop" aria-label="Cerrar navegación" onClick={onCloseMenu} />}
+      <aside className={`sidebar ${menuAbierto ? 'sidebar--open' : ''}`}>
+        <div className="sidebar-mobile-title">
+          <strong>TrackOn</strong>
+          <button type="button" aria-label="Cerrar navegación" onClick={onCloseMenu}>×</button>
+        </div>
+        <p>GESTIÓN OPERATIVA</p>
         
-        {/* El Outlet es donde React Router inyectará las diferentes pantallas */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-8">
-          <Outlet /> 
-        </main>
-      </div>
-    </div>
+        <NavLink to="/ordenes" className={({isActive}) => isActive ? 'selected' : ''} onClick={onCloseMenu}><span>📋</span> Órdenes</NavLink>
+        <NavLink to="/equipos" className={({isActive}) => isActive ? 'selected' : ''} onClick={onCloseMenu}><span>▣</span> Equipos</NavLink>
+        <NavLink to="/servicios" className={({isActive}) => isActive ? 'selected' : ''} onClick={onCloseMenu}><span>≡</span> Servicios</NavLink>
+        <NavLink to="/cuadrillas" className={({isActive}) => isActive ? 'selected' : ''} onClick={onCloseMenu}><span>♟</span> Cuadrillas</NavLink>
+        
+        <div className="sidebar-note"><strong>MULTICAS</strong><span>Gestión técnica centralizada</span></div>
+      </aside>
+    </>
   );
 }

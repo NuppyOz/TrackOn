@@ -1,14 +1,28 @@
-export function Header() {
+import NotificationsBell from '../../features/notificaciones/NotificationsBell';
+import { type UsuarioSesion } from '../../features/auth/auth.api';
+
+export function Header({ usuario, onOpenMenu, onLogout }: Readonly<{
+  usuario: UsuarioSesion | null;
+  onOpenMenu: () => void;
+  onLogout: () => void;
+}>) {
+  const nombre = usuario
+    ? `${usuario.empleado.persona.firstName} ${usuario.empleado.persona.firstLastName}`
+    : 'Operaciones';
+  const iniciales = usuario
+    ? `${usuario.empleado.persona.firstName.slice(0, 1)}${usuario.empleado.persona.firstLastName.slice(0, 1)}`
+    : 'MC';
+
   return (
-    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-8 shadow-sm">
-      <h1 className="text-xl font-semibold text-gray-800">Panel de Control</h1>
-      
-      <div className="flex items-center gap-4">
-        <div className="text-sm font-medium text-gray-600">
-          Hola, <span className="font-bold text-blue-600">Jeremy</span>
-        </div>
-        <button className="bg-red-50 text-red-600 px-4 py-2 rounded-md font-medium hover:bg-red-100 transition-colors">
-          Cerrar sesión
+    <header className="topbar">
+      <button type="button" className="menu-toggle" aria-label="Abrir navegación" onClick={onOpenMenu}>☰</button>
+      <img className="brand-logo" src="/logo-multicas.png" alt="MULTICAS" />
+      <div className="brand"><strong>TrackOn</strong><span>MULTICAS S.A.</span></div>
+      <div className="topbar-context">
+        <span>{nombre}</span>
+        <NotificationsBell habilitada={Boolean(usuario)} />
+        <button type="button" className="avatar avatar-button" aria-label={usuario ? 'Cerrar sesión' : 'MULTICAS'} title={usuario ? 'Cerrar sesión' : 'MULTICAS'} onClick={usuario ? onLogout : undefined}>
+          {iniciales}
         </button>
       </div>
     </header>
