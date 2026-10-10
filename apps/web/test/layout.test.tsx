@@ -17,7 +17,8 @@ describe("Layout responsive de TrackOn", () => {
             acciones={<span>Acción especial</span>}
         />);
         expect(screen.getByText("TrackOn")).toBeTruthy();
-        expect(screen.getByText("Usuario de prueba · Administrador")).toBeTruthy();
+        expect(screen.getByText("Usuario de prueba")).toBeTruthy();
+        expect(screen.getByText("Administrador")).toBeTruthy();
         expect(screen.getByText("Acción especial")).toBeTruthy();
         expect(screen.getByRole("img", { name: "MULTICAS" })).toBeTruthy();
         fireEvent.click(screen.getByRole("button", { name: "Abrir navegación" }));

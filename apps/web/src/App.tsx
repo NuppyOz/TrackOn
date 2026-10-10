@@ -1,7 +1,9 @@
 import "./App.css";
+import "./shared/styles/figma-ui.css";
 import { useEffect, useState } from "react";
 import EquiposManager from "./features/equipos/EquiposManager";
 import ServiciosManager from "./features/servicios/ServiciosManager";
+import OrdenesManager from "./features/ordenes/OrdenesManager";
 import CuadrillasManager from "./features/cuadrillas/CuadrillasManager";
 import NotificationsBell from "./features/notificaciones/NotificationsBell";
 import LoginPage from "./features/auth/LoginPage";
@@ -21,6 +23,9 @@ function ModuleContent({ seccion, puedeGestionar }: Readonly<ModuleContentProps>
 
         case "servicios":
             return <ServiciosManager puedeGestionar={puedeGestionar} />;
+
+        case "ordenes":
+            return <OrdenesManager puedeGestionar={puedeGestionar} />;
 
         case "cuadrillas":
             return puedeGestionar ? (
