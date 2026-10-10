@@ -1,11 +1,13 @@
 import axios from 'axios';
 
+
 // 1. Creamos la instancia base apuntando a tu backend
 export const apiClient = axios.create({
-  baseURL: 'http://localhost:3000/api', // El puerto donde corre tu backend
+  // ¡Esta línea es la clave para solucionar el error!
+  baseURL: 'http://localhost:3000/api', 
   headers: {
-    'Content-Type': 'application/json',
-  },
+    'Content-Type': 'application/json'
+  }
 });
 
 // 2. Interceptor de Petición: Antes de enviar cualquier cosa al backend, inyecta el token
@@ -29,4 +31,5 @@ apiClient.interceptors.response.use(
     }
     return Promise.reject(error);
   }
+
 );
