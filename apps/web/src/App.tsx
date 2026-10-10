@@ -1,9 +1,12 @@
 import "./App.css";
+import "./shared/styles/clientes.css";
+import "./shared/styles/ordenes-equipos.css";
 import "./shared/styles/figma-ui.css";
 import "./shared/styles/responsive.css";
 import "./shared/styles/asignaciones.css";
 import { useEffect, useState } from "react";
 import EquiposManager from "./features/equipos/EquiposManager";
+import ClientesManager from "./features/clientes/ClientesManager";
 import ServiciosManager from "./features/servicios/ServiciosManager";
 import OrdenesManager from "./features/ordenes/OrdenesManager";
 import CuadrillasManager from "./features/cuadrillas/CuadrillasManager";
@@ -20,6 +23,9 @@ interface ModuleContentProps {
 
 function ModuleContent({ seccion, puedeGestionar }: Readonly<ModuleContentProps>) {
     switch (seccion) {
+        case "clientes":
+            return <ClientesManager puedeGestionar={puedeGestionar} />;
+
         case "equipos":
             return <EquiposManager puedeGestionar={puedeGestionar} />;
 
