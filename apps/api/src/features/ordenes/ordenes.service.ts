@@ -1,19 +1,18 @@
-import { PrismaClient, PrioridadOrden } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
+import { prisma } from '../../infrastructure/prisma.js';
+import { PrioridadOrden } from '@prisma/client';
 export class OrdenesService {
-  
   static async crearOrden(data: any, creadorId: number) {
     // 1. Buscar la ubicación y su cliente asociado para crear el Snapshot (RN-02)
+    console.log("Datos recibidos:", data);
     const ubicacion = await prisma.ubicacion.findUnique({
-      where: { id: data.ubicacionId },
+      where: { id: Number(data.ubicacionId) },
       include: {
         cliente: {
           include: { persona: true, organizacion: true }
         }
       }
     });
+
 
     if (!ubicacion) {
       throw new Error('La ubicación especificada no existe.');
@@ -79,4 +78,47 @@ export class OrdenesService {
       numero: orden.numero.toString()
     }));
   }
+
+  //TK 8
+  // Agrega este método dentro de la clase OrdenesService
+  static async cambiarEstado(ordenId: number, nuevoEstado: string, cambiadoPorId: number, motivo?: string) {
+    // 1. Buscar la orden actual para saber cuál era su estado anterior
+    console.log("ID que llega a Prisma:", ordenId, "Tipo:", typeof ordenId);
+    const ordenActual = await prisma.ordenTrabajo.findUnique({
+    where: { id: Number(ordenId) }
+    });
+    if (!ordenActual) {
+      throw new Error('La orden especificada no existe.');
+    }
+
+    if (ordenActual.estadoCodigo === nuevoEstado) {
+      throw new Error('La orden ya se encuentra en este estado.');
+    }
+
+    // 2. Ejecutar la actualización y el registro histórico en una sola transacción
+    const [ordenActualizada, historial] = await prisma.$transaction([
+      // A. Actualizar el estado en la orden
+      prisma.ordenTrabajo.update({
+        where: { id: ordenId },
+        data: { estadoCodigo: nuevoEstado }
+      }),
+      // B. Crear el registro en la tabla de historial
+      prisma.historialEstado.create({
+        data: {
+          ordenId: ordenId,
+          estadoAnterior: ordenActual.estadoCodigo,
+          estadoNuevo: nuevoEstado,
+          cambiadoPorId: cambiadoPorId,
+          motivo: motivo || 'Actualización de estado operativo',
+        }
+      })
+    ]);
+
+    return {
+      orden: { ...ordenActualizada, numero: ordenActualizada.numero.toString() },
+      historial
+    };
+  }
+
 }
+
