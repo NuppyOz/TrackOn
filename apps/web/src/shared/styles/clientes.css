@@ -1,0 +1,63 @@
+/* Clientes: patrones visuales de TrackOn High Fidelity, desktop/tablet/mobile. */
+.tk-clientes { max-width: 1200px; width: 100%; margin-inline: auto; min-width: 0; }
+.tk-clientes-breadcrumb { color: #087db5; font-size: 12px; margin-bottom: 16px; }
+.tk-clientes-breadcrumb strong { color: #2f254d; }
+.tk-clientes-heading { align-items: flex-start; }
+.tk-clientes-heading h2 { font-size: clamp(24px, 2.5vw, 30px); overflow-wrap: anywhere; }
+.tk-clientes-heading > button { flex-shrink: 0; }
+.tk-clientes-filtros { padding: 20px; display: grid; grid-template-columns: minmax(180px, 1fr) 200px 180px; gap: 16px; margin-bottom: 18px; }
+.tk-clientes-filtros label { display: grid; gap: 7px; font-size: 13px; color: #202124; font-weight: 600; min-width: 0; }
+.tk-clientes-filtros input,.tk-clientes-filtros select { width: 100%; min-width: 0; min-height: 42px; padding: 8px 12px; border: 1px solid #e4e3ea; border-radius: 6px; background: #fff; color: #202124; }
+.tk-clientes-filtros input:focus-visible,.tk-clientes-filtros select:focus-visible { outline: 2px solid #129fdc; outline-offset: 1px; }
+.tk-clientes-tabla th { background: #f3f1f6; color: #666b73; font-size: 11px; text-transform: none; letter-spacing: 0; }
+.tk-clientes-tabla td { padding-block: 16px; }
+.tk-clientes-tabla td > span:not(.status) { margin-top: 4px; font-size: 11px; }
+.tk-clientes-form { max-width: 880px; width: 100%; gap: 18px; }
+.tk-clientes-section-title { font-size: 12px; color: #2f254d; font-weight: 700; letter-spacing: .055em; margin: 12px 0 0; padding-bottom: 10px; border-bottom: 1px solid #e6e2ec; }
+.tk-clientes-actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; }
+.tk-clientes-detalle-estado { padding: 20px 24px; display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 20px; }
+.tk-clientes-detalle-estado strong { color: #087db5; }
+.tk-clientes-detalle-estado p { font-size: 13px; color: #666b73; margin: 6px 0; }
+.tk-clientes-ubicaciones { padding: 22px; min-width: 0; }
+.tk-clientes-ubicaciones-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+.tk-clientes-ubicaciones-heading h3 { font-size: 19px; color: #2f254d; margin: 0 0 8px; }
+.tk-clientes-ubicaciones-heading p { color: #666b73; font-size: 13px; margin: 0; }
+.tk-clientes-ubicacion-form { background: #f9f8fb; border: 1px solid #e6e2ec; border-radius: 8px; margin-block: 18px; }
+.tk-clientes-ubicaciones-list { display: grid; gap: 10px; }
+.tk-clientes-ubicacion-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; border: 1px solid #e6e2ec; border-radius: 8px; padding: 16px; background: #fff; }
+.tk-clientes-ubicacion-item > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+.tk-clientes-ubicacion-item strong { font-size: 14px; color: #2f254d; }
+.tk-clientes-ubicacion-item p { color: #666b73; margin: 5px 0; font-size: 13px; }
+.tk-clientes-ubicacion-item small { color: #666b73; }
+.tk-clientes-item-actions { display: flex; align-items: center; gap: 10px; }
+.tk-clientes-pagination { display: flex; gap: 12px; align-items: center; justify-content: flex-end; margin-top: 16px; color: #666b73; font-size: 13px; }
+@media (max-width: 1024px) {
+  .tk-clientes-filtros { grid-template-columns: minmax(0, 1fr) minmax(150px, 1fr); }
+  .tk-clientes-filtros label:first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 700px) {
+  .tk-clientes-filtros { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .tk-clientes-filtros label:first-child { grid-column: auto; }
+  .tk-clientes-heading { flex-direction: column; }
+  .tk-clientes-heading > button { width: 100%; }
+  .tk-clientes-form { padding: 18px; }
+  .tk-clientes-form .two-columns,.tk-clientes-ubicacion-form .two-columns { grid-template-columns: minmax(0, 1fr); }
+  .tk-clientes-tabla thead { display: none; }
+  .tk-clientes-tabla,.tk-clientes-tabla tbody { display: block; width: 100%; }
+  .tk-clientes-tabla tr { display: grid; padding: 14px 16px; border-bottom: 1px solid #e6e2ec; }
+  .tk-clientes-tabla td { display: grid; grid-template-columns: minmax(88px, 0.38fr) minmax(0, 1fr); gap: 8px; padding: 6px 0; border-bottom: 0; font-size: 12px; align-items: start; overflow-wrap: anywhere; }
+  .tk-clientes-tabla td::before { content: attr(data-label); color: #666b73; font-weight: 600; font-size: 11px; }
+  .tk-clientes-tabla td > span:not(.status) { grid-column: 2; }
+  .tk-clientes-tabla td .secondary-button { justify-self: start; }
+  .tk-clientes-detalle-estado { flex-direction: column; align-items: stretch; }
+  .tk-clientes-ubicaciones { padding: 16px; }
+  .tk-clientes-ubicaciones-heading { align-items: stretch; flex-direction: column; }
+  .tk-clientes-ubicacion-item { align-items: stretch; flex-direction: column; }
+  .tk-clientes-item-actions { justify-content: space-between; }
+  .tk-clientes-pagination { flex-wrap: wrap; justify-content: center; }
+}
+@media (max-width: 390px) {
+  .tk-clientes-actions { flex-direction: column-reverse; }
+  .tk-clientes-actions button { width: 100%; }
+  .tk-clientes-tabla td { grid-template-columns: 78px minmax(0, 1fr); }
+}

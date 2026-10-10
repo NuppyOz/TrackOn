@@ -1,4 +1,4 @@
-export type Seccion = "equipos" | "servicios" | "ordenes" | "cuadrillas";
+export type Seccion = "clientes" | "equipos" | "servicios" | "ordenes" | "cuadrillas";
 
 interface SidebarProps {
     seccion: Seccion;
@@ -15,6 +15,7 @@ interface Enlace {
 
 const gestion: Enlace[] = [{ id: "ordenes", etiqueta: "Órdenes", icono: "▤" }];
 const recursos: Enlace[] = [
+    { id: "clientes", etiqueta: "Clientes", icono: "◉" },
     { id: "equipos", etiqueta: "Equipos", icono: "▣" },
     { id: "cuadrillas", etiqueta: "Cuadrillas", icono: "♧" },
     { id: "servicios", etiqueta: "Servicios", icono: "⚒" },
