@@ -12,6 +12,12 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('../src/features/equipos/equipos.api', () => ({ listarUbicaciones: mocks.listarUbicaciones }));
+// El panel de equipos tiene pruebas independientes.
+// Se simula aquí para aislar las pruebas de gestión de órdenes.
+vi.mock('../src/features/ordenes/EquiposOrdenPanel', () => ({
+    default: () => null,
+}));
+
 vi.mock('../src/features/ordenes/ordenes.api', () => ({
     listarOrdenes: mocks.listarOrdenes,
     crearOrden: mocks.crearOrden,

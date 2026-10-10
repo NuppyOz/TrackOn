@@ -1,4 +1,5 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
+import EquiposOrdenPanel from './EquiposOrdenPanel';
 import AsignarOrdenPanel from './AsignarOrdenPanel';
 import { listarUbicaciones } from '../equipos/equipos.api';
 import type { Ubicacion } from '../equipos/equipos.types';
@@ -191,6 +192,7 @@ export default function OrdenesManager({ puedeGestionar = true }: Readonly<Props
                         Asignar orden
                     </button>
                 )}
+                <EquiposOrdenPanel key={detalle.id} orden={detalle} puedeGestionar={puedeGestionar} />
                 <h4>Historial de estados</h4>
                 {detalle.historial.length === 0 ? (
                     <p>Sin movimientos.</p>
