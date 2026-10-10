@@ -67,6 +67,12 @@ vi.mock("../src/features/servicios/ServiciosManager", () => ({
     ),
 }));
 
+vi.mock("../src/features/ordenes/OrdenesManager", () => ({
+    default: ({ puedeGestionar }: { puedeGestionar: boolean }) => (
+        <div>Órdenes - {puedeGestionar ? "gestión" : "consulta"}</div>
+    ),
+}));
+
 vi.mock("../src/features/cuadrillas/CuadrillasManager", () => ({
     default: () => <div>Gestión de cuadrillas</div>,
 }));
@@ -83,7 +89,7 @@ vi.mock("../src/shared/layout/MainLayout", () => ({
         children,
     }: {
         usuarioNombre: string;
-        onNavigate: (seccion: "equipos" | "servicios" | "cuadrillas") => void;
+        onNavigate: (seccion: "equipos" | "servicios" | "ordenes" | "cuadrillas") => void;
         onLogout: () => void;
         children: React.ReactNode;
     }) => (
@@ -95,6 +101,9 @@ vi.mock("../src/shared/layout/MainLayout", () => ({
                 </button>
                 <button type="button" onClick={() => onNavigate("servicios")}>
                     Servicios
+                </button>
+                <button type="button" onClick={() => onNavigate("ordenes")}>
+                    Órdenes
                 </button>
                 <button type="button" onClick={() => onNavigate("cuadrillas")}>
                     Cuadrillas
@@ -229,6 +238,13 @@ describe("Aplicación TrackOn", () => {
         expect(
             screen.getByText("Servicios - gestión"),
         ).toBeTruthy();
+    });
+
+    it("puede navegar a Órdenes de trabajo", async () => {
+        render(<App />);
+        await screen.findByText("Equipos - gestión");
+        fireEvent.click(screen.getByRole("button", { name: "Órdenes" }));
+        expect(screen.getByText("Órdenes - gestión")).toBeTruthy();
     });
 
     it("permite a ADMIN acceder a Cuadrillas", async () => {

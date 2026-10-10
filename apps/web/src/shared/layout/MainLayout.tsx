@@ -15,6 +15,13 @@ interface MainLayoutProps {
     accionesHeader?: ReactNode;
 }
 
+const etiquetas: Record<Seccion, string> = {
+    ordenes: "Órdenes",
+    equipos: "Equipos",
+    servicios: "Servicios",
+    cuadrillas: "Cuadrillas",
+};
+
 export function MainLayout({
     children,
     usuarioNombre,
@@ -35,19 +42,24 @@ export function MainLayout({
                 onOpenMenu={onOpenMenu}
                 acciones={accionesHeader}
             />
-
             {menuAbierto && (
-                <button type="button" className="nav-backdrop" aria-label="Cerrar navegación" onClick={onCloseMenu} />
+                <button type="button" className="nav-backdrop"
+                    aria-label="Cerrar navegación" onClick={onCloseMenu} />
             )}
-
             <Sidebar
                 seccion={seccion}
                 abierto={menuAbierto}
                 onNavigate={onNavigate}
                 puedeGestionarCuadrillas={puedeGestionarCuadrillas}
             />
-
-            <main className="workspace">{children}</main>
+            <main className="workspace">
+                {seccion !== "ordenes" && (
+                    <div className="tk-context-breadcrumb">
+                        Recursos <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
+                    </div>
+                )}
+                {children}
+            </main>
         </div>
     );
 }

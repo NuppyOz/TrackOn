@@ -16,6 +16,8 @@ import { requestObservability } from './middlewares/request-observability.js';
 import { ubicacionesRouter } from "./modules/ubicaciones/ubicaciones.routes.js";
 
 
+import { ordenesRouter } from "./modules/ordenes/ordenes.routes.js";
+
 export const app = express();
 
 app.disable("x-powered-by");
@@ -61,6 +63,8 @@ app.use('/api/servicios', serviciosRouter);
 app.use('/api/cuadrillas', cuadrillasRouter);
 app.use('/api/notificaciones', notificacionesRouter);
 app.use("/api/ubicaciones", ubicacionesRouter);
+
+app.use("/api/ordenes", ordenesRouter);
 
 // Manejador de errores
 app.use(manageErrors)

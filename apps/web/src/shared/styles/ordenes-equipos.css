@@ -1,0 +1,40 @@
+/* Variantes de la pantalla de detalle de OT: Figma desktop y técnico mobile. */
+.tk-equipo-orden { min-width: 0; margin-block: 20px; padding: 20px; background: #fff; border: 1px solid #e6e2ec; border-radius: 10px; }
+.tk-equipo-orden-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.tk-equipo-orden-heading h4 { font-size: 18px; font-weight: 700; color: #2f254d; margin: 0 0 5px; }
+.tk-equipo-orden-heading p { margin: 0; color: #666b73; font-size: 13px; }
+.tk-equipo-cantidad { flex: 0 0 auto; border-radius: 999px; padding: 6px 10px; background: #f3f1f6; color: #2f254d; font-size: 12px; font-weight: 600; }
+.tk-equipo-vincular { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; border: 1px solid #e6e2ec; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f7f6fa; }
+.tk-equipo-vincular label { display: grid; gap: 7px; flex: 1 1 270px; color: #202124; font-size: 13px; font-weight: 600; min-width: 0; }
+.tk-equipo-vincular select { width: 100%; min-width: 0; min-height: 42px; padding: 8px 12px; background: #fff; border: 1px solid #dbdbdb; border-radius: 6px; color: #202124; }
+.tk-equipo-vincular button { min-height: 42px; }
+.tk-equipo-ayuda { width: 100%; display: block; margin-block: 8px 0; color: #666b73; font-size: 12px; line-height: 1.5; }
+.tk-equipo-vacio { padding: 24px 16px; margin: 0; background: #f7f6fa; color: #666b73; text-align: center; border-radius: 8px; }
+.tk-equipo-lista { display: grid; gap: 14px; }
+.tk-equipo-tarjeta { border: 1px solid #e6e2ec; border-radius: 8px; padding: 16px; min-width: 0; }
+.tk-equipo-top { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; }
+.tk-equipo-top strong { font-size: 15px; color: #2f254d; }
+.tk-equipo-top p { margin: 5px 0 0; color: #666b73; font-size: 12px; overflow-wrap: anywhere; }
+.tk-equipo-diagnosticado { white-space: nowrap; padding: 6px 9px; border-radius: 999px; background: #eff8f2; color: #257942; font-size: 11px; font-weight: 600; }
+.tk-equipo-datos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin: 14px 0; }
+.tk-equipo-datos div { min-width: 0; }
+.tk-equipo-datos dt { font-size: 11px; font-weight: 600; color: #666b73; text-transform: uppercase; }
+.tk-equipo-datos dd { margin: 5px 0 0; font-size: 13px; overflow-wrap: anywhere; color: #202124; }
+.tk-equipo-descripcion { padding: 14px; margin-block: 12px; background: #f7f6fa; border-radius: 6px; }
+.tk-equipo-descripcion strong { font-size: 12px; color: #2f254d; }
+.tk-equipo-descripcion p { color: #202124; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tk-equipo-diagnostico { display: grid; gap: 14px; margin-top: 16px; }
+.tk-equipo-diagnostico label { display: grid; min-width: 0; gap: 6px; font-weight: 600; font-size: 13px; color: #202124; }
+.tk-equipo-diagnostico textarea { min-width: 0; width: 100%; resize: vertical; border-radius: 6px; border: 1px solid #dbdbdb; padding: 10px 12px; color: #202124; background: #fff; font: inherit; }
+.tk-equipo-campos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.tk-equipo-acciones { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+@media (max-width: 1199px) { .tk-equipo-orden { padding: 18px; } }
+@media (max-width: 600px) {
+    .tk-equipo-orden { margin-block: 16px; padding: 16px; border-radius: 8px; }
+    .tk-equipo-orden-heading,.tk-equipo-top { flex-wrap: wrap; }
+    .tk-equipo-vincular { display: grid; padding: 12px; }
+    .tk-equipo-vincular label,.tk-equipo-vincular button { width: 100%; }
+    .tk-equipo-campos,.tk-equipo-datos { grid-template-columns: 1fr; }
+    .tk-equipo-diagnosticado { white-space: normal; }
+    .tk-equipo-acciones { display: grid; grid-template-columns: 1fr; }
+}
