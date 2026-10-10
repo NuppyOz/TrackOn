@@ -123,50 +123,101 @@ async function mensajeError(response: Response): Promise<string> {
     return "No se pudo completar la operación.";
 }
 
-export async function api<T>(url: string, init?: RequestInit): Promise<T> {
+function verificarGeneracion(
+    generacionInicial: number,
+    esAuth: boolean,
+): void {
+    if (!esAuth && generacionSesion !== generacionInicial) {
+        throw sesionCambio();
+    }
+}
+
+async function recuperarRespuesta401(
+    response: Response,
+    generacionInicial: number,
+    versionEnvio: number,
+    enviar: (token: string | null) => Promise<Response>,
+): Promise<Response> {
+    if (response.status !== 401) return response;
+
+    let token = versionCredenciales !== versionEnvio
+        ? accessToken
+        : null;
+
+    if (!token) {
+        token = await renovarAccessToken();
+    }
+
+    verificarGeneracion(generacionInicial, false);
+
+    if (!token) {
+        expirarSesion(generacionInicial);
+        throw new ApiError("La sesión ha expirado.", 401);
+    }
+
+    const versionReintento = versionCredenciales;
+    const respuesta = await enviar(token);
+
+    verificarGeneracion(generacionInicial, false);
+
+    if (
+        respuesta.status === 401 &&
+        versionReintento === versionCredenciales
+    ) {
+        expirarSesion(generacionInicial);
+    }
+
+    return respuesta;
+}
+
+export async function api<T>(
+    url: string,
+    init?: RequestInit,
+): Promise<T> {
     const esAuth = url.startsWith("/api/auth/");
     const generacionInicial = generacionSesion;
-    let versionEnvio = versionCredenciales;
-    let tokenEnvio = accessToken;
-    const enviar = (token: string | null) => fetch(url, {
-        ...init,
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            ...init?.headers,
-        },
-        signal: init?.signal ?? AbortSignal.timeout(8000),
-    });
-    let response = await enviar(tokenEnvio);
-    if (!esAuth && generacionSesion !== generacionInicial) throw sesionCambio();
+    const versionEnvio = versionCredenciales;
 
-    if (response.status === 401 && !esAuth) {
-        // Un refresh anterior ya pudo haber cambiado el token: no renovar otra vez.
-        let token = versionCredenciales !== versionEnvio ? accessToken : null;
-        if (!token) token = await renovarAccessToken();
-        if (generacionSesion !== generacionInicial) throw sesionCambio();
-        if (!token) {
-            expirarSesion(generacionInicial);
-            throw new ApiError("La sesión ha expirado.", 401);
-        }
-        versionEnvio = versionCredenciales;
-        tokenEnvio = token;
-        response = await enviar(tokenEnvio);
-        if (generacionSesion !== generacionInicial) throw sesionCambio();
-        if (response.status === 401) {
-            // Solo caduca la sesión si sigue siendo el token que acabamos de probar.
-            if (versionEnvio === versionCredenciales) expirarSesion(generacionInicial);
-        }
+    const enviar = (token: string | null) =>
+        fetch(url, {
+            ...init,
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token
+                    ? { Authorization: `Bearer ${token}` }
+                    : {}),
+                ...init?.headers,
+            },
+            signal: init?.signal ?? AbortSignal.timeout(8000),
+        });
+
+    let response = await enviar(accessToken);
+
+    verificarGeneracion(generacionInicial, esAuth);
+
+    if (!esAuth) {
+        response = await recuperarRespuesta401(
+            response,
+            generacionInicial,
+            versionEnvio,
+            enviar,
+        );
     }
 
-    if (generacionSesion !== generacionInicial && !esAuth) throw sesionCambio();
+    verificarGeneracion(generacionInicial, esAuth);
+
     if (!response.ok) {
         const message = await mensajeError(response);
-        if (generacionSesion !== generacionInicial && !esAuth) throw sesionCambio();
+
+        verificarGeneracion(generacionInicial, esAuth);
+
         throw new ApiError(message, response.status);
     }
+
     const body = (await response.json()) as { data: T };
-    if (generacionSesion !== generacionInicial && !esAuth) throw sesionCambio();
+
+    verificarGeneracion(generacionInicial, esAuth);
+
     return body.data;
 }
