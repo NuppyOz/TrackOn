@@ -16,6 +16,7 @@ Preparación inicial del entorno de desarrollo.
 
 ## Documentación
 
+- [Desarrollo local con recarga automática](docs/desarrollo-local.md)
 - [Configuración del backend, Prisma y creación del primer módulo como base](docs/backend-prisma.md)
 - [Docker Compose y despliegue local](docs/docker.md)
 - [SonarQube Quality Gate](docs/sonarqube-quality-gate.md)

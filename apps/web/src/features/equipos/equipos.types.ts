@@ -36,4 +36,6 @@ export interface EquipoFiltros {
   codigo: string
   numeroSerie: string
   estado: 'todos' | 'activos' | 'inactivos'
+  pagina?: number
+  limite?: number
 }

@@ -97,6 +97,15 @@ export async function findSessionByRefreshTokenHash(
                             codEmpleado: true,
                             active: true,
                             habilitadoComoTecnico: true,
+
+                            persona: {
+                                select: {
+                                    firstName: true,
+                                    secondName: true,
+                                    firstLastName: true,
+                                    secondLastName: true,
+                                },
+                            },
                         },
                     },
                 },

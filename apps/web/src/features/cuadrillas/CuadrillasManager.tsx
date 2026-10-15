@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { agregarMiembro, cambiarEstadoCuadrilla, crearCuadrilla, definirLider, editarCuadrilla, listarCuadrillas, listarEmpleadosElegibles, retirarMiembro } from './cuadrillas.api'
 import type { Cuadrilla, CuadrillaFiltros, EmpleadoCuadrilla } from './cuadrillas.types'
+import { useFiltrosListado } from '../../shared/useFiltrosListado'
 
 const filtrosIniciales: CuadrillaFiltros = { estado: 'activas', nombre: '' }
 const nombreEmpleado = (empleado: EmpleadoCuadrilla) => `${empleado.persona.firstName} ${empleado.persona.firstLastName}`
@@ -9,12 +10,13 @@ const fecha = (valor: string) => new Intl.DateTimeFormat('es-NI', { dateStyle: '
 export default function CuadrillasManager() {
   const [cuadrillas, setCuadrillas] = useState<Cuadrilla[]>([])
   const [empleados, setEmpleados] = useState<EmpleadoCuadrilla[]>([])
-  const [filtros, setFiltros] = useState(filtrosIniciales)
+  const { filtros, aplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales)
   const [nombre, setNombre] = useState('')
   const [editando, setEditando] = useState<number | null>(null)
   const [seleccionada, setSeleccionada] = useState<number | null>(null)
   const [empleadoId, setEmpleadoId] = useState('')
-  const [cargando, setCargando] = useState(true)
+  const [consultando, setCargando] = useState(true)
+  const cargando = consultando || pendiente
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState<{ tipo: 'error' | 'exito'; texto: string } | null>(null)
   const [formularioVisible, setFormularioVisible] = useState(false)
@@ -24,23 +26,35 @@ export default function CuadrillasManager() {
   const historial = cuadrilla?.miembros.filter((miembro) => miembro.fin) ?? []
   const empleadosDisponibles = empleados.filter((empleado) => !miembrosVigentes.some((miembro) => miembro.empleadoId === empleado.id))
 
-  async function cargar(nuevosFiltros = filtros) {
+  function cargar() {
     setCargando(true)
-    try {
-      const respuesta = await listarCuadrillas(nuevosFiltros)
-      const lista = respuesta.items
-      setCuadrillas(lista)
-      setSeleccionada((actual) => lista.some((item) => item.id === actual) ? actual : lista[0]?.id ?? null)
-    } catch (error) { setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudieron cargar las cuadrillas.' }) }
-    finally { setCargando(false) }
+    aplicarFiltros(aplicados)
   }
 
   useEffect(() => {
-    Promise.all([listarCuadrillas(filtrosIniciales), listarEmpleadosElegibles()])
-      .then(([respuesta, empleadosActivos]) => { const lista = respuesta.items; setCuadrillas(lista); setEmpleados(empleadosActivos); setSeleccionada(lista[0]?.id ?? null) })
-      .catch((error) => setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudieron cargar los datos.' }))
-      .finally(() => setCargando(false))
+    let vigente = true
+    void listarEmpleadosElegibles()
+      .then(empleadosActivos => { if (vigente) setEmpleados(empleadosActivos) })
+      .catch(error => { if (vigente) setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudieron cargar los empleados.' }) })
+    return () => { vigente = false }
   }, [])
+
+  useEffect(() => {
+    let vigente = true
+    void listarCuadrillas(aplicados)
+      .then(respuesta => {
+        if (!vigente) return
+        setCuadrillas(respuesta.items)
+        setSeleccionada(actual => respuesta.items.some(item => item.id === actual) ? actual : respuesta.items[0]?.id ?? null)
+      })
+      .catch(error => { if (vigente) { setCuadrillas([]); setSeleccionada(null); setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudieron cargar las cuadrillas.' }) } })
+      .finally(() => { if (vigente) setCargando(false) })
+    return () => { vigente = false }
+  }, [aplicados])
+
+  function filtrar(nuevos: CuadrillaFiltros, esperar = false) {
+    setMensaje(null); setCargando(true); cambiarFiltros(nuevos, esperar)
+  }
 
   function cancelarEdicion() { setEditando(null); setNombre(''); setFormularioVisible(false) }
   async function guardar(event: FormEvent) {
@@ -111,7 +125,7 @@ export default function CuadrillasManager() {
     {mensaje && <div className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</div>}
     <div className="panel-grid cuadrillas-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
       {formularioVisible && <form className="card form-card" onSubmit={guardar}><div className="card-title"><h3>Datos de la cuadrilla</h3><button type="button" className="text-button" onClick={cancelarEdicion}>← Cuadrillas</button></div><label>Nombre<input required maxLength={100} value={nombre} onChange={(event) => setNombre(event.target.value)} placeholder="Ej. Cuadrilla Norte" /></label><button type="submit" className="primary-button" disabled={guardando}>{textoGuardar}</button><p className="form-hint">Al crearla podrás incorporar integrantes y definir su líder.</p></form>}
-      {!formularioVisible && <div className="card list-card"><form className="filters crew-filters" onSubmit={(event) => { event.preventDefault(); void cargar() }}><input aria-label="Buscar por nombre" placeholder="Buscar cuadrilla" value={filtros.nombre} onChange={(event) => setFiltros({ ...filtros, nombre: event.target.value })} /><select aria-label="Filtrar por estado" value={filtros.estado} onChange={(event) => setFiltros({ ...filtros, estado: event.target.value as CuadrillaFiltros['estado'] })}><option value="activas">Activas</option><option value="inactivas">Inactivas</option><option value="todos">Todas</option></select><button type="submit" className="secondary-button">Buscar</button></form>
+      {!formularioVisible && <div className="card list-card"><form className="filters crew-filters" onSubmit={(event) => { event.preventDefault(); setMensaje(null); setCargando(true); aplicarFiltros() }}><input aria-label="Buscar por nombre" placeholder="Buscar cuadrilla" maxLength={100} value={filtros.nombre} onChange={(event) => filtrar({ ...filtros, nombre: event.target.value }, true)} /><select aria-label="Filtrar por estado" value={filtros.estado} onChange={(event) => filtrar({ ...filtros, estado: event.target.value as CuadrillaFiltros['estado'] })}><option value="activas">Activas</option><option value="inactivas">Inactivas</option><option value="todos">Todas</option></select><button type="submit" className="secondary-button">Buscar</button><button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button></form>
       {contenidoLista()}</div>}
     </div>
     {cuadrilla && <div className="card members-card"><div className="card-title"><div><h3>{cuadrilla.nombre}</h3><p>Integrantes vigentes e historial de pertenencia.</p></div></div>{cuadrilla.activa && <div className="member-add"><select value={empleadoId} onChange={(event) => setEmpleadoId(event.target.value)}><option value="">Seleccionar empleado activo</option>{empleadosDisponibles.map((empleado) => <option key={empleado.id} value={empleado.id}>{empleado.codEmpleado} · {nombreEmpleado(empleado)}{empleado.usuario?.rol.cod === 'TEC' && !empleado.habilitadoComoTecnico ? ' (sin habilitación técnica)' : ''}</option>)}</select><button type="button" className="secondary-button" disabled={!empleadoId || guardando} onClick={() => void agregar()}>Agregar integrante</button></div>}

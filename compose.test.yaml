@@ -1,0 +1,69 @@
+name: trackon-test
+
+services:
+  db-test:
+    image: postgres:17-alpine
+
+    environment:
+      POSTGRES_USER: trackon_test
+      POSTGRES_PASSWORD: trackon_test_password
+      POSTGRES_DB: trackon_test
+
+    tmpfs:
+      - /var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U trackon_test -d trackon_test"
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+    networks:
+      - test-backend
+
+  migrate-test:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migrate
+
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://trackon_test:trackon_test_password@db-test:5432/trackon_test?schema=public
+
+    depends_on:
+      db-test:
+        condition: service_healthy
+
+    networks:
+      - test-backend
+
+    restart: "no"
+
+  api-test:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: test
+
+    environment:
+      NODE_ENV: test
+
+      DATABASE_URL: postgresql://trackon_test:trackon_test_password@db-test:5432/trackon_test?schema=public
+
+      AUTH_ACCESS_TOKEN_SECRET: trackon-test-secret-only-for-automated-tests-123456789
+
+    depends_on:
+      migrate-test:
+        condition: service_completed_successfully
+
+    networks:
+      - test-backend
+
+networks:
+  test-backend:
+    internal: true

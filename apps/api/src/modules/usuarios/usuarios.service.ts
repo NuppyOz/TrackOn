@@ -11,6 +11,7 @@ import type {
 
 export async function crearUsuario(
     datos: CreateUsuarioInput,
+    actorId?: number,
 ) {
     const empleado =
         await usuariosRepository.buscarEmpleadoParaUsuario(
@@ -81,7 +82,7 @@ export async function crearUsuario(
             rolId: datos.rolId,
             identificador: datos.identificador,
             passwordHash,
-        });
+        }, actorId);
     } catch (error) {
         if (
             error instanceof
@@ -121,6 +122,7 @@ export async function obtenerUsuarioPorId(
 export async function actualizarUsuario(
     id: number,
     datos: UpdateUsuarioInput,
+    actorId?: number,
 ) {
     const usuarioActual =
         await usuariosRepository.buscarUsuarioPorId(id);
@@ -191,6 +193,7 @@ export async function actualizarUsuario(
         return await usuariosRepository.actualizarUsuario(
             id,
             datos,
+            actorId,
         );
     } catch (error) {
         if (
@@ -222,6 +225,7 @@ export async function actualizarUsuario(
 export async function actualizarEstadoUsuario(
     id: number,
     activo: boolean,
+    actorId?: number,
 ) {
     const usuario =
         await usuariosRepository.buscarUsuarioPorId(id);
@@ -257,6 +261,7 @@ export async function actualizarEstadoUsuario(
             .actualizarEstadoUsuario(
                 id,
                 activo,
+                actorId,
             );
     } catch (error) {
         if (

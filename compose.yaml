@@ -2,7 +2,8 @@ name: trackon
 
 services:
   db:
-    image: postgres:17-alpine
+    # La variante Debian mantiene las collations glibc usadas al crear el volumen.
+    image: postgres:17
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?Define POSTGRES_USER en .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
@@ -43,8 +44,11 @@ services:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 3000
+      EVIDENCE_STORAGE_DIR: /app/storage/evidencias
       DATABASE_URL: ${DATABASE_URL:?Define DATABASE_URL en .env}
       AUTH_ACCESS_TOKEN_SECRET: ${AUTH_ACCESS_TOKEN_SECRET:?Define AUTH_ACCESS_TOKEN_SECRET en .env}
+    volumes:
+      - evidence_data:/app/storage/evidencias
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -83,6 +87,7 @@ services:
 
 volumes:
   postgres_data:
+  evidence_data:
 
 networks:
   frontend:

@@ -47,6 +47,7 @@ export function listarEmpleados () {
             id: true,
             codEmpleado: true,
             active: true,
+            habilitadoComoTecnico: true,
 
             persona:{
                 select: {
@@ -72,6 +73,7 @@ export function buscarEmpleadoPorId(id: number) {
             id: true,
             codEmpleado: true,
             active: true,
+            habilitadoComoTecnico: true,
             personaId: true,
 
             persona: {

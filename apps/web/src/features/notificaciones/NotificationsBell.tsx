@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ApiError } from '../../shared/api'
 import { contarNoLeidas, listarNotificaciones, marcarNotificacionLeida, type Notificacion } from './notificaciones.api'
+import { irA } from '../../shared/navigation'
 
 const fechaRelativa = (date: string) => {
   const minutos = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000))
@@ -20,13 +21,35 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
   const [cursor, setCursor] = useState<number | null>(null)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
+  const [leyendo, setLeyendo] = useState<number | null>(null)
 
   useEffect(() => {
     if (!habilitada) return
-    contarNoLeidas().then((result) => setNoLeidas(result.noLeidas)).catch(() => setError('No se pudo actualizar el contador de notificaciones.'))
+    let activa = true
+    let pendiente = false
+    async function actualizar() {
+      if (pendiente || document.visibilityState === 'hidden') return
+      pendiente = true
+      try {
+        const result = await contarNoLeidas()
+        if (activa) setNoLeidas(result.noLeidas)
+      } catch { /* La bandeja permite reintentar si la conexión falla. */ }
+      finally { pendiente = false }
+    }
+    void actualizar()
+    const intervalo = window.setInterval(() => void actualizar(), 30000)
+    window.addEventListener('focus', actualizar)
+    document.addEventListener('visibilitychange', actualizar)
+    return () => {
+      activa = false
+      window.clearInterval(intervalo)
+      window.removeEventListener('focus', actualizar)
+      document.removeEventListener('visibilitychange', actualizar)
+    }
   }, [habilitada])
 
   async function cargar(siguiente = false) {
+    if (cargando) return
     setCargando(true); setError('')
     try {
       const page = await listarNotificaciones(siguiente ? cursor : null)
@@ -43,12 +66,20 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
   }
 
   async function leer(notificacion: Notificacion) {
-    if (notificacion.leidaEn) return
+    if (leyendo !== null) return
+    setLeyendo(notificacion.id)
     try {
-      await marcarNotificacionLeida(notificacion.id)
-      setItems((actuales) => actuales.map((item) => item.id === notificacion.id ? { ...item, leidaEn: new Date().toISOString() } : item))
-      setNoLeidas((actual) => Math.max(0, actual - 1))
+      if (!notificacion.leidaEn) {
+        await marcarNotificacionLeida(notificacion.id)
+        setItems((actuales) => actuales.map((item) => item.id === notificacion.id ? { ...item, leidaEn: new Date().toISOString() } : item))
+        setNoLeidas((actual) => Math.max(0, actual - 1))
+      }
+      if (notificacion.ordenId) {
+        setAbierto(false)
+        irA(`/ordenes/${notificacion.ordenId}`)
+      }
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo marcar como leída.') }
+    finally { setLeyendo(null) }
   }
 
   function contenidoPanel() {
@@ -60,7 +91,7 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
     return <div className="notification-list">{items.map((item) => {
       const estadoLectura = item.leidaEn ? '' : 'unread'
       const identificadorOrden = item.ordenId ? ` · OT-${item.ordenId}` : ''
-      return <button type="button" className={`notification-item ${estadoLectura}`} key={item.id} onClick={() => void leer(item)}>
+      return <button type="button" disabled={leyendo !== null} className={`notification-item ${estadoLectura}`} key={item.id} onClick={() => void leer(item)}>
         <span className="notification-dot" aria-hidden="true">{item.leidaEn ? '○' : '●'}</span>
         <span className="notification-copy"><strong>{item.tipo.replaceAll('_', ' ')}</strong><span>{item.mensaje}</span><small>{fechaRelativa(item.creadaEn)}{identificadorOrden}</small></span>
       </button>
@@ -78,7 +109,7 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
     {abierto && <>
       <button type="button" className="notification-dismiss" aria-label="Cerrar notificaciones" onClick={() => setAbierto(false)} />
       <section className="notification-panel" aria-label="Notificaciones">
-        <header><div><h2>Notificaciones</h2><span>{subtituloPanel}</span></div><button type="button" aria-label="Cerrar" onClick={() => setAbierto(false)}>×</button></header>
+        <header><div><h2>Notificaciones</h2><span>{subtituloPanel}</span></div><div className="notification-panel-actions">{habilitada && <button type="button" aria-label="Actualizar notificaciones" disabled={cargando || leyendo !== null} onClick={() => void cargar()}>Actualizar</button>}<button type="button" aria-label="Cerrar" onClick={() => setAbierto(false)}>×</button></div></header>
         {contenidoPanel()}
         {habilitada && cursor && <button type="button" className="notification-more" disabled={cargando} onClick={() => void cargar(true)}>{cargando ? 'Cargando…' : 'Cargar más'}</button>}
       </section>

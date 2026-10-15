@@ -25,6 +25,7 @@ export async function crearUsuario(
         const usuario =
             await usuariosService.crearUsuario(
                 datos,
+                req.auth!.usuario.id,
             );
 
         res.status(201).json({
@@ -96,6 +97,7 @@ export async function actualizarUsuario(
                 .actualizarUsuario(
                     id,
                     datos,
+                    req.auth!.usuario.id,
                 );
 
         res.status(200).json({
@@ -127,6 +129,7 @@ export async function actualizarEstadoUsuario(
                 .actualizarEstadoUsuario(
                     id,
                     activo,
+                    req.auth!.usuario.id,
                 );
 
         res.status(200).json({

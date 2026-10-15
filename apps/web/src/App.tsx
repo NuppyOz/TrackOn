@@ -1,77 +1,187 @@
-import './App.css'
-import { useEffect, useState } from 'react'
-import EquiposManager from './features/equipos/EquiposManager'
-import ServiciosManager from './features/servicios/ServiciosManager'
-import CuadrillasManager from './features/cuadrillas/CuadrillasManager'
-import NotificationsBell from './features/notificaciones/NotificationsBell'
-import { cerrarSesion, renovarSesion, type UsuarioSesion } from './features/auth/auth.api'
+import "./App.css";
+import "./shared/styles/ordenes-equipos.css";
+import "./shared/styles/clientes.css";
+import "./shared/styles/empleados.css";
+import "./shared/styles/figma-ui.css";
+import "./shared/styles/responsive.css";
+import "./shared/styles/asignaciones.css";
+import "./shared/styles/operacion.css";
+import { useEffect, useState } from "react";
+import EquiposManager from "./features/equipos/EquiposManager";
+import ClientesManager from "./features/clientes/ClientesManager";
+import EmpleadosManager from "./features/empleados/EmpleadosManager";
+import ServiciosManager from "./features/servicios/ServiciosManager";
+import OrdenesManager from "./features/ordenes/OrdenesManager";
+import CuadrillasManager from "./features/cuadrillas/CuadrillasManager";
+import NotificationsBell from "./features/notificaciones/NotificationsBell";
+import LoginPage from "./features/auth/LoginPage";
+import { cerrarSesion, puedeAdministrarCatalogos, renovarSesion, type UsuarioSesion } from "./features/auth/auth.api";
+import { MainLayout } from "./shared/layout/MainLayout";
+import type { Seccion } from "./shared/layout/Sidebar";
+import MaterialesManager from "./features/materiales/MaterialesManager";
+import Dashboard from "./features/dashboard/Dashboard";
+import { irA, leerRuta } from './shared/navigation';
+import Agenda from './features/agenda/Agenda';
+import UsuariosManager from './features/administracion/UsuariosManager';
+import AuditoriaManager from './features/administracion/AuditoriaManager';
 
-type Seccion = 'equipos' | 'servicios' | 'cuadrillas'
-
-function AppHeader({ usuario, onOpenMenu, onLogout }: Readonly<{
-  usuario: UsuarioSesion | null
-  onOpenMenu: () => void
-  onLogout: () => void
-}>) {
-  const nombre = usuario
-    ? `${usuario.empleado.persona.firstName} ${usuario.empleado.persona.firstLastName}`
-    : 'Operaciones'
-  const iniciales = usuario
-    ? `${usuario.empleado.persona.firstName.slice(0, 1)}${usuario.empleado.persona.firstLastName.slice(0, 1)}`
-    : 'MC'
-
-  return <header className="topbar">
-    <button type="button" className="menu-toggle" aria-label="Abrir navegación" onClick={onOpenMenu}>☰</button>
-    <img className="brand-logo" src="/logo-multicas.png" alt="MULTICAS" />
-    <div className="brand"><strong>TrackOn</strong><span>MULTICAS S.A.</span></div>
-    <div className="topbar-context">
-      <span>{nombre}</span>
-      <NotificationsBell habilitada={Boolean(usuario)} />
-      <button type="button" className="avatar avatar-button" aria-label={usuario ? 'Cerrar sesión' : 'MULTICAS'} title={usuario ? 'Cerrar sesión' : 'MULTICAS'} onClick={usuario ? onLogout : undefined}>{iniciales}</button>
-    </div>
-  </header>
+interface ModuleContentProps {
+    seccion: Seccion;
+    puedeGestionar: boolean;
+    ordenInicial?: number;
+    onOrden: (id?: number) => void;
+    onCuadrillas: () => void;
+    ruta: string;
+    ordenNueva: boolean;
+    puedeAdministrar: boolean;
 }
 
-function ModuleContent({ seccion }: Readonly<{ seccion: Seccion }>) {
-  switch (seccion) {
-    case 'equipos': return <EquiposManager />
-    case 'servicios': return <ServiciosManager />
-    case 'cuadrillas': return <CuadrillasManager />
-  }
+function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadrillas, ruta, ordenNueva, puedeAdministrar }: Readonly<ModuleContentProps>) {
+    switch (seccion) {
+        case "agenda": return <Agenda onOrden={onOrden} />;
+        case "administracion": return puedeAdministrar ? <UsuariosManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "auditoria": return puedeAdministrar ? <AuditoriaManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "dashboard":
+            return puedeGestionar ? <Dashboard onOrden={onOrden} onCuadrillas={onCuadrillas} /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "materiales":
+            return <MaterialesManager puedeGestionar={puedeGestionar} />;
+        case "clientes":
+            return <ClientesManager puedeGestionar={puedeGestionar} />;
+
+        case "empleados":
+            return puedeGestionar ? <EmpleadosManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+
+        case "equipos":
+            return <EquiposManager puedeGestionar={puedeGestionar} />;
+
+        case "servicios":
+            return <ServiciosManager puedeGestionar={puedeGestionar} />;
+
+        case "ordenes":
+            return <OrdenesManager key={ruta} puedeGestionar={puedeGestionar} ordenInicial={ordenInicial} crearInicial={ordenNueva} />;
+
+        case "cuadrillas":
+            return puedeGestionar ? (
+                <CuadrillasManager />
+            ) : (
+                <p role="alert">No tienes permisos para acceder a este módulo.</p>
+            );
+    }
 }
 
-function App() {
-  const [seccion, setSeccion] = useState<Seccion>('equipos')
-  const [menuAbierto, setMenuAbierto] = useState(false)
-  const [usuario, setUsuario] = useState<UsuarioSesion | null>(null)
-  function navegar(destino: Seccion) {
-    setSeccion(destino)
-    setMenuAbierto(false)
-  }
+export default function App() {
+    const [seccion, setSeccion] = useState<Seccion>(() => leerRuta().seccion);
+    const [menuAbierto, setMenuAbierto] = useState(false);
+    const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
+    const [verificando, setVerificando] = useState(true);
+    const [cerrando, setCerrando] = useState(false);
+    const [ordenInicial, setOrdenInicial] = useState<number | undefined>(() => leerRuta().ordenId);
+    const [ruta, setRuta] = useState(() => leerRuta().ruta);
 
-  function salir() {
-    void cerrarSesion().then(() => setUsuario(null))
-  }
+    useEffect(() => {
+        function actualizarRuta() { const rutaActual = leerRuta(); setSeccion(rutaActual.seccion); setOrdenInicial(rutaActual.ordenId); setRuta(rutaActual.ruta); setMenuAbierto(false); }
+        window.addEventListener('popstate', actualizarRuta);
+        window.addEventListener('trackon:navigate', actualizarRuta);
+        return () => { window.removeEventListener('popstate', actualizarRuta); window.removeEventListener('trackon:navigate', actualizarRuta); };
+    }, []);
 
-  useEffect(() => {
-    renovarSesion().then(setUsuario).catch(() => setUsuario(null))
-  }, [])
+    const puedeGestionar = usuario !== null && puedeAdministrarCatalogos(usuario.rol.cod);
+    const puedeAdministrar = usuario?.rol.cod === 'ADMIN';
 
-  return (
-    <div className="app-shell">
-      <AppHeader usuario={usuario} onOpenMenu={() => setMenuAbierto(true)} onLogout={salir} />
-      {menuAbierto && <button type="button" className="nav-backdrop" aria-label="Cerrar navegación" onClick={() => setMenuAbierto(false)} />}
-      <aside className={`sidebar ${menuAbierto ? 'sidebar--open' : ''}`}>
-        <div className="sidebar-mobile-title"><strong>TrackOn</strong><button type="button" aria-label="Cerrar navegación" onClick={() => setMenuAbierto(false)}>×</button></div>
-        <p>GESTIÓN OPERATIVA</p>
-        <button type="button" className={seccion === 'equipos' ? 'selected' : ''} onClick={() => navegar('equipos')}><span>▣</span> Equipos</button>
-        <button type="button" className={seccion === 'servicios' ? 'selected' : ''} onClick={() => navegar('servicios')}><span>≡</span> Servicios</button>
-        <button type="button" className={seccion === 'cuadrillas' ? 'selected' : ''} onClick={() => navegar('cuadrillas')}><span>♟</span> Cuadrillas</button>
-        <div className="sidebar-note"><strong>MULTICAS</strong><span>Gestión técnica centralizada</span></div>
-      </aside>
-      <main className="workspace"><ModuleContent seccion={seccion} /></main>
-    </div>
-  )
+    useEffect(() => {
+        let vigente = true;
+
+        void renovarSesion()
+            .then(usuarioRecuperado => {
+                if (vigente) setUsuario(usuarioRecuperado);
+            })
+            .catch(() => {
+                if (vigente) setUsuario(null);
+            })
+            .finally(() => {
+                if (vigente) {
+                    setVerificando(false);
+                }
+            });
+
+        const sesionExpirada = () => {
+            setUsuario(null);
+            setMenuAbierto(false);
+        };
+
+        window.addEventListener("trackon:session-expired", sesionExpirada);
+
+        return () => {
+            vigente = false;
+
+            window.removeEventListener("trackon:session-expired", sesionExpirada);
+        };
+    }, []);
+
+    function navegar(destino: Seccion) {
+        if (['administracion', 'auditoria'].includes(destino) && !puedeAdministrar) return;
+        if (["dashboard", "cuadrillas", "empleados"].includes(destino) && !puedeGestionar) {
+            return;
+        }
+
+        setSeccion(destino);
+        setOrdenInicial(undefined);
+        irA(`/${destino}`);
+        setMenuAbierto(false);
+    }
+
+    async function salir() {
+        if (cerrando) return;
+
+        setCerrando(true);
+
+        try {
+            await cerrarSesion();
+        } catch {
+            // El servidor podría no haber revocado la sesión.
+            // La interfaz se cerrará de todos modos.
+        } finally {
+            setUsuario(null);
+            setSeccion("equipos");
+            irA('/equipos');
+            setMenuAbierto(false);
+            setCerrando(false);
+        }
+    }
+
+    if (verificando) {
+        return (
+            <main className="auth-screen">
+                <output>Verificando sesión…</output>
+            </main>
+        );
+    }
+
+    if (!usuario) {
+        return <LoginPage onLogin={setUsuario} />;
+    }
+
+    const nombreUsuario = usuario.empleado.persona
+        ? `${usuario.empleado.persona.firstName} ${usuario.empleado.persona.firstLastName}`
+        : usuario.identificador;
+
+    return (
+        <MainLayout
+            usuarioNombre={`${nombreUsuario} · ${usuario.rol.nombre}`}
+            seccion={seccion}
+            menuAbierto={menuAbierto}
+            puedeGestionarCuadrillas={puedeGestionar}
+            puedeAdministrar={puedeAdministrar}
+            onNavigate={navegar}
+            onOpenMenu={() => setMenuAbierto(true)}
+            onCloseMenu={() => setMenuAbierto(false)}
+            onLogout={() => void salir()}
+            accionesHeader={<NotificationsBell habilitada />}
+        >
+            <ModuleContent seccion={seccion} puedeGestionar={puedeGestionar} ordenInicial={ordenInicial}
+                ruta={ruta} ordenNueva={ruta === '/ordenes/nueva'}
+                puedeAdministrar={puedeAdministrar}
+                onOrden={id => { navegar("ordenes"); setOrdenInicial(id); if (id) irA(`/ordenes/${id}`); }} onCuadrillas={() => navegar("cuadrillas")} />
+        </MainLayout>
+    );
 }
-
-export default App

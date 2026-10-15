@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../infrastructure/prisma.js';
 import type {
     CreateUsuarioInput,
@@ -72,8 +73,9 @@ export function buscarUsuarioPorIdentificador(
 
 export function crearUsuario(
     datos: CreateUsuarioRepositoryInput,
+    actorId?: number,
 ) {
-    return prisma.usuario.create({
+    return conAuditoria(actorId, 'CREAR', undefined, tx => tx.usuario.create({
         data: {
             empleadoId: datos.empleadoId,
             rolId: datos.rolId,
@@ -114,7 +116,7 @@ export function crearUsuario(
                 },
             },
         },
-    });
+    }));
 }
 
 export function listarUsuarios() {
@@ -206,8 +208,9 @@ export function buscarUsuarioPorId(id: number) {
 export function actualizarUsuario(
     id: number,
     datos: UpdateUsuarioInput,
+    actorId?: number,
 ) {
-    return prisma.usuario.update({
+    return conAuditoria(actorId, 'ACTUALIZAR', id, tx => tx.usuario.update({
         where: {
             id,
         },
@@ -260,14 +263,15 @@ export function actualizarUsuario(
                 },
             },
         },
-    });
+    }));
 }
 
 export function actualizarEstadoUsuario(
     id: number,
     activo: boolean,
+    actorId?: number,
 ) {
-    return prisma.usuario.update({
+    return conAuditoria(actorId, 'CAMBIAR_ESTADO', id, tx => tx.usuario.update({
         where: {
             id,
         },
@@ -298,5 +302,20 @@ export function actualizarEstadoUsuario(
                 },
             },
         },
-    });
+    }));
+}
+async function conAuditoria<T extends { id: number; identificador: string; activo: boolean; rol: { id: number } }>(
+    actorId: number | undefined, accion: string, id: number | undefined, operacion: (tx: Prisma.TransactionClient) => Promise<T>,
+): Promise<T> {
+    if (actorId === undefined) return operacion(prisma);
+    return prisma.$transaction(async tx => {
+        const anterior = id === undefined ? null : await tx.usuario.findUnique({ where: { id }, select: { identificador: true, activo: true, rolId: true } });
+        const usuario = await operacion(tx);
+        await tx.auditoria.create({ data: {
+            usuarioId: actorId, tipoActor: 'USUARIO', entidad: 'USUARIO', entidadId: String(usuario.id), accion,
+            ...(anterior ? { datosAnteriores: anterior } : {}),
+            datosNuevos: { identificador: usuario.identificador, activo: usuario.activo, rolId: usuario.rol.id },
+        } });
+        return usuario;
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 }

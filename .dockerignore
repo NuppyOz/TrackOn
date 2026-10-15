@@ -12,6 +12,8 @@ node_modules
 .vite
 **/.vite
 .env
+.demo
+storage
 .env.*
 !.env.example
 apps/api/src/generated/prisma

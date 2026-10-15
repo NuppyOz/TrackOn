@@ -48,3 +48,9 @@ Thumbs.db
 .claude/
 .windsurf/
 skills-lock.json
+
+
+# Reportes de cobertura
+**/coverage/d
+storage/
+.demo/
