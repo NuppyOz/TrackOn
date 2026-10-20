@@ -10,11 +10,13 @@ import { tarifasComercialesRouter } from './tarifas/tarifas.routes.js';
 import { cotizacionesRouter } from './cotizaciones/presentation/cotizaciones.routes.js';
 import { ventasRouter } from './ventas/ventas.routes.js';
 import { historialComercialRouter } from './crm/historial/historial.routes.js';
+import { cuentasPortalRouter } from './portal/cuentas/cuentas.routes.js';
 
 export const comercialRouter = Router();
 comercialRouter.use(authenticate, authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE));
 comercialRouter.use('/clientes/:clienteId', perfilComercialRouter, contactosComercialesRouter, notasRouter, documentosRouter);
 comercialRouter.use('/clientes/:clienteId', historialComercialRouter);
+comercialRouter.use('/clientes/:clienteId/cuenta-portal', cuentasPortalRouter);
 comercialRouter.use(tarifasComercialesRouter);
 comercialRouter.use(cotizacionesRouter);
 comercialRouter.use(ventasRouter);
