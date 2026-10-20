@@ -40,8 +40,9 @@ export function MetricSummary({ metrics, label = 'Resumen' }: Readonly<{ metrics
 }
 
 export type BadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info'
+const badgeIcons: Record<BadgeVariant, string> = { neutral: '○', success: '✓', warning: '!', danger: '×', info: 'i' }
 export function SemanticBadge({ label, variant, icon }: Readonly<{ label: string; variant: BadgeVariant; icon?: ReactNode }>) {
-  return <span className={`erp-ui__badge erp-ui__badge--${variant}`}>{icon && <span aria-hidden="true">{icon}</span>}{label}</span>
+  return <span className={`erp-ui__badge erp-ui__badge--${variant}`}><span aria-hidden="true">{icon ?? badgeIcons[variant]}</span>{label}</span>
 }
 
 export type SortDirection = 'asc' | 'desc'

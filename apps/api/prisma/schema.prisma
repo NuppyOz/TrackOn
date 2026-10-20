@@ -117,6 +117,10 @@ model Cliente {
 
   @@map("clientes")
   contratosGerenciales ContratoGerencial[]
+  cobrosGerenciales CobroGerencial[]
+  comprobantesGerenciales ComprobanteGerencial[]
+  costosGerenciales CostoGerencial[]
+  facturablesGerenciales FacturableGerencial[]
 }
 
 model Ubicacion {
@@ -171,6 +175,11 @@ model Usuario {
   @@map("usuarios")
   coberturasGerenciales CoberturaGerencial[]
   contratosGerenciales ContratoGerencial[]
+  aplicacionesFacturablesGerenciales AplicacionFacturableGerencial[]
+  cobrosGerenciales CobroGerencial[]
+  comprobantesGerenciales ComprobanteGerencial[]
+  costosGerenciales CostoGerencial[]
+  facturablesGerenciales FacturableGerencial[]
 }
 
 model Cuadrilla {
@@ -257,6 +266,9 @@ model OrdenTrabajo {
   @@index([estadoCodigo, fechaProgramada])
   @@index([creadaPorId])
   @@map("ordenes_trabajo")
+  costosGerenciales CostoGerencial[]
+  facturablesGerenciales FacturableGerencial[]
+  lineasComprobantesGerenciales LineaComprobanteGerencial[]
 }
 
 model OrdenEquipo {
@@ -578,6 +590,8 @@ model ConceptoComercial {
   material Material? @relation(fields: [materialId], references: [id], onDelete: Restrict)
   tarifas TarifaComercial[]
   @@map("conceptos_comerciales")
+  facturablesGerenciales FacturableGerencial[]
+  lineasComprobantesGerenciales LineaComprobanteGerencial[]
 }
 
 model TarifaComercial {
@@ -647,6 +661,7 @@ model LineaCotizacionComercial {
   concepto ConceptoComercial @relation(fields: [conceptoId], references: [id], onDelete: Restrict)
   @@unique([cotizacionId, posicion])
   @@map("lineas_cotizaciones_comerciales")
+  facturableGerencial FacturableGerencial?
 }
 model NotaCotizacionComercial {
   id Int @id @default(autoincrement())
@@ -672,6 +687,7 @@ model VentaComercial {
   confirmadaPor Usuario @relation(fields: [confirmadaPorId], references: [id], onDelete: Restrict)
   @@index([clienteId, confirmadaEn])
   @@map("ventas_comerciales")
+  facturablesGerenciales FacturableGerencial[]
 }
 model CuentaPortal {
   id Int @id @default(autoincrement())
@@ -742,4 +758,139 @@ model ContratoGerencial {
   siguiente ContratoGerencial? @relation("RenovacionGerencial")
   @@index([clienteId, inicio, fin])
   @@map("contratos_gerenciales")
+}
+
+model ComprobanteGerencial {
+  id Int @id @default(autoincrement())
+  clienteId Int
+  referencia String @db.VarChar(100)
+  emisor String @db.VarChar(100)
+  emitidaEn DateTime @db.Timestamptz(6)
+  venceEn DateTime @db.Timestamptz(6)
+  importeFinal Decimal @db.Decimal(16, 2)
+  moneda String @default("NIO") @db.VarChar(3)
+  anuladaEn DateTime? @db.Timestamptz(6)
+  motivoAnulacion String? @db.VarChar(1000)
+  registradoEn DateTime @default(now()) @db.Timestamptz(6)
+  autorId Int
+  observacion String? @db.VarChar(1000)
+  version Int @default(1)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  lineas LineaComprobanteGerencial[]
+  aplicaciones AplicacionCobroGerencial[]
+  costos CostoGerencial[]
+  @@unique([emisor, referencia])
+  @@index([clienteId, emitidaEn])
+  @@map("comprobantes_gerenciales")
+}
+
+model LineaComprobanteGerencial {
+  id Int @id @default(autoincrement())
+  comprobanteId Int
+  descripcion String @db.VarChar(200)
+  importe Decimal @db.Decimal(16, 2)
+  ordenId Int?
+  conceptoId Int?
+  comprobante ComprobanteGerencial @relation(fields: [comprobanteId], references: [id], onDelete: Restrict)
+  orden OrdenTrabajo? @relation(fields: [ordenId], references: [id], onDelete: Restrict)
+  concepto ConceptoComercial? @relation(fields: [conceptoId], references: [id], onDelete: Restrict)
+  facturables AplicacionFacturableGerencial[]
+  @@index([comprobanteId])
+  @@map("lineas_comprobantes_gerenciales")
+}
+
+model FacturableGerencial {
+  id Int @id @default(autoincrement())
+  clienteId Int
+  conceptoId Int
+  ordenId Int?
+  ventaId Int?
+  lineaCotizacionId Int? @unique
+  referencia String @unique @db.VarChar(100)
+  fechaEfectiva DateTime @db.Timestamptz(6)
+  cantidad Decimal @db.Decimal(12, 3)
+  unidad String @db.VarChar(30)
+  autorId Int
+  registradoEn DateTime @default(now()) @db.Timestamptz(6)
+  observacion String? @db.VarChar(1000)
+  version Int @default(1)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  concepto ConceptoComercial @relation(fields: [conceptoId], references: [id], onDelete: Restrict)
+  orden OrdenTrabajo? @relation(fields: [ordenId], references: [id], onDelete: Restrict)
+  venta VentaComercial? @relation(fields: [ventaId], references: [id], onDelete: Restrict)
+  lineaCotizacion LineaCotizacionComercial? @relation(fields: [lineaCotizacionId], references: [id], onDelete: Restrict)
+  autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  aplicaciones AplicacionFacturableGerencial[]
+  @@index([clienteId, fechaEfectiva])
+  @@map("facturables_gerenciales")
+}
+
+model AplicacionFacturableGerencial {
+  id Int @id @default(autoincrement())
+  facturableId Int
+  lineaComprobanteId Int
+  cantidad Decimal @db.Decimal(12, 3)
+  fechaEfectiva DateTime @db.Timestamptz(6)
+  autorId Int
+  facturable FacturableGerencial @relation(fields: [facturableId], references: [id], onDelete: Restrict)
+  lineaComprobante LineaComprobanteGerencial @relation(fields: [lineaComprobanteId], references: [id], onDelete: Restrict)
+  autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  @@index([facturableId])
+  @@map("aplicaciones_facturables_gerenciales")
+}
+
+model CobroGerencial {
+  id Int @id @default(autoincrement())
+  clienteId Int
+  referencia String @db.VarChar(100)
+  fechaEfectiva DateTime @db.Timestamptz(6)
+  importe Decimal @db.Decimal(16, 2)
+  revertidoEn DateTime? @db.Timestamptz(6)
+  motivoReversion String? @db.VarChar(1000)
+  autorId Int
+  registradoEn DateTime @default(now()) @db.Timestamptz(6)
+  observacion String? @db.VarChar(1000)
+  version Int @default(1)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  aplicaciones AplicacionCobroGerencial[]
+  @@unique([clienteId, referencia])
+  @@index([fechaEfectiva])
+  @@map("cobros_gerenciales")
+}
+
+model AplicacionCobroGerencial {
+  id Int @id @default(autoincrement())
+  cobroId Int
+  comprobanteId Int
+  importe Decimal @db.Decimal(16, 2)
+  cobro CobroGerencial @relation(fields: [cobroId], references: [id], onDelete: Restrict)
+  comprobante ComprobanteGerencial @relation(fields: [comprobanteId], references: [id], onDelete: Restrict)
+  @@unique([cobroId, comprobanteId])
+  @@index([comprobanteId])
+  @@map("aplicaciones_cobros_gerenciales")
+}
+
+model CostoGerencial {
+  id Int @id @default(autoincrement())
+  referencia String @unique @db.VarChar(100)
+  fechaEfectiva DateTime @db.Timestamptz(6)
+  categoria String @db.VarChar(30)
+  importe Decimal @db.Decimal(16, 2)
+  clienteId Int?
+  ordenId Int?
+  comprobanteId Int?
+  revertidoEn DateTime? @db.Timestamptz(6)
+  motivoReversion String? @db.VarChar(1000)
+  autorId Int
+  registradoEn DateTime @default(now()) @db.Timestamptz(6)
+  observacion String? @db.VarChar(1000)
+  version Int @default(1)
+  cliente Cliente? @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  orden OrdenTrabajo? @relation(fields: [ordenId], references: [id], onDelete: Restrict)
+  comprobante ComprobanteGerencial? @relation(fields: [comprobanteId], references: [id], onDelete: Restrict)
+  autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  @@index([fechaEfectiva, clienteId])
+  @@map("costos_gerenciales")
 }

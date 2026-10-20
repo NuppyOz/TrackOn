@@ -20,6 +20,15 @@ function ordenar(valor: unknown): unknown {
     return valor;
 }
 
+// adapter-pg puede propagar un conflicto del COMMIT sin envolverlo en P2034.
+function esConflictoDelAdaptador(error: unknown): boolean {
+    if (!(error instanceof Error) || error.name !== 'DriverAdapterError') return false;
+    const causa = error.cause;
+    if (!causa || typeof causa !== 'object') return false;
+    const detalle = causa as { kind?: unknown; originalCode?: unknown };
+    return detalle.kind === 'TransactionWriteConflict' && ['40001', '40P01'].includes(String(detalle.originalCode));
+}
+
 /** El callback devuelve un DTO JSON, sin BigInt ni credenciales. Reserva y negocio son atómicos. */
 export async function ejecutarIdempotente<T>(
     actor: ActorOperacion,
@@ -54,10 +63,12 @@ export async function ejecutarIdempotente<T>(
             return dto;
         }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && ['P2002', 'P2034'].includes(error.code)) {
+        const conflictoAdaptador = esConflictoDelAdaptador(error);
+        if (conflictoAdaptador || error instanceof Prisma.PrismaClientKnownRequestError && ['P2002', 'P2034'].includes(error.code)) {
             const completada = await prisma.operacionIdempotente.findUnique({ where });
             if (completada) return recuperar(completada);
         }
+        if (conflictoAdaptador) throw new AppError(409, 'Los datos cambiaron durante la operación. Actualiza los datos e inténtalo de nuevo.');
         throw error;
     }
 }
