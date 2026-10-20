@@ -1,3 +1,4 @@
+import { AsistenteIndicadores } from '../asistente'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../shared/ui'
 import { listarArticulos } from '../../fuentes-gerenciales/logistica/articulos/articulos.api'
@@ -81,6 +82,7 @@ export function IndicadoresLogisticosPage() {
   return <section className="inteligencia-scope" aria-label="Indicadores logísticos"><div className="h7-dashboard">
     <ModuleHeader breadcrumb="Inteligencia" title="Indicadores logísticos" description="Existencias, compromisos de compra, recepciones y herramientas al corte." action={sourceTitle} />
     <form className="h7-range" onSubmit={event => { event.preventDefault(); applyRange() }}><label>Desde<input type="datetime-local" step="1" value={from} onChange={event => setFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" step="1" value={until} onChange={event => setUntil(event.currentTarget.value)} /></label><Button type="submit" variant="primary" disabled={!validRange || loading}>Consultar</Button>{from && until && !validRange && <p className="h7-error" role="alert">El rango debe ser válido, Desde debe preceder a Hasta y no puede superar 366 días.</p>}</form>
+    {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="logistico" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h7-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}
     {board && <p className="h7-coverage" role="note"><SemanticBadge label={board.cobertura.estado === 'COMPLETA' ? 'Cobertura verificada' : board.cobertura.estado === 'PARCIAL' ? 'Cobertura parcial' : 'Sin registros'} icon={board.cobertura.estado === 'COMPLETA' ? '✓' : board.cobertura.estado === 'PARCIAL' ? '!' : '○'} variant={board.cobertura.estado === 'COMPLETA' ? 'success' : board.cobertura.estado === 'PARCIAL' ? 'warning' : 'neutral'} /> Período {fechaHora(board.desde)} a {fechaHora(board.hasta)} · corte evaluado {fechaHora(board.corteEvaluacion)}. Cobertura de datos: {fechaHora(board.cobertura.desde)} a {fechaHora(board.cobertura.hastaVerificada)}. {board.cobertura.observaciones.join(' ')}</p>}
     {board && new Date(board.hasta).getTime() > new Date(board.corteEvaluacion).getTime() && <p className="h7-note">El rango termina después del momento actual; los saldos y préstamos se evaluaron hasta el corte mostrado.</p>}

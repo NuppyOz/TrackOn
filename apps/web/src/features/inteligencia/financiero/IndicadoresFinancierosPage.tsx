@@ -1,3 +1,4 @@
+import { AsistenteIndicadores } from '../asistente'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../shared/ui'
 import { DataTable, MetricSummary, ModuleHeader, SemanticBadge, type DataTableColumn } from '../../erp-ui/components'
@@ -89,6 +90,7 @@ export function IndicadoresFinancierosPage() {
   return <section className="h6-dashboard" aria-labelledby="financial-dashboard-title">
     <ModuleHeader breadcrumb="Inteligencia" title="Indicadores financieros" description="Facturación, cobros, saldos, costos y servicios pendientes capturados en TrackOn." action={<nav className="h6-source-links" aria-label="Fuentes financieras"><a href="/inteligencia/origen/finanzas">Comprobantes y cobros</a></nav>} />
     <form className="h6-range" onSubmit={event => { event.preventDefault(); apply() }}><label>Desde<input type="datetime-local" step="1" value={from} onChange={event => setFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" step="1" value={until} onChange={event => setUntil(event.currentTarget.value)} /></label><Button type="submit" variant="primary" disabled={!valid || loading}>Consultar</Button></form>
+    {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="financiero" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h6-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}
     {coverage && <p className="h6-coverage" role="note"><SemanticBadge label={coverage === 'COMPLETA' ? 'Cobertura verificada para el rango' : coverage === 'PARCIAL' ? 'Cobertura parcial' : 'Sin registros financieros'} variant={coverage === 'COMPLETA' ? 'success' : coverage === 'PARCIAL' ? 'warning' : 'neutral'} /> Los indicadores reflejan únicamente los registros capturados; la cobertura parcial no representa el total empresarial. {board?.cobertura.observaciones.join(' ')} Corte evaluado: {fmtDateTime(board?.corteEvaluacion ?? null)}. Cobertura desde {fmtDateTime(board?.cobertura.desde)} hasta {fmtDateTime(board?.cobertura.hastaVerificada)}.</p>}
     {board && new Date(board.hasta) > new Date(board.corteEvaluacion) && <p className="h6-note">El rango termina en el futuro; los saldos y eventos se evalúan hasta el corte indicado.</p>}

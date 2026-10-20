@@ -1,3 +1,4 @@
+import { AsistenteIndicadores } from '../asistente'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../shared/ui'
 import { DataTable, MetricSummary, ModuleHeader, SemanticBadge, type DataTableColumn } from '../../erp-ui/components'
@@ -73,6 +74,7 @@ export function IndicadoresComercialesPage() {
   return <section className="h5-dashboard" aria-labelledby="commercial-dashboard-title">
     <ModuleHeader breadcrumb="Inteligencia" title="Indicadores comerciales" description="Cotizaciones, ventas, clientes, contratos y renovaciones registradas en TrackOn." action={<nav className="h5-source-links" aria-label="Registros de origen comerciales"><a href="/comercial/cotizaciones-ventas">Cotizaciones y ventas</a><a href="/inteligencia/origen/contratos">Contratos</a></nav>} />
     <form className="h5-range" onSubmit={event => { event.preventDefault(); apply() }}><label>Desde<input type="datetime-local" value={draftFrom} onChange={event => setDraftFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" value={draftUntil} onChange={event => setDraftUntil(event.currentTarget.value)} /></label><Button variant="primary" type="submit" disabled={!validRange || loading}>Consultar</Button></form>
+    {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="comercial" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h5-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}
     {status && <p className="h5-coverage" role="note"><SemanticBadge label={status === 'COMPLETA' ? 'Cobertura verificada para el rango' : status === 'PARCIAL' ? 'Cobertura parcial' : 'Sin registros de cobertura'} variant={status === 'COMPLETA' ? 'success' : status === 'PARCIAL' ? 'warning' : 'neutral'} /> El tablero refleja únicamente las fuentes registradas; no representa actividad empresarial fuera del alcance capturado. {board?.cobertura.observaciones.join(' ')} Corte evaluado: {board?.corteEvaluacion ? formatDateTime(board.corteEvaluacion) : '—'}.</p>}
     {missingMetrics.length > 0 && <p className="h5-error" role="alert">Respuesta incompleta del servidor: faltan {missingMetrics.join(', ')}.</p>}
