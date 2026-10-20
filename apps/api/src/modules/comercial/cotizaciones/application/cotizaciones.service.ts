@@ -39,7 +39,7 @@ function encabezado(row: CotizacionConDetalle | CotizacionListado, ahora = new D
     moneda: row.moneda, subtotal: decimalFijo(row.subtotal, 2), descuento: decimalFijo(row.descuento, 2), total: decimalFijo(row.total, 2),
     venceEn: fecha(row.venceEn), version: row.version, creadaEn: fecha(row.creadaEn), actualizadaEn: fecha(row.actualizadaEn),
     enviadaEn: fecha(row.enviadaEn), decididaEn: fecha(row.decididaEn), ventaId: row.venta?.id ?? null,
-    accionesPermitidas: { ...accionesPermitidasCotizacion(estadoPersistido, row.venceEn, { ahora: () => ahora }), convertirVenta: false },
+    accionesPermitidas: { ...accionesPermitidasCotizacion(estadoPersistido, row.venceEn, { ahora: () => ahora }), convertirVenta: estadoPersistido === 'APROBADA' && row.venta?.id == null },
   };
 }
 function detalleDto(row: CotizacionConDetalle | null) {

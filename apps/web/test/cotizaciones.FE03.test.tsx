@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { CotizacionesPage } from '../src/features/comercial/cotizaciones/CotizacionesPage'
 
 const mocks = vi.hoisted(() => ({
-  listarCotizaciones: vi.fn(), obtenerCotizacion: vi.fn(), crearCotizacion: vi.fn(), actualizarCotizacion: vi.fn(), enviarCotizacion: vi.fn(), decidirCotizacion: vi.fn(), agregarNotaCotizacion: vi.fn(),
+  listarCotizaciones: vi.fn(), obtenerCotizacion: vi.fn(), crearCotizacion: vi.fn(), actualizarCotizacion: vi.fn(), enviarCotizacion: vi.fn(), decidirCotizacion: vi.fn(), agregarNotaCotizacion: vi.fn(), convertirCotizacionEnVenta: vi.fn(),
   listarClientes: vi.fn(), listarContactos: vi.fn(), listarConceptos: vi.fn(),
 }))
 vi.mock('../src/features/comercial/cotizaciones/cotizaciones.api', () => mocks)
@@ -67,12 +67,17 @@ describe('CotizacionesPage FE03', () => {
     await waitFor(() => expect(mocks.actualizarCotizacion).toHaveBeenLastCalledWith(41, expect.objectContaining({ lineas: [{ conceptoId: 10, cantidad: '1.000', descuento: '0.00' }] })))
   })
 
-  it('oculta acciones no permitidas y no expone conversión de venta en esta fase', async () => {
-    mocks.listarCotizaciones.mockResolvedValue(page([{ ...quote, accionesPermitidas: { editar: false, enviar: false, decidir: false, convertirVenta: true } }]))
+  it('oculta acciones no permitidas y muestra conversión solo cuando el DTO la permite', async () => {
+    mocks.listarCotizaciones.mockResolvedValue(page([{ ...quote, accionesPermitidas: { editar: false, enviar: false, decidir: false, convertirVenta: false } }]))
     render(<CotizacionesPage />); await screen.findByRole('cell', { name: 'Taller Central' })
     fireEvent.click(screen.getByText('⋮'))
     expect(screen.queryByRole('button', { name: 'Editar borrador' })).toBeNull()
-    expect(screen.queryByRole('button', { name: /venta/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Convertir a venta' })).toBeNull()
+    cleanup()
+    mocks.listarCotizaciones.mockResolvedValue(page([{ ...quote, accionesPermitidas: { editar: false, enviar: false, decidir: false, convertirVenta: true } }]))
+    render(<CotizacionesPage />); await screen.findByRole('cell', { name: 'Taller Central' })
+    fireEvent.click(screen.getByText('⋮'))
+    expect(screen.getByRole('button', { name: 'Convertir a venta' })).toBeTruthy()
   })
 
   it('conserva y reintenta la misma nota tras error; al guardar la cierra y muestra el resultado del POST', async () => {

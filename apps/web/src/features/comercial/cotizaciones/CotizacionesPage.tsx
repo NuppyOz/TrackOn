@@ -8,6 +8,9 @@ import { CotizacionDetalle } from './CotizacionDetalle'
 import { EstadoCotizacionBadge } from './EstadoCotizacionBadge'
 import { CotizacionForm } from './CotizacionForm'
 import type { Cotizacion, CotizacionDecision, CotizacionDraft, CotizacionPatch, CotizacionResumen } from './cotizaciones.types'
+import { convertirCotizacionEnVenta } from '../ventas/ventas.api'
+import { VentasPage } from '../ventas/VentasPage'
+import type { VentaResumen } from '../ventas/ventas.types'
 import './cotizaciones.css'
 
 const LIMITE = 25
@@ -31,12 +34,14 @@ export function CotizacionesPage() {
   const [clients, setClients] = useState<Cliente[]>([])
   const [view, setView] = useState<'list' | 'new' | 'detail'>('list'); const [detail, setDetail] = useState<Cotizacion | null>(null); const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [sectionTab, setSectionTab] = useState<'cotizaciones' | 'ventas'>('cotizaciones')
+  const [ventaInicialId, setVentaInicialId] = useState<number | null>(null)
   const lock = useRef(false); const requestId = useRef(0); const idempotency = useRef<{ signature: string; key: string } | null>(null)
-  const runIdempotent = async <T,>(operation: string, id: number | null, payload: unknown, send: (key: string) => Promise<T>) => {
+  const runIdempotent = async <T,>(operation: string, id: number | null, payload: unknown, send: (key: string) => Promise<T>, clearOnSuccess = true) => {
     const signature = JSON.stringify([operation, id, payload])
     if (idempotency.current?.signature !== signature) idempotency.current = { signature, key: uuid() }
     const result = await send(idempotency.current.key)
-    idempotency.current = null
+    if (clearOnSuccess) idempotency.current = null
     return result
   }
   const load = useCallback(async (requestedPage = page) => {
@@ -110,13 +115,36 @@ export function CotizacionesPage() {
     } catch (cause) { setError(message(cause)); return false }
     finally { lock.current = false; setBusy(false) }
   }
+  const convert = async (source?: Pick<CotizacionResumen, 'id' | 'version' | 'clienteNombreRegistrado'>) => {
+    const target = source ?? detail
+    if (!target || (detail?.id === target.id && !detail.accionesPermitidas.convertirVenta) || lock.current || busy) return
+    if (!window.confirm(`¿Convertir la cotización C-${target.id} de ${target.clienteNombreRegistrado} en una venta? La facturación se registra por separado.`)) return
+    lock.current = true; setBusy(true); setError(''); setNotice('')
+    let venta: VentaResumen | null = null
+    try {
+      venta = await runIdempotent<VentaResumen>('cotizacion:convertir-venta', target.id, { version: target.version }, key => convertirCotizacionEnVenta(target.id, target.version, key), false)
+      const updatedQuote = await obtenerCotizacion(target.id)
+      setDetail(updatedQuote)
+      setVentaInicialId(venta.id)
+      setSectionTab('ventas')
+      setNotice('Venta registrada. La facturación se registra por separado.')
+      resetIntent()
+      await load(1)
+    } catch (cause) {
+      setError(message(cause))
+      try { setDetail(await obtenerCotizacion(target.id)) } catch {
+        if (venta) { setVentaInicialId(venta.id); setSectionTab('ventas'); setNotice('Venta registrada. La facturación se registra por separado.') }
+        /* conservar la intención para reintentar con la misma clave */
+      }
+    } finally { lock.current = false; setBusy(false) }
+  }
   const columns: DataTableColumn<CotizacionResumen>[] = [
     { key: 'id', header: 'Cotización', render: row => <button className="cotizaciones__link" disabled={busy} onClick={() => void open(row.id)}>C-{row.id}</button>, sortable: true },
     { key: 'cliente', header: 'Cliente', render: row => row.clienteNombreRegistrado },
     { key: 'estado', header: 'Estado', render: row => <EstadoCotizacionBadge estado={row.estadoEfectivo} /> },
     { key: 'venceEn', header: 'Vence', render: row => date(row.venceEn), sortable: true },
     { key: 'total', header: 'Total', render: row => money(row.total), align: 'end' },
-    { key: 'acciones', header: 'Acciones', render: row => <ActionMenu label={`Acciones C-${row.id}`}><button type="button" disabled={busy} onClick={() => void open(row.id)}>Ver detalle</button>{row.accionesPermitidas.editar && <button type="button" disabled={busy} onClick={() => void open(row.id, true)}>Editar borrador</button>}</ActionMenu> },
+    { key: 'acciones', header: 'Acciones', render: row => <ActionMenu label={`Acciones C-${row.id}`}><button type="button" disabled={busy} onClick={() => void open(row.id)}>Ver detalle</button>{row.accionesPermitidas.editar && <button type="button" disabled={busy} onClick={() => void open(row.id, true)}>Editar borrador</button>}{row.accionesPermitidas.convertirVenta && <button type="button" disabled={busy} onClick={() => void convert(row)}>Convertir a venta</button>}{row.ventaId && <button type="button" disabled={busy} onClick={() => { setVentaInicialId(row.ventaId); setSectionTab('ventas') }}>Ver venta V-{row.ventaId}</button>}</ActionMenu> },
   ]
   const sortKey = sortBy === 'id' ? 'id' : 'venceEn'
   const changeSort = (key: string, direction: SortDirection) => {
@@ -133,10 +161,11 @@ export function CotizacionesPage() {
   } else if (form) {
     content = <CotizacionForm quote={editing ? detail : null} clients={clients} busy={busy} onSave={save} onCancel={() => { resetIntent(); setEditing(false); if (view === 'new') setView('list') }} />
   } else if (detail) {
-    content = <CotizacionDetalle quote={detail} busy={busy} onEdit={() => setEditing(true)} onSend={() => void transition('enviar')} onDecision={decision => void transition('decision', decision)} onNote={addNote} onBack={() => { resetIntent(); setView('list'); setDetail(null); setNotice('') }} />
+    content = <CotizacionDetalle quote={detail} busy={busy} onEdit={() => setEditing(true)} onSend={() => void transition('enviar')} onDecision={decision => void transition('decision', decision)} onNote={addNote} onConvert={() => void convert()} onOpenVenta={() => { if (detail.ventaId) { setVentaInicialId(detail.ventaId); setSectionTab('ventas') } }} onBack={() => { resetIntent(); setView('list'); setDetail(null); setNotice('') }} />
   } else content = <p role="status">Selecciona una cotización.</p>
 
-  return <div className="comercial-scope cotizaciones"><header className="cotizaciones__header"><div><p>Comercial / Cotizaciones y ventas</p><h1>Cotizaciones</h1><span>Gestiona borradores, envíos y decisiones comerciales.</span></div>{view === 'list' && <Button variant="primary" disabled={busy} onClick={startNew}>Nueva cotización</Button>}</header>
-    {notice && <div role="status" className="cotizaciones__notice">{notice}</div>}{error && <p role="alert" className="cotizaciones__error">{error}</p>}{content}
+  return <div className="comercial-scope cotizaciones"><header className="cotizaciones__header"><div><p>Comercial / Cotizaciones y ventas</p><h1>Cotizaciones y ventas</h1><span>Gestiona cotizaciones y consulta ventas confirmadas.</span></div>{view === 'list' && sectionTab === 'cotizaciones' && <Button variant="primary" disabled={busy} onClick={startNew}>Nueva cotización</Button>}</header>
+    <nav className="cotizaciones__tabs" aria-label="Cotizaciones y ventas"><button type="button" aria-current={sectionTab === 'cotizaciones' ? 'page' : undefined} disabled={busy} onClick={() => { setSectionTab('cotizaciones'); setVentaInicialId(null) }}>Cotizaciones</button><button type="button" aria-current={sectionTab === 'ventas' ? 'page' : undefined} disabled={busy} onClick={() => { setSectionTab('ventas'); setVentaInicialId(null) }}>Ventas</button></nav>
+    {notice && <div role="status" className="cotizaciones__notice">{notice}</div>}{error && <p role="alert" className="cotizaciones__error">{error}</p>}{sectionTab === 'ventas' ? <VentasPage ventaInicialId={ventaInicialId ?? undefined} /> : content}
   </div>
 }

@@ -1,6 +1,10 @@
 .cotizaciones { display: grid; gap: var(--erp-space-4); color: var(--erp-color-neutral-900); }
 .cotizaciones__header, .cotizaciones__detail-heading, .cotizaciones__buttons { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .cotizaciones__header h1, .cotizaciones__panel h2 { margin: .15rem 0; }
+.cotizaciones__tabs { display: flex; gap: .5rem; border-bottom: 1px solid var(--erp-color-neutral-200); overflow-x: auto; }
+.cotizaciones__tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; color: var(--erp-color-neutral-900); cursor: pointer; font: inherit; padding: .7rem 1rem; white-space: nowrap; }
+.cotizaciones__tabs button[aria-current="page"] { border-bottom-color: var(--erp-color-primary-600); font-weight: 700; }
+.cotizaciones__tabs button:focus-visible { outline: 3px solid var(--erp-color-secondary-500); outline-offset: 2px; }
 .cotizaciones__header p { margin: 0; color: var(--erp-color-neutral-600); }
 .cotizaciones__filter { display: inline-flex; align-items: center; gap: .6rem; width: fit-content; }
 .cotizaciones__filters { display: flex; align-items: end; flex-wrap: wrap; gap: 1rem; }
