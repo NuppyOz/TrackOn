@@ -20,6 +20,7 @@ import { ubicacionesRouter } from "./modules/ubicaciones/ubicaciones.routes.js";
 
 
 import { ordenesRouter } from "./modules/ordenes/ordenes.routes.js";
+import { comercialRouter } from './modules/comercial/comercial.routes.js';
 
 export const app = express();
 
@@ -71,6 +72,7 @@ app.use('/api/notificaciones', notificacionesRouter);
 app.use("/api/ubicaciones", ubicacionesRouter);
 
 app.use("/api/ordenes", ordenesRouter);
+app.use('/api/comercial', comercialRouter);
 
 // Manejador de errores
 app.use(manageErrors)

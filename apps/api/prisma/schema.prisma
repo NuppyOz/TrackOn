@@ -106,6 +106,11 @@ model Cliente {
   persona           Persona?      @relation(fields: [personaId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   organizacion      Organizacion? @relation(fields: [organizacionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   ubicaciones       Ubicacion[]
+  perfilComercial PerfilComercialCliente?
+  contactosComerciales ContactoComercial[]
+  notasComerciales NotaComercial[]
+  documentosComerciales ReferenciaDocumentoComercial[]
+  tarifasComerciales TarifaComercial[]
 
   @@map("clientes")
 }
@@ -148,6 +153,8 @@ model Usuario {
   cambiosEstado              HistorialEstado[]            @relation("AutorCambioEstado")
   auditorias                 Auditoria[]
   notificaciones             Notificacion[]
+  notasComerciales NotaComercial[]
+  documentosComerciales ReferenciaDocumentoComercial[]
   sesiones                   Sesion[]
   restablecimientosRecibidos RestablecimientoCredencial[] @relation("DestinatarioRestablecimiento")
   restablecimientosIniciados RestablecimientoCredencial[] @relation("IniciadorRestablecimiento")
@@ -321,6 +328,7 @@ model Servicio {
   descripcion String?         @db.Text
   activo      Boolean         @default(true)
   trabajos    OrdenServicio[]
+  conceptosComerciales ConceptoComercial[]
 
   @@map("servicios")
 }
@@ -347,6 +355,7 @@ model Material {
   unidadMedida String          @db.VarChar(30)
   activo       Boolean         @default(true)
   consumos     OrdenMaterial[]
+  conceptosComerciales ConceptoComercial[]
 
   @@map("materiales")
 }
@@ -485,4 +494,91 @@ model RestablecimientoCredencial {
   @@index([usuarioId, expiraEn])
   @@index([iniciadoPorId])
   @@map("restablecimientos_credencial")
+}
+
+model PerfilComercialCliente {
+  id Int @id @default(autoincrement())
+  clienteId Int @unique
+  clasificacion String? @db.VarChar(60)
+  instruccionesFacturacion String? @db.VarChar(500)
+  version Int @default(1)
+  actualizadoEn DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  @@map("perfiles_comerciales_cliente")
+}
+
+model ContactoComercial {
+  id Int @id @default(autoincrement())
+  clienteId Int
+  nombre String @db.VarChar(150)
+  email String? @db.VarChar(254)
+  telefono String? @db.VarChar(25)
+  cargo String? @db.VarChar(100)
+  activo Boolean @default(true)
+  version Int @default(1)
+  creadoEn DateTime @default(now()) @db.Timestamptz(6)
+  actualizadoEn DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  @@index([clienteId, activo])
+  @@map("contactos_comerciales")
+}
+
+model NotaComercial {
+  id Int @id @default(autoincrement())
+  clienteId Int
+  autorId Int
+  texto String @db.VarChar(2000)
+  creadaEn DateTime @default(now()) @db.Timestamptz(6)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  @@index([clienteId, creadaEn, id])
+  @@map("notas_comerciales")
+}
+
+model ReferenciaDocumentoComercial {
+  id Int @id @default(autoincrement())
+  clienteId Int
+  autorId Int
+  titulo String @db.VarChar(150)
+  tipo String @db.VarChar(60)
+  url String? @db.VarChar(2048)
+  nota String? @db.VarChar(500)
+  creadaEn DateTime @default(now()) @db.Timestamptz(6)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  @@index([clienteId, creadaEn, id])
+  @@map("referencias_documentos_comerciales")
+}
+
+model ConceptoComercial {
+  id Int @id @default(autoincrement())
+  codigo String @unique @db.VarChar(40)
+  tipo String @db.VarChar(20)
+  nombre String @db.VarChar(150)
+  unidad String @db.VarChar(30)
+  servicioId Int?
+  materialId Int?
+  activo Boolean @default(true)
+  version Int @default(1)
+  creadoEn DateTime @default(now()) @db.Timestamptz(6)
+  actualizadoEn DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  servicio Servicio? @relation(fields: [servicioId], references: [id], onDelete: Restrict)
+  material Material? @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  tarifas TarifaComercial[]
+  @@map("conceptos_comerciales")
+}
+
+model TarifaComercial {
+  id Int @id @default(autoincrement())
+  conceptoId Int
+  clienteId Int?
+  moneda String @default("NIO") @db.VarChar(3)
+  precio Decimal @db.Decimal(16, 2)
+  activo Boolean @default(true)
+  version Int @default(1)
+  creadaEn DateTime @default(now()) @db.Timestamptz(6)
+  concepto ConceptoComercial @relation(fields: [conceptoId], references: [id], onDelete: Restrict)
+  cliente Cliente? @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  @@index([conceptoId, clienteId, activo])
+  @@map("tarifas_comerciales")
 }

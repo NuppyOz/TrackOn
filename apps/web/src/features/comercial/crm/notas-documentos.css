@@ -1,0 +1,142 @@
+.comercial-scope .notas-doc {
+  color: var(--erp-color-neutral-900);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.comercial-scope .notas-doc__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--erp-space-6);
+  margin-bottom: var(--erp-space-6);
+}
+
+.comercial-scope .notas-doc__header h2 {
+  margin: 0;
+  font-size: 1.375rem;
+  line-height: 1.3;
+}
+
+.comercial-scope .notas-doc__header p {
+  margin: var(--erp-space-2) 0 0;
+  color: var(--erp-color-neutral-600);
+}
+
+.comercial-scope .notas-doc__primary,
+.comercial-scope .notas-doc__secondary {
+  min-height: 2.5rem;
+  padding: 0 var(--erp-space-4);
+  border: 1px solid var(--erp-color-primary-600);
+  border-radius: var(--erp-radius-sm);
+  color: var(--erp-color-neutral-0);
+  background: var(--erp-color-primary-600);
+  font: 600 .875rem Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.comercial-scope .notas-doc__secondary {
+  border-color: var(--erp-color-neutral-600);
+  color: var(--erp-color-neutral-900);
+  background: var(--erp-color-neutral-0);
+}
+
+.comercial-scope .notas-doc__primary:focus-visible,
+.comercial-scope .notas-doc__secondary:focus-visible,
+.comercial-scope .notas-doc__form input:focus-visible,
+.comercial-scope .notas-doc__form textarea:focus-visible,
+.comercial-scope .notas-doc a:focus-visible {
+  outline: 3px solid var(--erp-color-primary-600);
+  outline-offset: 2px;
+}
+
+.comercial-scope .notas-doc__primary:disabled,
+.comercial-scope .notas-doc__secondary:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+.comercial-scope .notas-doc__form {
+  display: grid;
+  gap: var(--erp-space-4);
+  max-width: 42rem;
+  margin: 0 0 var(--erp-space-6);
+  padding: var(--erp-space-6);
+  border: 1px solid var(--erp-color-neutral-200);
+  border-radius: var(--erp-radius-md);
+  background: var(--erp-color-neutral-0);
+}
+
+.comercial-scope .notas-doc__form h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.comercial-scope .notas-doc__form label {
+  display: grid;
+  gap: var(--erp-space-2);
+  font-size: .875rem;
+  font-weight: 550;
+}
+
+.comercial-scope .notas-doc__form input,
+.comercial-scope .notas-doc__form textarea {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--erp-space-2) var(--erp-space-3);
+  border: 1px solid var(--erp-color-neutral-600);
+  border-radius: var(--erp-radius-sm);
+  color: var(--erp-color-neutral-900);
+  background: var(--erp-color-neutral-0);
+  font: 400 .9375rem/1.5 Inter, system-ui, sans-serif;
+}
+
+.comercial-scope .notas-doc__form textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.comercial-scope .notas-doc__form label small,
+.comercial-scope .notas-doc__content small {
+  color: var(--erp-color-neutral-600);
+  font-size: .8125rem;
+  font-weight: 400;
+}
+
+.comercial-scope .notas-doc__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--erp-space-2);
+}
+
+.comercial-scope .notas-doc__error,
+.comercial-scope .notas-doc__notice,
+.comercial-scope .notas-doc__success {
+  margin: 0 0 var(--erp-space-4);
+  padding: var(--erp-space-3) var(--erp-space-4);
+  border: 1px solid var(--erp-color-neutral-200);
+  border-radius: var(--erp-radius-sm);
+  background: var(--erp-color-neutral-0);
+}
+
+.comercial-scope .notas-doc__error { color: var(--erp-color-error); }
+.comercial-scope .notas-doc__notice { color: var(--erp-color-neutral-600); }
+.comercial-scope .notas-doc__success { color: var(--erp-color-success); }
+
+.comercial-scope .notas-doc__content {
+  display: grid;
+  gap: var(--erp-space-1);
+  max-width: 44rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.comercial-scope .notas-doc__content p { margin: 0; white-space: pre-wrap; }
+.comercial-scope .notas-doc a { color: var(--erp-color-primary-600); }
+.comercial-scope .notas-doc__sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 600px) {
+  .comercial-scope .notas-doc__header { flex-direction: column; gap: var(--erp-space-4); }
+  .comercial-scope .notas-doc__form { padding: var(--erp-space-4); }
+  .comercial-scope .notas-doc__form-actions { flex-direction: column-reverse; }
+  .comercial-scope .notas-doc__form-actions button { width: 100%; }
+}
