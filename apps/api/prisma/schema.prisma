@@ -80,6 +80,7 @@ model Empleado {
 
   @@map("empleados")
   prestamosHerramientasGerenciales PrestamoHerramientaGerencial[]
+  correctivasGerenciales CorrectivaGerencial[]
 }
 
 model Organizacion {
@@ -122,6 +123,8 @@ model Cliente {
   comprobantesGerenciales ComprobanteGerencial[]
   costosGerenciales CostoGerencial[]
   facturablesGerenciales FacturableGerencial[]
+  casosCalidadGerenciales CasoCalidadGerencial[]
+  garantiasGerenciales GarantiaGerencial[]
 }
 
 model Ubicacion {
@@ -188,6 +191,10 @@ model Usuario {
   movimientosGerenciales MovimientoGerencial[]
   prestamosGerenciales PrestamoHerramientaGerencial[] @relation("AutorPrestamo")
   recepcionesGerenciales RecepcionGerencial[]
+  casosCalidadGerenciales CasoCalidadGerencial[]
+  correctivasGerenciales CorrectivaGerencial[]
+  garantiasGerenciales GarantiaGerencial[]
+  retrabajosGerenciales RetrabajoGerencial[]
 }
 
 model Cuadrilla {
@@ -233,6 +240,8 @@ model Equipo {
   @@index([ubicacionId, activo])
   @@index([numeroSerie])
   @@map("equipos")
+  casosCalidadGerenciales CasoCalidadGerencial[]
+  garantiasGerenciales GarantiaGerencial[]
 }
 
 model EstadoOrden {
@@ -278,6 +287,9 @@ model OrdenTrabajo {
   facturablesGerenciales FacturableGerencial[]
   lineasComprobantesGerenciales LineaComprobanteGerencial[]
   movimientosGerenciales MovimientoGerencial[]
+  casosCalidadGerenciales CasoCalidadGerencial[]
+  garantiasGerenciales GarantiaGerencial[]
+  retrabajosGerenciales RetrabajoGerencial[]
 }
 
 model OrdenEquipo {
@@ -1027,4 +1039,95 @@ model PrestamoHerramientaGerencial {
   devueltaPor Usuario? @relation("DevolucionPrestamo",fields:[devueltaPorId],references:[id],onDelete:Restrict)
   @@index([herramientaId,prestadaEn])
   @@map("prestamos_herramientas_gerenciales")
+}
+
+model GarantiaGerencial {
+  id Int @id @default(autoincrement())
+  referencia String @unique @db.VarChar(100)
+  clienteId Int
+  tipo String @db.VarChar(20)
+  activoReferencia String @db.VarChar(100)
+  equipoId Int?
+  ordenId Int?
+  inicio DateTime @db.Timestamptz(6)
+  fin DateTime @db.Timestamptz(6)
+  cobertura String @db.VarChar(2000)
+  exclusiones String? @db.VarChar(2000)
+  autorId Int
+  registradaEn DateTime @default(now()) @db.Timestamptz(6)
+  cliente Cliente @relation(fields:[clienteId],references:[id],onDelete:Restrict)
+  equipo Equipo? @relation(fields:[equipoId],references:[id],onDelete:Restrict)
+  orden OrdenTrabajo? @relation(fields:[ordenId],references:[id],onDelete:Restrict)
+  autor Usuario @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  casos CasoCalidadGerencial[]
+  @@index([inicio,fin])
+  @@map("garantias_gerenciales")
+}
+
+model CasoCalidadGerencial {
+  id Int @id @default(autoincrement())
+  referencia String @unique @db.VarChar(100)
+  clienteId Int
+  activoReferencia String @db.VarChar(100)
+  codigoFalla String @db.VarChar(60)
+  descripcion String @db.VarChar(2000)
+  equipoId Int?
+  ordenId Int?
+  garantiaId Int?
+  anteriorId Int?
+  abiertaEn DateTime @db.Timestamptz(6)
+  respuestaLimiteEn DateTime? @db.Timestamptz(6)
+  resolucionLimiteEn DateTime? @db.Timestamptz(6)
+  respondidaEn DateTime? @db.Timestamptz(6)
+  resueltaEn DateTime? @db.Timestamptz(6)
+  cerradaEn DateTime? @db.Timestamptz(6)
+  resultado String? @db.VarChar(20)
+  causaRaiz String? @db.VarChar(2000)
+  autorId Int
+  registradaEn DateTime @default(now()) @db.Timestamptz(6)
+  version Int @default(1)
+  cliente Cliente @relation(fields:[clienteId],references:[id],onDelete:Restrict)
+  equipo Equipo? @relation(fields:[equipoId],references:[id],onDelete:Restrict)
+  orden OrdenTrabajo? @relation(fields:[ordenId],references:[id],onDelete:Restrict)
+  garantia GarantiaGerencial? @relation(fields:[garantiaId],references:[id],onDelete:Restrict)
+  anterior CasoCalidadGerencial? @relation("ReincidenciaCalidad",fields:[anteriorId],references:[id],onDelete:Restrict)
+  siguientes CasoCalidadGerencial[] @relation("ReincidenciaCalidad")
+  autor Usuario @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  retrabajos RetrabajoGerencial[]
+  correctivas CorrectivaGerencial[]
+  @@index([activoReferencia,codigoFalla,abiertaEn])
+  @@map("casos_calidad_gerenciales")
+}
+
+model RetrabajoGerencial {
+  id Int @id @default(autoincrement())
+  casoId Int
+  referenciaTrabajo String @unique @db.VarChar(100)
+  fechaEfectiva DateTime @db.Timestamptz(6)
+  motivo String @db.VarChar(2000)
+  ordenId Int?
+  autorId Int
+  registradoEn DateTime @default(now()) @db.Timestamptz(6)
+  caso CasoCalidadGerencial @relation(fields:[casoId],references:[id],onDelete:Restrict)
+  orden OrdenTrabajo? @relation(fields:[ordenId],references:[id],onDelete:Restrict)
+  autor Usuario @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  @@map("retrabajos_gerenciales")
+}
+
+model CorrectivaGerencial {
+  id Int @id @default(autoincrement())
+  casoId Int
+  descripcion String @db.VarChar(2000)
+  responsableId Int
+  creadaEn DateTime @db.Timestamptz(6)
+  venceEn DateTime @db.Timestamptz(6)
+  cerradaEn DateTime? @db.Timestamptz(6)
+  resultado String? @db.VarChar(2000)
+  autorId Int
+  version Int @default(1)
+  caso CasoCalidadGerencial @relation(fields:[casoId],references:[id],onDelete:Restrict)
+  responsable Empleado @relation(fields:[responsableId],references:[id],onDelete:Restrict)
+  autor Usuario @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  @@index([venceEn,cerradaEn])
+  @@map("correctivas_gerenciales")
 }

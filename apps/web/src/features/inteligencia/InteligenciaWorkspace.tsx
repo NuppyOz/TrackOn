@@ -10,6 +10,8 @@ import { FinanzasFuentesPage } from '../fuentes-gerenciales/finanzas/FinanzasFue
 import { IndicadoresFinancierosPage } from './financiero';
 import { LogisticaFuentesPage } from '../fuentes-gerenciales/logistica/LogisticaFuentesPage';
 import { IndicadoresLogisticosPage } from './logistico';
+import { CalidadFuentesPage } from '../fuentes-gerenciales/calidad/CalidadFuentesPage';
+import { IndicadoresCalidadPage } from './calidad';
 import './InteligenciaWorkspace.css';
 
 const origenPorTablero: Record<SeccionInteligencia, SeccionFuenteGerencial> = {
@@ -32,10 +34,10 @@ export function InteligenciaWorkspace({ ruta }: Readonly<{ ruta: string }>) {
             <button type="button" aria-current={esOrigen ? 'page' : undefined} onClick={() => irA(`/inteligencia/origen/${origenPorTablero[tablero]}`)}>Registros de origen</button>
             <button type="button" aria-current={esCobertura ? 'page' : undefined} onClick={() => irA('/inteligencia/cobertura')}>Cobertura de los datos</button>
         </nav>
-        {esCobertura ? <CoberturaPage /> : esOrigen ? <FuentesGerencialesModule section={origen} showHeading={false} availableSections={['contratos', 'finanzas', 'logistica']} onNavigate={destino => irA(`/inteligencia/origen/${destino}`)}>
-            {origen === 'contratos' ? <ContratosFuentesPage /> : origen === 'finanzas' ? <FinanzasFuentesPage /> : origen === 'logistica' ? <LogisticaFuentesPage /> : undefined}
-        </FuentesGerencialesModule> : <InteligenciaModule section={section} showHeading={false} availableSections={['comercial', 'financiero', 'logistico']} onNavigate={destino => irA(`/inteligencia/${destino}`)}>
-            {section === 'comercial' ? <IndicadoresComercialesPage /> : section === 'financiero' ? <IndicadoresFinancierosPage /> : section === 'logistico' ? <IndicadoresLogisticosPage /> : undefined}
+        {esCobertura ? <CoberturaPage /> : esOrigen ? <FuentesGerencialesModule section={origen} showHeading={false} availableSections={['contratos', 'finanzas', 'logistica', 'calidad']} onNavigate={destino => irA(`/inteligencia/origen/${destino}`)}>
+            {origen === 'contratos' ? <ContratosFuentesPage /> : origen === 'finanzas' ? <FinanzasFuentesPage /> : origen === 'logistica' ? <LogisticaFuentesPage /> : <CalidadFuentesPage />}
+        </FuentesGerencialesModule> : <InteligenciaModule section={section} showHeading={false} availableSections={['comercial', 'financiero', 'logistico', 'calidad']} onNavigate={destino => irA(`/inteligencia/${destino}`)}>
+            {section === 'comercial' ? <IndicadoresComercialesPage /> : section === 'financiero' ? <IndicadoresFinancierosPage /> : section === 'logistico' ? <IndicadoresLogisticosPage /> : <IndicadoresCalidadPage />}
         </InteligenciaModule>}
     </div>;
 }

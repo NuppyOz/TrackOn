@@ -1,0 +1,21 @@
+@import '../../erp-ui/tokens.css';
+.h8-dashboard { color: var(--erp-color-neutral-900); display: grid; gap: var(--erp-space-4); }
+.h8-dashboard .erp-ui__module-header { margin: 0; }
+.h8-range, .h8-section-heading { align-items: end; display: flex; flex-wrap: wrap; gap: var(--erp-space-3); }
+.h8-range label, .h8-section-heading label { display: grid; flex: 1 1 13rem; gap: var(--erp-space-2); font-weight: 600; }
+.h8-dashboard input, .h8-dashboard select { border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); font: inherit; min-height: 2.5rem; padding: var(--erp-space-2); width: 100%; }
+.h8-error { color: var(--erp-color-error); }
+.h8-note, .h8-coverage, .h8-unsassigned { border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); margin: 0; padding: var(--erp-space-3); background: var(--erp-color-neutral-0); }
+.h8-metric-table, .h8-breakdowns { display: grid; gap: var(--erp-space-3); }
+.h8-metric-table h2, .h8-breakdowns h2 { font-size: 1.1rem; margin: 0; }
+.h8-metric-table > div { max-width: 100%; overflow: auto; border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); }
+.h8-metric-table table { width: 100%; min-width: 44rem; border-collapse: collapse; background: var(--erp-color-neutral-0); font-size: .875rem; }
+.h8-metric-table th, .h8-metric-table td { border-bottom: 1px solid var(--erp-color-neutral-200); padding: var(--erp-space-3); text-align: left; vertical-align: top; }
+.h8-section-heading { align-items: end; }
+.h8-section-heading > div { flex: 1 1 100%; }
+.h8-section-heading p { color: var(--erp-color-neutral-600); margin: var(--erp-space-1) 0 0; }
+.h8-sla { display: grid; gap: var(--erp-space-2); justify-items: start; }
+.h8-sla small { display: grid; gap: var(--erp-space-1); }
+.h8-case-links { display: flex; flex-wrap: wrap; gap: var(--erp-space-2); }
+.h8-unsassigned strong { font-size: 1.15rem; margin-left: var(--erp-space-2); }
+@media (max-width: 640px) { .h8-range, .h8-section-heading { align-items: stretch; flex-direction: column; } .h8-range > button { min-height: 2.75rem; } }

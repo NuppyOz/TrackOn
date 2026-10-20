@@ -13,6 +13,11 @@ import { movimientosGerencialesRouter } from './logistica/movimientos/movimiento
 import { comprasGerencialesRouter } from './logistica/compras/compras.routes.js';
 import { herramientasGerencialesRouter } from './logistica/herramientas/herramientas.routes.js';
 
+import { garantiasGerencialesRouter } from './calidad/garantias/garantias.routes.js';
+import { casosCalidadGerencialesRouter } from './calidad/casos/casos.routes.js';
+
+import { correctivasGerencialesRouter } from './calidad/correctivas/correctivas.routes.js';
+
 export const fuentesGerencialesRouter = Router();
 fuentesGerencialesRouter.use(authenticate, authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE));
 fuentesGerencialesRouter.use(procedenciaRouter);
@@ -21,3 +26,7 @@ fuentesGerencialesRouter.use('/finanzas', comprobantesGerencialesRouter, factura
 fuentesGerencialesRouter.use('/logistica', articulosGerencialesRouter, movimientosGerencialesRouter);
 fuentesGerencialesRouter.use('/logistica/compras', comprasGerencialesRouter);
 fuentesGerencialesRouter.use('/logistica', herramientasGerencialesRouter);
+
+fuentesGerencialesRouter.use('/calidad/garantias', garantiasGerencialesRouter);
+fuentesGerencialesRouter.use('/calidad/casos', casosCalidadGerencialesRouter);
+fuentesGerencialesRouter.use('/calidad/correctivas', correctivasGerencialesRouter);
