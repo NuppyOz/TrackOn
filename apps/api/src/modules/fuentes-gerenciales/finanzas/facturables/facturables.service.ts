@@ -91,6 +91,14 @@ export async function aplicar(id: number, body: AplicarFacturable, autorId: numb
   if (linea.comprobante.anuladaEn) throw new AppError(409, 'El comprobante está anulado.');
   if (linea.comprobante.clienteId !== row.clienteId || linea.conceptoId !== row.conceptoId || linea.concepto?.unidad !== row.unidad) throw new AppError(400, 'El comprobante debe corresponder al mismo cliente, concepto y unidad.');
   if (fecha < linea.comprobante.emitidaEn) throw new AppError(400, 'La aplicación no puede ser anterior a la emisión del comprobante.');
+  // El pendiente actual sólo es reutilizable desde los hitos que lo liberaron.
+  // Mantener la cronología impide duplicar una cantidad en un corte anterior.
+  const ultimoHito = row.aplicaciones.reduce((ultimo, aplicacion) => {
+    const anuladaEn = aplicacion.lineaComprobante.comprobante.anuladaEn;
+    const hito = anuladaEn && anuladaEn > aplicacion.fechaEfectiva ? anuladaEn : aplicacion.fechaEfectiva;
+    return hito > ultimo ? hito : ultimo;
+  }, row.fechaEfectiva);
+  if (fecha < ultimoHito) throw new AppError(400, 'La aplicación no puede ser anterior a las aplicaciones o anulaciones previas de este servicio.');
   const restante = pendiente(row);
   if (cantidad > restante) throw new AppError(409, 'La cantidad supera el servicio pendiente de facturar.');
   if (row.version >= 2_147_483_647) throw new AppError(409, 'El servicio facturable alcanzó su versión máxima.');

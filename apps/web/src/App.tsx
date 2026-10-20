@@ -6,7 +6,7 @@ import "./shared/styles/figma-ui.css";
 import "./shared/styles/responsive.css";
 import "./shared/styles/asignaciones.css";
 import "./shared/styles/operacion.css";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import EquiposManager from "./features/equipos/EquiposManager";
 import ClientesManager from "./features/clientes/ClientesManager";
 import EmpleadosManager from "./features/empleados/EmpleadosManager";
@@ -24,8 +24,8 @@ import { irA, leerRuta } from './shared/navigation';
 import Agenda from './features/agenda/Agenda';
 import UsuariosManager from './features/administracion/UsuariosManager';
 import AuditoriaManager from './features/administracion/AuditoriaManager';
-import { ComercialWorkspace } from './features/comercial/ComercialWorkspace';
-import { InteligenciaWorkspace } from './features/inteligencia/InteligenciaWorkspace';
+const ComercialWorkspace = lazy(() => import('./features/comercial/ComercialWorkspace').then(module => ({ default: module.ComercialWorkspace })));
+const InteligenciaWorkspace = lazy(() => import('./features/inteligencia/InteligenciaWorkspace').then(module => ({ default: module.InteligenciaWorkspace })));
 
 interface ModuleContentProps {
     seccion: Seccion;
@@ -40,8 +40,8 @@ interface ModuleContentProps {
 
 function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadrillas, ruta, ordenNueva, puedeAdministrar }: Readonly<ModuleContentProps>) {
     switch (seccion) {
-        case "comercial": return puedeGestionar ? <ComercialWorkspace ruta={ruta} puedeAdministrar={puedeAdministrar} /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
-        case "inteligencia": return puedeGestionar ? <InteligenciaWorkspace ruta={ruta} /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "comercial": return puedeGestionar ? <Suspense fallback={<p role="status">Cargando Comercial…</p>}><ComercialWorkspace ruta={ruta} puedeAdministrar={puedeAdministrar} /></Suspense> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "inteligencia": return puedeGestionar ? <Suspense fallback={<p role="status">Cargando Inteligencia…</p>}><InteligenciaWorkspace ruta={ruta} /></Suspense> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
         case "agenda": return <Agenda onOrden={onOrden} />;
         case "administracion": return puedeAdministrar ? <UsuariosManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
         case "auditoria": return puedeAdministrar ? <AuditoriaManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;

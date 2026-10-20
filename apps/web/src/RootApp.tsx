@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import App from './App'
-import { PortalApp } from './features/portal/PortalApp'
+const PortalApp = lazy(() => import('./features/portal/PortalApp').then(module => ({ default: module.PortalApp })))
 
 export function RootApp() {
   const [pathname, setPathname] = useState(() => window.location.pathname)
@@ -13,5 +13,5 @@ export function RootApp() {
       window.removeEventListener('trackon:navigate', actualizar)
     }
   }, [])
-  return /^\/portal(?:\/|$)/.test(pathname) ? <PortalApp /> : <App />
+  return /^\/portal(?:\/|$)/.test(pathname) ? <Suspense fallback={<p role="status">Cargando portal…</p>}><PortalApp /></Suspense> : <App />
 }

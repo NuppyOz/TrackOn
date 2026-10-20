@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app.js';
@@ -47,4 +48,16 @@ it('H6 calcula saldos históricos, flujos del período y pendientes antes y desp
     const despues = await consultar('2003-01-16', '2003-02-01');
     expect(despues.metricas).toMatchObject({ facturacion: '-100.00', cobros: '-40.00', cuentas_por_cobrar: '0.00', costos: '-30.00', resultado_registrado: '-70.00', margen_porcentaje: null });
     expect(despues.pendiente).toBe('1.500');
+});
+it('no reaplica retroactivamente un servicio antes de la anulación que liberó su cantidad', async () => {
+    const doc = await prisma.comprobanteGerencial.create({ data: { clienteId: f.clientes[0], referencia: f.prefijo + '-REAPLICAR', emisor: 'PRUEBA', emitidaEn: date('2003-01-01'), venceEn: date('2003-02-01'), importeFinal: '100.00', autorId: f.usuarios[0], lineas: { create: { descripcion: 'Servicio reutilizado tras anulación', importe: '100.00', conceptoId } } }, include: { lineas: true } });
+    const aplicar = (fechaEfectiva: string) => request(app).post(`/api/fuentes-gerenciales/finanzas/facturables/${facturableId}/aplicar`).set('Authorization', `Bearer ${f.tokens.ADMIN}`).set('Idempotency-Key', randomUUID()).send({ lineaComprobanteId: doc.lineas[0].id, cantidad: '1.500', fechaEfectiva: fechaEfectiva + 'T00:00:00Z' });
+    // La cantidad sólo queda completamente libre al anular el documento original el día21.
+    expect((await aplicar('2003-01-10')).status).toBe(400);
+    const valida = await aplicar('2003-01-21');
+    expect(valida.status).toBe(200);
+    expect(valida.body.data.pendiente).toBe('0.000');
+    const corte = await request(app).get('/api/inteligencia/financiero').query({ desde: '2003-01-01T00:00:00Z', hasta: '2003-01-15T00:00:00Z' }).set('Authorization', `Bearer ${f.tokens.ADMIN}`);
+    expect(corte.status).toBe(200);
+    expect(corte.body.data.desgloses.find((r: {tipo: string; id: number}) => r.tipo === 'FACTURABLE' && r.id === facturableId).pendiente).toBe('1.000');
 });

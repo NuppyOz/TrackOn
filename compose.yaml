@@ -47,6 +47,7 @@ services:
       EVIDENCE_STORAGE_DIR: /app/storage/evidencias
       DATABASE_URL: ${DATABASE_URL:?Define DATABASE_URL en .env}
       AUTH_ACCESS_TOKEN_SECRET: ${AUTH_ACCESS_TOKEN_SECRET:?Define AUTH_ACCESS_TOKEN_SECRET en .env}
+      PORTAL_ALLOWED_ORIGIN: ${PORTAL_ALLOWED_ORIGIN:-http://localhost:8080}
     volumes:
       - evidence_data:/app/storage/evidencias
     depends_on:
