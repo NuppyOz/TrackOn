@@ -10,3 +10,6 @@
 .fuentes-scope button:focus-visible { outline: 3px solid var(--erp-color-secondary-500); outline-offset: 2px; }
 .fuentes-scope .fuentes-gerenciales-module__content { background: var(--erp-color-neutral-100); border-radius: var(--erp-radius-md); padding: var(--erp-space-4); }
 @media (max-width: 600px) { .fuentes-scope.fuentes-gerenciales-module { padding: var(--erp-space-4); } }
+
+.fuentes-scope.fuentes-gerenciales-module.fuentes-gerenciales-module--content { padding: 0; }
+.fuentes-scope.fuentes-gerenciales-module--content > .fuentes-gerenciales-module__content { padding: 0; background: transparent; }

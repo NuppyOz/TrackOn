@@ -29,6 +29,18 @@ describe('CotizacionesPage FE03', () => {
   })
   afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
+  it('abre la cotización enlazada desde los indicadores', async () => {
+    const previousUrl = window.location.pathname + window.location.search
+    window.history.replaceState(null, '', '/comercial/cotizaciones-ventas?cotizacionId=41')
+    try {
+      render(<CotizacionesPage />)
+      expect(await screen.findByRole('heading', { name: 'C-41 · Taller Central' })).toBeTruthy()
+      expect(mocks.obtenerCotizacion).toHaveBeenCalledWith(41)
+      fireEvent.click(screen.getByRole('button', { name: 'Volver a cotizaciones' }))
+      expect(await screen.findByRole('cell', { name: 'Taller Central' })).toBeTruthy()
+    } finally { window.history.replaceState(null, '', previousUrl) }
+  })
+
   it('consulta tabla, búsqueda, estado y páginas contra la API', async () => {
     render(<CotizacionesPage />)
     expect(await screen.findByRole('cell', { name: 'Taller Central' })).toBeTruthy()

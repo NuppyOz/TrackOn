@@ -1,7 +1,7 @@
 export type AreaInteligencia = 'COMERCIAL' | 'FINANCIERO' | 'LOGISTICO' | 'CALIDAD';
 export type UnidadMetrica = 'cantidad' | 'NIO' | 'porcentaje' | 'veces';
 export type EstadoMetrica = 'CALCULADO' | 'SIN_BASE_DE_CALCULO';
-export type Metrica = { clave: string; valor: number | string | null; unidad: UnidadMetrica; estado: EstadoMetrica; fuentes: string[]; motivo: string | null };
+export type Metrica = { clave: string; valor: number | string | null; unidad: UnidadMetrica; estado: EstadoMetrica; fuentes: string[]; motivo: string | null; base?: { numerador: number | string; denominador: number | string } };
 export type EstadoCobertura = 'COMPLETA' | 'PARCIAL' | 'SIN_REGISTROS';
 export type Cobertura = { estado: EstadoCobertura; desde: string | null; hastaVerificada: string | null; observaciones: string[] };
 export type Tablero = {

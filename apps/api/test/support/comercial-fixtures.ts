@@ -33,6 +33,7 @@ export async function crearFixtureComercial(area: string) {
 }
 
 export async function limpiarFixtureComercial(fixture: Awaited<ReturnType<typeof crearFixtureComercial>>) {
+    await prisma.auditoria.deleteMany({ where: { usuarioId: { in: fixture.usuarios } } });
     await prisma.operacionIdempotente.deleteMany({ where: { tipoActor: 'USUARIO', actorId: { in: fixture.usuarios } } });
     await prisma.cliente.deleteMany({ where: { id: { in: fixture.clientes } } });
     await prisma.sesion.deleteMany({ where: { usuarioId: { in: fixture.usuarios } } });

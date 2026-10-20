@@ -24,6 +24,10 @@ const date = (value: string) => {
 }
 const message = (cause: unknown) => cause instanceof Error ? cause.message : 'No se pudo completar la operación.'
 const uuid = () => crypto.randomUUID()
+function idInicial(parametro: 'cotizacionId' | 'ventaId') {
+  const value = new URLSearchParams(window.location.search).get(parametro)
+  return value && /^[1-9]\d*$/.test(value) && Number(value) <= 2_147_483_647 ? Number(value) : null
+}
 
 export function CotizacionesPage() {
   const [rows, setRows] = useState<CotizacionResumen[]>([])
@@ -34,8 +38,9 @@ export function CotizacionesPage() {
   const [clients, setClients] = useState<Cliente[]>([])
   const [view, setView] = useState<'list' | 'new' | 'detail'>('list'); const [detail, setDetail] = useState<Cotizacion | null>(null); const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [sectionTab, setSectionTab] = useState<'cotizaciones' | 'ventas'>('cotizaciones')
-  const [ventaInicialId, setVentaInicialId] = useState<number | null>(null)
+  const [sectionTab, setSectionTab] = useState<'cotizaciones' | 'ventas'>(() => idInicial('ventaId') ? 'ventas' : 'cotizaciones')
+  const [ventaInicialId, setVentaInicialId] = useState<number | null>(() => idInicial('ventaId'))
+  const [cotizacionInicialId] = useState(() => idInicial('ventaId') ? null : idInicial('cotizacionId'))
   const lock = useRef(false); const requestId = useRef(0); const idempotency = useRef<{ signature: string; key: string } | null>(null)
   const runIdempotent = async <T,>(operation: string, id: number | null, payload: unknown, send: (key: string) => Promise<T>, clearOnSuccess = true) => {
     const signature = JSON.stringify([operation, id, payload])
@@ -62,14 +67,19 @@ export function CotizacionesPage() {
 
   const resetIntent = () => { idempotency.current = null }
   const startNew = () => { resetIntent(); setDetail(null); setEditing(false); setNotice(''); setView('new') }
-  const open = async (id: number, edit = false) => {
+  const open = useCallback(async (id: number, edit = false) => {
     setBusy(true); setError('')
     try {
       const quote = await obtenerCotizacion(id)
       setDetail(quote); setEditing(edit && quote.accionesPermitidas.editar); setView('detail'); setNotice('')
     } catch (cause) { setError(message(cause)); setEditing(false) }
     finally { setBusy(false) }
-  }
+  }, [])
+  useEffect(() => {
+    let live = true
+    queueMicrotask(() => { if (live && cotizacionInicialId) void open(cotizacionInicialId) })
+    return () => { live = false }
+  }, [cotizacionInicialId, open])
   const save = async (value: CotizacionDraft | CotizacionPatch) => {
     if (lock.current || busy) return
     lock.current = true; setBusy(true); setError('')

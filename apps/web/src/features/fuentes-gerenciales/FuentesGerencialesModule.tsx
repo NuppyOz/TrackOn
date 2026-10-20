@@ -5,15 +5,16 @@ import './FuentesGerencialesModule.css';
 export type FuentesGerencialesModuleProps = {
   section: SeccionFuenteGerencial;
   children?: ReactNode;
+  showHeading?: boolean;
   availableSections?: SeccionFuenteGerencial[];
   onNavigate?: (section: SeccionFuenteGerencial) => void;
 };
 
-export function FuentesGerencialesModule({ section, children, availableSections = [section], onNavigate }: FuentesGerencialesModuleProps) {
+export function FuentesGerencialesModule({ section, children, availableSections = [section], onNavigate, showHeading = true }: FuentesGerencialesModuleProps) {
   const active = seccionesFuentesGerenciales.find(item => item.id === section);
   const available = seccionesFuentesGerenciales.filter(item => availableSections.includes(item.id));
-  return <div className="fuentes-scope fuentes-gerenciales-module" aria-labelledby="fuentes-gerenciales-title">
-    <header className="fuentes-gerenciales-module__header"><p className="fuentes-gerenciales-module__eyebrow">TrackOn · Registros de origen</p><h1 id="fuentes-gerenciales-title">{active?.label ?? 'Registros de origen'}</h1></header>
+  return <div className={`fuentes-scope fuentes-gerenciales-module${children ? ' fuentes-gerenciales-module--content' : ''}`} aria-labelledby={showHeading ? 'fuentes-gerenciales-title' : undefined}>
+    {showHeading && <header className="fuentes-gerenciales-module__header"><p className="fuentes-gerenciales-module__eyebrow">TrackOn · Registros de origen</p><h1 id="fuentes-gerenciales-title">{active?.label ?? 'Registros de origen'}</h1></header>}
     {onNavigate && available.length > 1 && <nav className="fuentes-gerenciales-module__nav" aria-label="Registros de origen disponibles">
       {available.map(item => <button key={item.id} type="button" aria-current={item.id === section ? 'page' : undefined} onClick={() => item.id !== section && onNavigate?.(item.id)}>{item.label}</button>)}
     </nav>}

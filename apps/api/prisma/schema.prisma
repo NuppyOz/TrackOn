@@ -116,6 +116,7 @@ model Cliente {
   tarifasComerciales TarifaComercial[]
 
   @@map("clientes")
+  contratosGerenciales ContratoGerencial[]
 }
 
 model Ubicacion {
@@ -168,6 +169,8 @@ model Usuario {
 
   @@index([rolId])
   @@map("usuarios")
+  coberturasGerenciales CoberturaGerencial[]
+  contratosGerenciales ContratoGerencial[]
 }
 
 model Cuadrilla {
@@ -706,4 +709,37 @@ model OperacionIdempotente {
   creadaEn DateTime @default(now()) @db.Timestamptz(6)
   @@unique([tipoActor, actorId, operacion, clave])
   @@map("operaciones_idempotentes")
+}
+
+model CoberturaGerencial {
+  id Int @id @default(autoincrement())
+  area String @unique @db.VarChar(20)
+  desde DateTime @db.Timestamptz(6)
+  hastaVerificada DateTime @db.Timestamptz(6)
+  responsableId Int
+  observacion String? @db.VarChar(1000)
+  version Int @default(1)
+  responsable Usuario @relation(fields: [responsableId], references: [id], onDelete: Restrict)
+  @@map("coberturas_gerenciales")
+}
+
+model ContratoGerencial {
+  id Int @id @default(autoincrement())
+  clienteId Int
+  referencia String @unique @db.VarChar(100)
+  inicio DateTime @db.Timestamptz(6)
+  fin DateTime @db.Timestamptz(6)
+  importe Decimal @db.Decimal(16, 2)
+  anteriorId Int? @unique
+  terminadoEn DateTime? @db.Timestamptz(6)
+  registradoEn DateTime @default(now()) @db.Timestamptz(6)
+  autorId Int
+  observacion String? @db.VarChar(1000)
+  version Int @default(1)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  anterior ContratoGerencial? @relation("RenovacionGerencial", fields: [anteriorId], references: [id], onDelete: Restrict)
+  siguiente ContratoGerencial? @relation("RenovacionGerencial")
+  @@index([clienteId, inicio, fin])
+  @@map("contratos_gerenciales")
 }
