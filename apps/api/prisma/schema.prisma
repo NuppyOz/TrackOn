@@ -79,6 +79,7 @@ model Empleado {
   participaciones          AsignacionTecnico[]
 
   @@map("empleados")
+  prestamosHerramientasGerenciales PrestamoHerramientaGerencial[]
 }
 
 model Organizacion {
@@ -180,6 +181,13 @@ model Usuario {
   comprobantesGerenciales ComprobanteGerencial[]
   costosGerenciales CostoGerencial[]
   facturablesGerenciales FacturableGerencial[]
+  articulosGerenciales ArticuloGerencial[]
+  comprasGerenciales CompraGerencial[]
+  devolucionesGerenciales PrestamoHerramientaGerencial[] @relation("DevolucionPrestamo")
+  herramientasGerenciales HerramientaGerencial[]
+  movimientosGerenciales MovimientoGerencial[]
+  prestamosGerenciales PrestamoHerramientaGerencial[] @relation("AutorPrestamo")
+  recepcionesGerenciales RecepcionGerencial[]
 }
 
 model Cuadrilla {
@@ -269,6 +277,7 @@ model OrdenTrabajo {
   costosGerenciales CostoGerencial[]
   facturablesGerenciales FacturableGerencial[]
   lineasComprobantesGerenciales LineaComprobanteGerencial[]
+  movimientosGerenciales MovimientoGerencial[]
 }
 
 model OrdenEquipo {
@@ -380,6 +389,7 @@ model Material {
   conceptosComerciales ConceptoComercial[]
 
   @@map("materiales")
+  articuloGerencial ArticuloGerencial?
 }
 
 model OrdenMaterial {
@@ -893,4 +903,128 @@ model CostoGerencial {
   autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
   @@index([fechaEfectiva, clienteId])
   @@map("costos_gerenciales")
+}
+
+model ArticuloGerencial {
+  id Int @id @default(autoincrement())
+  codigo String @unique @db.VarChar(60)
+  nombre String @db.VarChar(150)
+  unidad String @db.VarChar(30)
+  materialId Int? @unique
+  minimo Decimal @db.Decimal(12,3)
+  saldoCantidad Decimal @default(0) @db.Decimal(12,3)
+  saldoValor Decimal @default(0) @db.Decimal(30,9)
+  ultimaFecha DateTime? @db.Timestamptz(6)
+  version Int @default(1)
+  creadoEn DateTime @default(now()) @db.Timestamptz(6)
+  autorId Int
+  material Material? @relation(fields:[materialId],references:[id],onDelete:Restrict)
+  autor Usuario @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  movimientos MovimientoGerencial[]
+  lineasCompra LineaCompraGerencial[]
+  @@map("articulos_gerenciales")
+}
+
+model MovimientoGerencial {
+  id Int @id @default(autoincrement())
+  articuloId Int
+  tipo String @db.VarChar(30)
+  sentido Int
+  cantidad Decimal @db.Decimal(12,3)
+  valor Decimal @db.Decimal(30,9)
+  saldoCantidad Decimal @db.Decimal(12,3)
+  saldoValor Decimal @db.Decimal(30,9)
+  referencia String @unique @db.VarChar(100)
+  fechaEfectiva DateTime @db.Timestamptz(6)
+  registradoEn DateTime @default(now()) @db.Timestamptz(6)
+  observacion String @db.VarChar(1000)
+  origenId Int?
+  ordenId Int?
+  autorId Int
+  articulo ArticuloGerencial @relation(fields:[articuloId],references:[id],onDelete:Restrict)
+  origen MovimientoGerencial? @relation("OrigenMovimiento",fields:[origenId],references:[id],onDelete:Restrict)
+  derivados MovimientoGerencial[] @relation("OrigenMovimiento")
+  orden OrdenTrabajo? @relation(fields:[ordenId],references:[id],onDelete:Restrict)
+  autor Usuario @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  recepcion RecepcionGerencial?
+  @@index([articuloId,fechaEfectiva,id])
+  @@map("movimientos_gerenciales")
+}
+
+model CompraGerencial {
+  id Int @id @default(autoincrement())
+  proveedor String @db.VarChar(150)
+  referencia String @db.VarChar(100)
+  fechaEfectiva DateTime @db.Timestamptz(6)
+  registradoEn DateTime @default(now()) @db.Timestamptz(6)
+  autorId Int
+  observacion String? @db.VarChar(1000)
+  autor Usuario @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  lineas LineaCompraGerencial[]
+  @@unique([proveedor,referencia])
+  @@map("compras_gerenciales")
+}
+
+model LineaCompraGerencial {
+  id Int @id @default(autoincrement())
+  compraId Int
+  articuloId Int
+  cantidad Decimal @db.Decimal(12,3)
+  costoUnitario Decimal @db.Decimal(16,6)
+  prometidaEn DateTime @db.Timestamptz(6)
+  canceladaEn DateTime? @db.Timestamptz(6)
+  cantidadCancelada Decimal @default(0) @db.Decimal(12,3)
+  motivoCancelacion String? @db.VarChar(1000)
+  version Int @default(1)
+  compra CompraGerencial @relation(fields:[compraId],references:[id],onDelete:Restrict)
+  articulo ArticuloGerencial @relation(fields:[articuloId],references:[id],onDelete:Restrict)
+  recepciones RecepcionGerencial[]
+  @@index([articuloId])
+  @@map("lineas_compras_gerenciales")
+}
+
+model RecepcionGerencial {
+  id Int @id @default(autoincrement())
+  lineaId Int
+  cantidad Decimal @db.Decimal(12,3)
+  fechaEfectiva DateTime @db.Timestamptz(6)
+  referencia String @unique @db.VarChar(100)
+  movimientoId Int @unique
+  autorId Int
+  observacion String? @db.VarChar(1000)
+  linea LineaCompraGerencial @relation(fields:[lineaId],references:[id],onDelete:Restrict)
+  movimiento MovimientoGerencial @relation(fields:[movimientoId],references:[id],onDelete:Restrict)
+  autor Usuario @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  @@index([fechaEfectiva])
+  @@map("recepciones_gerenciales")
+}
+
+model HerramientaGerencial {
+  id Int @id @default(autoincrement())
+  codigo String @unique @db.VarChar(60)
+  nombre String @db.VarChar(150)
+  creadaEn DateTime @default(now()) @db.Timestamptz(6)
+  autorId Int
+  autor Usuario @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  prestamos PrestamoHerramientaGerencial[]
+  @@map("herramientas_gerenciales")
+}
+
+model PrestamoHerramientaGerencial {
+  id Int @id @default(autoincrement())
+  herramientaId Int
+  empleadoId Int
+  prestadaEn DateTime @db.Timestamptz(6)
+  previstaEn DateTime @db.Timestamptz(6)
+  devueltaEn DateTime? @db.Timestamptz(6)
+  referencia String @unique @db.VarChar(100)
+  observacion String? @db.VarChar(1000)
+  autorId Int
+  devueltaPorId Int?
+  herramienta HerramientaGerencial @relation(fields:[herramientaId],references:[id],onDelete:Restrict)
+  empleado Empleado @relation(fields:[empleadoId],references:[id],onDelete:Restrict)
+  autor Usuario @relation("AutorPrestamo",fields:[autorId],references:[id],onDelete:Restrict)
+  devueltaPor Usuario? @relation("DevolucionPrestamo",fields:[devueltaPorId],references:[id],onDelete:Restrict)
+  @@index([herramientaId,prestadaEn])
+  @@map("prestamos_herramientas_gerenciales")
 }

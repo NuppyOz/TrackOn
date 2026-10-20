@@ -1,0 +1,67 @@
+import { randomUUID } from 'node:crypto';
+import { afterAll, beforeAll, expect, it } from 'vitest';
+import request from 'supertest';
+import { app } from '../src/app.js';
+import { prisma } from '../src/infrastructure/prisma.js';
+import { crearFixtureComercial, limpiarFixtureComercial } from './support/comercial-fixtures.js';
+let f: Awaited<ReturnType<typeof crearFixtureComercial>>;
+let contador = 0;
+const raiz = '/api/fuentes-gerenciales/logistica';
+const post = (ruta: string, body: object, clave = randomUUID()) => request(app).post(raiz + ruta).set('Authorization', `Bearer ${f.tokens.ADMIN}`).set('Idempotency-Key', clave).send(body);
+const fecha = (dia: number) => `2010-01-${String(dia).padStart(2, '0')}T00:00:00Z`;
+const crear = (codigo: string, cantidad: string, costoUnitario: string) => post('/articulos', { codigo: `${f.prefijo}-${codigo}`, nombre: 'Artículo de prueba local', unidad: 'unidad', minimo: '1.000', apertura: { referencia: `${f.prefijo}-${codigo}-AP`, fechaEfectiva: fecha(1), cantidad, costoUnitario, observacion: 'Apertura documentada de prueba' } });
+const mover = (articuloId: number, tipo: string, cantidad: string, dia: number, extra = {}) => post('/movimientos', { articuloId, tipo, cantidad, referencia: `${f.prefijo}-MOV-${++contador}`, fechaEfectiva: fecha(dia), observacion: 'Movimiento documentado de prueba', ...extra });
+beforeAll(async () => { f = await crearFixtureComercial('H7-STOCK'); });
+afterAll(async () => {
+    if (f) {
+        const movimientos = await prisma.movimientoGerencial.findMany({ where: { autorId: { in: f.usuarios } }, orderBy: { id: 'desc' }, select: { id: true } });
+        for (const movimiento of movimientos) await prisma.movimientoGerencial.delete({ where: { id: movimiento.id } });
+        await prisma.articuloGerencial.deleteMany({ where: { autorId: { in: f.usuarios } } });
+        await limpiarFixtureComercial(f);
+    }
+    await prisma.$disconnect();
+});
+it('conserva valor ponderado y residual de devolución incluso tras revertir un retorno', async () => {
+    const articulo = await crear('PROMEDIO', '10.000', '2.000000');
+    expect(articulo.status).toBe(201);
+    const id = articulo.body.data.id;
+    expect((await mover(id, 'ENTRADA', '10.000', 2, { costoUnitario: '4.000000' })).status).toBe(201);
+    const detalle = await request(app).get(`${raiz}/articulos/${id}`).set('Authorization', `Bearer ${f.tokens.ADMIN}`);
+    expect(detalle.body.data.costoPromedio).toBe('3.000000');
+    const consumo = await mover(id, 'CONSUMO', '5.000', 3);
+    expect(consumo.status).toBe(201);
+    expect(consumo.body.data).toMatchObject({ valor: '15.000000000', saldoCantidad: '15.000', saldoValor: '45.000000000' });
+    const parcial = await mover(id, 'DEVOLUCION', '2.000', 4, { origenId: consumo.body.data.id });
+    expect(parcial.status).toBe(201);
+    expect(parcial.body.data.valor).toBe('6.000000000');
+    const final = await mover(id, 'DEVOLUCION', '3.000', 5, { origenId: consumo.body.data.id });
+    expect(final.status).toBe(201);
+    expect(final.body.data.saldoValor).toBe('60.000000000');
+    expect((await mover(id, 'DEVOLUCION', '0.001', 6, { origenId: consumo.body.data.id })).status).toBe(409);
+    const reverso = await post(`/movimientos/${final.body.data.id}/revertir`, { referencia: `${f.prefijo}-REV`, fechaEfectiva: fecha(6), observacion: 'Reversión documentada de devolución' });
+    expect(reverso.status).toBe(200);
+    expect(reverso.body.data).toMatchObject({ saldoCantidad: '17.000', saldoValor: '51.000000000' });
+    const reaplicar = await mover(id, 'DEVOLUCION', '3.000', 7, { origenId: consumo.body.data.id });
+    expect(reaplicar.status).toBe(201);
+    expect(reaplicar.body.data.saldoValor).toBe('60.000000000');
+    const vaciar = await mover(id, 'CONSUMO', '20.000', 8);
+    expect(vaciar.status).toBe(201);
+    expect(vaciar.body.data).toMatchObject({ valor: '60.000000000', saldoCantidad: '0.000', saldoValor: '0.000000000' });
+    expect((await mover(id, 'ENTRADA', '1.000', 7, { costoUnitario: '1.000000' })).status).toBe(409);
+});
+it('lee valores nanométricos persistidos sin exponentes y protege stock concurrente', async () => {
+    const vacio = await crear('CERO', '0.000', '0.000000');
+    expect(vacio.status).toBe(201);
+    expect(vacio.body.data).toMatchObject({ saldoCantidad: '0.000', saldoValor: '0.000000000', costoPromedio: null });
+    expect((await mover(vacio.body.data.id, 'ENTRADA', '1.000', 2, { costoUnitario: '1.000000' })).status).toBe(201);
+    const articulo = await crear('PRECISION', '3.000', '0.000002');
+    expect(articulo.status).toBe(201);
+    const id = articulo.body.data.id;
+    const salida = await mover(id, 'CONSUMO', '2.900', 2);
+    expect(salida.status).toBe(201);
+    expect(salida.body.data.saldoValor).toBe('0.000000200');
+    expect((await mover(id, 'ENTRADA', '0.001', 3, { costoUnitario: '0.000001' })).status).toBe(201);
+    const carrera = await Promise.all([mover(id, 'CONSUMO', '0.101', 4), mover(id, 'CONSUMO', '0.101', 4)]);
+    expect(carrera.map(r => r.status).sort()).toEqual([201, 409]);
+    expect(carrera.find(r => r.status === 201)!.body.data).toMatchObject({ valor: '0.000000201', saldoCantidad: '0.000', saldoValor: '0.000000000' });
+});
