@@ -26,6 +26,8 @@ const etiquetas: Record<Seccion, string> = {
     equipos: "Equipos",
     servicios: "Servicios",
     cuadrillas: "Cuadrillas",
+    comercial: "Comercial",
+    inteligencia: "Inteligencia",
 };
 
 export function MainLayout({
@@ -63,7 +65,7 @@ export function MainLayout({
             <main className="workspace">
                 {seccion !== "ordenes" && seccion !== "dashboard" && (
                     <div className="tk-context-breadcrumb">
-                        {seccion === 'agenda' ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
+                        {seccion === 'agenda' ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : ['comercial', 'inteligencia'].includes(seccion) ? 'TrackOn' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
                     </div>
                 )}
                 {children}

@@ -24,6 +24,8 @@ import { irA, leerRuta } from './shared/navigation';
 import Agenda from './features/agenda/Agenda';
 import UsuariosManager from './features/administracion/UsuariosManager';
 import AuditoriaManager from './features/administracion/AuditoriaManager';
+import { ComercialWorkspace } from './features/comercial/ComercialWorkspace';
+import { InteligenciaWorkspace } from './features/inteligencia/InteligenciaWorkspace';
 
 interface ModuleContentProps {
     seccion: Seccion;
@@ -38,6 +40,8 @@ interface ModuleContentProps {
 
 function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadrillas, ruta, ordenNueva, puedeAdministrar }: Readonly<ModuleContentProps>) {
     switch (seccion) {
+        case "comercial": return puedeGestionar ? <ComercialWorkspace ruta={ruta} puedeAdministrar={puedeAdministrar} /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "inteligencia": return puedeGestionar ? <InteligenciaWorkspace ruta={ruta} /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
         case "agenda": return <Agenda onOrden={onOrden} />;
         case "administracion": return puedeAdministrar ? <UsuariosManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
         case "auditoria": return puedeAdministrar ? <AuditoriaManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
@@ -120,7 +124,7 @@ export default function App() {
 
     function navegar(destino: Seccion) {
         if (['administracion', 'auditoria'].includes(destino) && !puedeAdministrar) return;
-        if (["dashboard", "cuadrillas", "empleados"].includes(destino) && !puedeGestionar) {
+        if (["dashboard", "cuadrillas", "empleados", "comercial", "inteligencia"].includes(destino) && !puedeGestionar) {
             return;
         }
 

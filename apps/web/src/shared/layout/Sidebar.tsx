@@ -1,4 +1,4 @@
-export type Seccion = "agenda" | "administracion" | "auditoria" | "dashboard" | "materiales" | "clientes" | "empleados" | "equipos" | "servicios" | "ordenes" | "cuadrillas";
+export type Seccion = "agenda" | "administracion" | "auditoria" | "dashboard" | "materiales" | "clientes" | "empleados" | "equipos" | "servicios" | "ordenes" | "cuadrillas" | "comercial" | "inteligencia";
 
 interface SidebarProps {
     seccion: Seccion;
@@ -43,6 +43,13 @@ export function Sidebar({ seccion, onNavigate, abierto, puedeGestionarCuadrillas
     return (
         <aside className={`sidebar figma-sidebar ${abierto ? "sidebar--open" : ""}`}>
             <div className="figma-sidebar-groups">
+                {puedeGestionarCuadrillas && <div className="figma-sidebar-group">
+                    <p>COMERCIAL E INTELIGENCIA</p>
+                    <nav aria-label="Comercial e inteligencia">{enlaces([
+                        { id: 'comercial', etiqueta: 'Comercial', icono: '◇' },
+                        { id: 'inteligencia', etiqueta: 'Inteligencia', icono: '▥' },
+                    ])}</nav>
+                </div>}
                 <div className="figma-sidebar-group">
                     <p>GESTIÓN OPERATIVA</p>
                     <nav aria-label="Gestión operativa">{enlaces(gestion)}</nav>
