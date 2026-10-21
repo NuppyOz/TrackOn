@@ -6,6 +6,6 @@ export const seccionesComerciales: ReadonlyArray<{ id: SeccionComercial; label: 
   { id: 'crm', label: 'Clientes y CRM' },
   { id: 'cotizaciones-ventas', label: 'Cotizaciones y ventas' },
   { id: 'catalogo-tarifas', label: 'Catálogo y tarifas' },
-  { id: 'portal-cuentas', label: 'Acceso al portal' },
+  { id: 'portal-cuentas', label: 'Portal del cliente' },
 ];
 

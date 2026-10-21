@@ -10,6 +10,6 @@ export type Tablero = {
 };
 export type SeccionInteligencia = 'comercial' | 'financiero' | 'logistico' | 'calidad';
 export const seccionesInteligencia: ReadonlyArray<{ id: SeccionInteligencia; label: string }> = [
-  { id: 'comercial', label: 'Comercial · H.5' }, { id: 'financiero', label: 'Financiero · H.6' },
-  { id: 'logistico', label: 'Logístico · H.7' }, { id: 'calidad', label: 'Calidad · H.8' },
+  { id: 'comercial', label: 'Indicadores comerciales' }, { id: 'financiero', label: 'Indicadores financieros' },
+  { id: 'logistico', label: 'Indicadores logísticos' }, { id: 'calidad', label: 'Indicadores de calidad' },
 ];

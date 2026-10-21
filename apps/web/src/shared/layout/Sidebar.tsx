@@ -44,10 +44,9 @@ export function Sidebar({ seccion, onNavigate, abierto, puedeGestionarCuadrillas
         <aside className={`sidebar figma-sidebar ${abierto ? "sidebar--open" : ""}`}>
             <div className="figma-sidebar-groups">
                 {puedeGestionarCuadrillas && <div className="figma-sidebar-group">
-                    <p>COMERCIAL E INTELIGENCIA</p>
-                    <nav aria-label="Comercial e inteligencia">{enlaces([
+                    <p>COMERCIAL Y CLIENTES</p>
+                    <nav aria-label="Comercial y clientes">{enlaces([
                         { id: 'comercial', etiqueta: 'Comercial', icono: '◇' },
-                        { id: 'inteligencia', etiqueta: 'Inteligencia', icono: '▥' },
                     ])}</nav>
                 </div>}
                 <div className="figma-sidebar-group">
@@ -59,6 +58,12 @@ export function Sidebar({ seccion, onNavigate, abierto, puedeGestionarCuadrillas
                     <nav aria-label="Recursos">{enlaces(recursos)}</nav>
                 </div>
                 {puedeAdministrar && <div className="figma-sidebar-group"><p>ADMINISTRACIÓN</p><nav aria-label="Administración">{enlaces([{ id: 'administracion', etiqueta: 'Usuarios y acceso', icono: '♙' }, { id: 'auditoria', etiqueta: 'Auditoría', icono: '≡' }])}</nav></div>}
+                {puedeGestionarCuadrillas && <div className="figma-sidebar-group">
+                    <p>INTELIGENCIA Y CONTROL</p>
+                    <nav aria-label="Inteligencia y control">{enlaces([
+                        { id: 'inteligencia', etiqueta: 'Inteligencia', icono: '▥' },
+                    ])}</nav>
+                </div>}
             </div>
             <div className="figma-sidebar-footer">
                 <a className="figma-help-card" href="https://github.com/NuppyOz/TrackOn#readme" target="_blank" rel="noreferrer">

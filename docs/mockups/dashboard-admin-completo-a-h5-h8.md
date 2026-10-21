@@ -25,13 +25,16 @@ Contenido ficticio y autocontenido para generar la interfaz completa de A.1–A.
 
 ### Navegación de este administrador
 
-| Grupo | Pantallas |
+Orden visual: Comercial y clientes al principio; Inteligencia y control como último grupo del menú lateral, después de los módulos existentes y Administración. Los códigos A.1–A.4 y H.5–H.8 de este documento sólo identifican el alcance internamente: **no mostrarlos en menús, encabezados, breadcrumbs ni tarjetas**.
+
+| Grupo visible | Pantallas visibles, en orden |
 | --- | --- |
-| Inicio | Resumen general / Centro operativo |
-| Comercial A | A.1 Clientes · A.2 Cotizaciones y ventas · A.3 Catálogo y tarifarios · A.4 Administración del portal |
-| Inteligencia H | H.5 Comercial · H.6 Financiero · H.7 Logístico · H.8 Calidad |
-| Fuentes de indicadores | Contratos · Comprobantes · Cobros · Costos · Servicios realizados · Artículos · Movimientos · Compras/recepciones · Herramientas · Garantías · Casos · Correctivas |
-| Contexto compartido | Órdenes, equipos y documentos se consultan como relaciones. Este mockup no redefine el negocio de B/C/D/E/F/G |
+| Comercial y clientes | Clientes y CRM · Cotizaciones y ventas · Catálogo y tarifas · Portal del cliente |
+| Gestión operativa | Dashboard · Órdenes · Agenda; conservar los módulos existentes |
+| Recursos | Clientes · Empleados · Equipos · Cuadrillas · Servicios · Materiales; conservar los módulos existentes |
+| Administración | Usuarios y acceso · Auditoría |
+| Inteligencia y control — último grupo | Indicadores comerciales · Indicadores financieros · Indicadores logísticos · Indicadores de calidad |
+| Dentro de Inteligencia | Indicadores · Registros de origen · Cobertura de los datos; fuentes ordenadas comercial, financiero, logístico y calidad |
 
 ## 1. Inicio — todos los contenidos del dashboard
 
@@ -248,42 +251,7 @@ Ordenar descendente en la UI; todas las fechas siguientes son de2026, America/Ma
 | 15 oct 15:00 | Reincidencia resuelta | DEMO-CAS-002 |
 | 16 oct 10:00 | Reincidencia cerrada | DEMO-CAS-002 |
 
-## 3. A.3 — Catálogo comercial y tarifarios
-
-| Código | Descripción | Tipo | Unidad | Costo NIO | Precio de venta NIO | Estado |
-| --- | --- | --- | --- | --- | --- | --- |
-| DEMO-CAT-001 | Limpieza de unidad interior | SERVICIO | servicio | 924.00 | 1320.00 | Activo |
-| DEMO-CAT-002 | Revisión técnica de climatización | SERVICIO | servicio | 952.00 | 1360.00 | Activo |
-| DEMO-CAT-003 | Mantenimiento preventivo básico | SERVICIO | servicio | 980.00 | 1400.00 | Activo |
-| DEMO-CAT-004 | Limpieza de condensador | SERVICIO | servicio | 1008.00 | 1440.00 | Activo |
-| DEMO-CAT-005 | Mantenimiento de refrigeración comercial | SERVICIO | servicio | 1036.00 | 1480.00 | Activo |
-| DEMO-CAT-006 | Técnico general | MANO_OBRA | hora | 210.00 | 300.00 | Activo |
-| DEMO-CAT-007 | Técnico de refrigeración | MANO_OBRA | hora | 224.00 | 320.00 | Activo |
-| DEMO-CAT-008 | Técnico eléctrico | MANO_OBRA | hora | 238.00 | 340.00 | Activo |
-| DEMO-CAT-009 | Ayudante técnico | MANO_OBRA | hora | 252.00 | 360.00 | Activo |
-| DEMO-CAT-010 | Aire acondicionado estándar | EQUIPO | unidad | 13500.00 | 18000.00 | Activo |
-| DEMO-CAT-011 | Unidad de refrigeración compacta | EQUIPO | unidad | 13950.00 | 18600.00 | Activo |
-| DEMO-CAT-012 | Equipo de climatización comercial | EQUIPO | unidad | 14400.00 | 19200.00 | Activo |
-| DEMO-CAT-013 | Capacitor de servicio | REPUESTO | unidad | 360.00 | 480.00 | Activo |
-| DEMO-CAT-014 | Sensor de temperatura | REPUESTO | unidad | 375.00 | 500.00 | Activo |
-| DEMO-CAT-015 | Válvula de servicio | REPUESTO | unidad | 390.00 | 520.00 | Activo |
-| DEMO-CAT-016 | Contactor estándar | REPUESTO | unidad | 405.00 | 540.00 | Activo |
-| DEMO-CAT-017 | Limpiador técnico | INSUMO | unidad | 75.00 | 100.00 | Activo |
-| DEMO-CAT-018 | Cinta aislante | INSUMO | unidad | 78.75 | 105.00 | Activo |
-| DEMO-CAT-019 | Conector de servicio | INSUMO | unidad | 82.50 | 110.00 | Activo |
-| DEMO-CAT-020 | Protector de cable | INSUMO | unidad | 86.25 | 115.00 | Activo |
-
-Tarifas estándar: una por cada concepto, con precio de venta de su fila, vigencia desde el 1 de octubre y estado activo. Costos y precios son columnas distintas; el margen se calcula sin mezclar ambos importes.
-
-| Tarifa especial | Ámbito | Concepto | Precio NIO | Vigencia |
-| --- | --- | --- | --- | --- |
-| DEMO-TAR-021 | Cliente DEMO-CLI-016 | DEMO-CAT-003 | 1380.00 | 01 oct → 31 dic |
-| DEMO-TAR-022 | Cliente DEMO-CLI-017 | DEMO-CAT-004 | 1420.00 | 01 oct → 31 dic |
-| DEMO-TAR-023 | Cliente DEMO-CLI-018 | DEMO-CAT-005 | 1460.00 | 01 oct → 31 dic |
-
-Formulario: código, nombre, tipo, unidad, costo, precio y estado. Vista de tarifarios: ámbito estándar/cliente, cliente cuando corresponda y vigencia. La tarifa por contrato y la autorización avanzada de descuentos son flujos visuales del alcance original que requieren ampliación sobre el MVP actual; no afirmar que ya tienen endpoint.
-
-## 4. A.2 — Cotizaciones y ventas
+## 3. A.2 — Cotizaciones y ventas
 
 Veinte cotizaciones: creadas entre el 1 y el 4 de octubre a las 09:00, enviadas ese mismo día a las 14:00 salvo el borrador. Aprobaciones/rechazo: 5 de octubre a las 11:00. Cantidad1.000, precio del concepto, descuento0 e impuestos0 en esta muestra; esto no establece una regla tributaria.
 
@@ -377,6 +345,41 @@ DEMO-COT-020 está almacenada como enviada sin decisión y se muestra vencida al
 | Pedido visual | Tres ejemplos PED-001/002/003 vinculados a ventas001/002/003, cantidad1.000, estado Registrado. Pedidos y su aprobación independiente son referencia del alcance original, pendientes de implementación en el MVP |
 
 Las plantillas producto/mixta no se agregan a las veinte cotizaciones ni a las ventas de los indicadores: son ejemplos de formulario sin guardar.
+
+## 4. A.3 — Catálogo comercial y tarifarios
+
+| Código | Descripción | Tipo | Unidad | Costo NIO | Precio de venta NIO | Estado |
+| --- | --- | --- | --- | --- | --- | --- |
+| DEMO-CAT-001 | Limpieza de unidad interior | SERVICIO | servicio | 924.00 | 1320.00 | Activo |
+| DEMO-CAT-002 | Revisión técnica de climatización | SERVICIO | servicio | 952.00 | 1360.00 | Activo |
+| DEMO-CAT-003 | Mantenimiento preventivo básico | SERVICIO | servicio | 980.00 | 1400.00 | Activo |
+| DEMO-CAT-004 | Limpieza de condensador | SERVICIO | servicio | 1008.00 | 1440.00 | Activo |
+| DEMO-CAT-005 | Mantenimiento de refrigeración comercial | SERVICIO | servicio | 1036.00 | 1480.00 | Activo |
+| DEMO-CAT-006 | Técnico general | MANO_OBRA | hora | 210.00 | 300.00 | Activo |
+| DEMO-CAT-007 | Técnico de refrigeración | MANO_OBRA | hora | 224.00 | 320.00 | Activo |
+| DEMO-CAT-008 | Técnico eléctrico | MANO_OBRA | hora | 238.00 | 340.00 | Activo |
+| DEMO-CAT-009 | Ayudante técnico | MANO_OBRA | hora | 252.00 | 360.00 | Activo |
+| DEMO-CAT-010 | Aire acondicionado estándar | EQUIPO | unidad | 13500.00 | 18000.00 | Activo |
+| DEMO-CAT-011 | Unidad de refrigeración compacta | EQUIPO | unidad | 13950.00 | 18600.00 | Activo |
+| DEMO-CAT-012 | Equipo de climatización comercial | EQUIPO | unidad | 14400.00 | 19200.00 | Activo |
+| DEMO-CAT-013 | Capacitor de servicio | REPUESTO | unidad | 360.00 | 480.00 | Activo |
+| DEMO-CAT-014 | Sensor de temperatura | REPUESTO | unidad | 375.00 | 500.00 | Activo |
+| DEMO-CAT-015 | Válvula de servicio | REPUESTO | unidad | 390.00 | 520.00 | Activo |
+| DEMO-CAT-016 | Contactor estándar | REPUESTO | unidad | 405.00 | 540.00 | Activo |
+| DEMO-CAT-017 | Limpiador técnico | INSUMO | unidad | 75.00 | 100.00 | Activo |
+| DEMO-CAT-018 | Cinta aislante | INSUMO | unidad | 78.75 | 105.00 | Activo |
+| DEMO-CAT-019 | Conector de servicio | INSUMO | unidad | 82.50 | 110.00 | Activo |
+| DEMO-CAT-020 | Protector de cable | INSUMO | unidad | 86.25 | 115.00 | Activo |
+
+Tarifas estándar: una por cada concepto, con precio de venta de su fila, vigencia desde el 1 de octubre y estado activo. Costos y precios son columnas distintas; el margen se calcula sin mezclar ambos importes.
+
+| Tarifa especial | Ámbito | Concepto | Precio NIO | Vigencia |
+| --- | --- | --- | --- | --- |
+| DEMO-TAR-021 | Cliente DEMO-CLI-016 | DEMO-CAT-003 | 1380.00 | 01 oct → 31 dic |
+| DEMO-TAR-022 | Cliente DEMO-CLI-017 | DEMO-CAT-004 | 1420.00 | 01 oct → 31 dic |
+| DEMO-TAR-023 | Cliente DEMO-CLI-018 | DEMO-CAT-005 | 1460.00 | 01 oct → 31 dic |
+
+Formulario: código, nombre, tipo, unidad, costo, precio y estado. Vista de tarifarios: ámbito estándar/cliente, cliente cuando corresponda y vigencia. La tarifa por contrato y la autorización avanzada de descuentos son flujos visuales del alcance original que requieren ampliación sobre el MVP actual; no afirmar que ya tienen endpoint.
 
 ## 5. A.4 — Portal del cliente administrado desde ADMIN
 
