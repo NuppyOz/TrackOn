@@ -36,7 +36,7 @@ export default function UsuariosManager() {
         catch (error) { setError(error instanceof Error ? error.message : 'No se pudo cambiar el estado.'); }
         finally { setGuardando(false); }
     }
-    return <section className="tk-admin" aria-labelledby="usuarios-titulo"><div className="section-heading"><div><h2 id="usuarios-titulo">Usuarios y acceso</h2><p>Administra cuentas, roles y estados de acceso.</p></div>{!formulario && <Button variant="primary" onClick={() => { setEditando(null); setFormulario(true); }}>+ Crear usuario</Button>}</div>
+    return <section className="tk-admin" aria-labelledby="usuarios-titulo"><div className="section-heading"><div><h2 id="usuarios-titulo">Gestión de usuarios</h2><p>Administra cuentas, roles y estados de acceso.</p></div>{!formulario && <Button variant="primary" onClick={() => { setEditando(null); setFormulario(true); }}>+ Crear usuario</Button>}</div>
         {error && <StatePanel type="error" title={error} action={<Button onClick={() => setRecarga(valor => valor + 1)}>Reintentar</Button>} />}
         {cargando && <StatePanel type="loading" title="Cargando usuarios…" />}
         {formulario ? <AccesoForm usuario={editando} roles={roles} empleados={disponibles} onCancel={() => setFormulario(false)} onSaved={() => { setFormulario(false); setRecarga(valor => valor + 1); }} /> : <>

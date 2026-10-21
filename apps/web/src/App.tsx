@@ -22,10 +22,12 @@ import MaterialesManager from "./features/materiales/MaterialesManager";
 import Dashboard from "./features/dashboard/Dashboard";
 import { irA, leerRuta } from './shared/navigation';
 import Agenda from './features/agenda/Agenda';
-import UsuariosManager from './features/administracion/UsuariosManager';
+import AdministracionWorkspace from './features/administracion/AdministracionWorkspace';
 import AuditoriaManager from './features/administracion/AuditoriaManager';
 const ComercialWorkspace = lazy(() => import('./features/comercial/ComercialWorkspace').then(module => ({ default: module.ComercialWorkspace })));
 const InteligenciaWorkspace = lazy(() => import('./features/inteligencia/InteligenciaWorkspace').then(module => ({ default: module.InteligenciaWorkspace })));
+const OperacionesWorkspace = lazy(() => import('./features/operaciones/OperacionesWorkspace'));
+const FieldWorkspace = lazy(() => import('./features/field/FieldWorkspace'));
 
 interface ModuleContentProps {
     seccion: Seccion;
@@ -41,9 +43,11 @@ interface ModuleContentProps {
 function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadrillas, ruta, ordenNueva, puedeAdministrar }: Readonly<ModuleContentProps>) {
     switch (seccion) {
         case "comercial": return puedeGestionar ? <Suspense fallback={<p role="status">Cargando Comercial…</p>}><ComercialWorkspace ruta={ruta} puedeAdministrar={puedeAdministrar} /></Suspense> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
-        case "inteligencia": return puedeGestionar ? <Suspense fallback={<p role="status">Cargando Inteligencia…</p>}><InteligenciaWorkspace ruta={ruta} /></Suspense> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "inteligencia": return puedeGestionar ? <Suspense fallback={<p role="status">Cargando IA y negocio…</p>}><InteligenciaWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "operaciones": return puedeGestionar ? <Suspense fallback={<p role="status">Cargando operaciones…</p>}><OperacionesWorkspace ruta={ruta} puedeGestionar={puedeGestionar} onOrden={onOrden} /></Suspense> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "field": return <Suspense fallback={<p role="status">Cargando TrackOn Field…</p>}><FieldWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense>;
         case "agenda": return <Agenda onOrden={onOrden} />;
-        case "administracion": return puedeAdministrar ? <UsuariosManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "administracion": return puedeAdministrar ? <AdministracionWorkspace ruta={ruta} /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
         case "auditoria": return puedeAdministrar ? <AuditoriaManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
         case "dashboard":
             return puedeGestionar ? <Dashboard onOrden={onOrden} onCuadrillas={onCuadrillas} /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
@@ -124,7 +128,7 @@ export default function App() {
 
     function navegar(destino: Seccion) {
         if (['administracion', 'auditoria'].includes(destino) && !puedeAdministrar) return;
-        if (["dashboard", "cuadrillas", "empleados", "comercial", "inteligencia"].includes(destino) && !puedeGestionar) {
+        if (["dashboard", "cuadrillas", "empleados", "comercial", "inteligencia", "operaciones"].includes(destino) && !puedeGestionar) {
             return;
         }
 

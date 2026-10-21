@@ -33,7 +33,7 @@ describe("Layout responsive de TrackOn", () => {
         const sidebar = document.querySelector('aside')!;
         const opciones = within(sidebar).getAllByRole('button');
         expect(opciones[0].textContent).toContain('Comercial');
-        expect(opciones.at(-1)?.textContent).toContain('Inteligencia');
+        expect(opciones.at(-1)?.textContent).toContain('IA y negocio');
         expect(within(sidebar).getByRole('navigation', { name: 'Comercial y clientes' })).toBeTruthy();
         expect(within(sidebar).getByRole('navigation', { name: 'Inteligencia y control' })).toBeTruthy();
         fireEvent.click(opciones.at(-1)!);
