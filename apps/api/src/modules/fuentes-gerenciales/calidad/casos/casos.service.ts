@@ -169,7 +169,7 @@ export async function cerrarCaso(tx: Prisma.TransactionClient, id: number, input
   ]);
   if (correctivas.some(correctiva => correctiva.cerradaEn === null)) throw new AppError(409, 'Cierra todas las acciones correctivas antes de cerrar el caso.');
   const dependencias = [caso.resueltaEn, ...retrabajos.map(item => item.fechaEfectiva), ...correctivas.flatMap(item => [item.creadaEn, ...(item.cerradaEn ? [item.cerradaEn] : [])])];
-  const ultimaDependencia = dependencias.reduce((max, value) => value > max ? value : max);
+  const ultimaDependencia = dependencias.reduce((max, value) => value > max ? value : max, caso.resueltaEn);
   if (cerradaEn < ultimaDependencia) throw new AppError(409, 'El cierre no puede ser anterior al último retrabajo o hito de una acción correctiva.');
   const changed = await tx.casoCalidadGerencial.updateMany({ where: { id, version: input.version, resueltaEn: { not: null }, cerradaEn: null }, data: { cerradaEn, version: { increment: 1 } } });
   if (!changed.count) throw new AppError(409, 'El caso cambió durante el cierre.');

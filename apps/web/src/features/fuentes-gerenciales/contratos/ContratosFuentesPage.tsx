@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActionMenu, Button } from '../../../shared/ui'
+import { createIdempotencyKey } from '../../../shared/idempotency'
 import { listarClientes } from '../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../clientes/clientes.types'
 import { DataTable, ModuleHeader, SemanticBadge, type DataTableColumn } from '../../erp-ui/components'
@@ -23,7 +24,7 @@ export function ContratosFuentesPage() {
   const listRequest = useRef(0)
   const [mode, setMode] = useState<Mode>(null); const [draft, setDraft] = useState(newDraft()); const [detail, setDetail] = useState<ContratoGerencial | null>(null)
   const idempotencyKey = useRef('')
-  const ensureKey = (): string => { if (!idempotencyKey.current) idempotencyKey.current = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}-${Math.random()}`; return idempotencyKey.current }
+  const ensureKey = (): string => { if (!idempotencyKey.current) idempotencyKey.current = createIdempotencyKey(); return idempotencyKey.current }
   const resetKey = () => { idempotencyKey.current = '' }
   const load = useCallback(async () => { const request = ++listRequest.current; setLoading(true); setError(''); try { const data = await listarContratos({ q: q.trim() || undefined, clienteId: clienteId ? Number(clienteId) : undefined, pagina: page, limite: LIMITE }); if (request === listRequest.current) setResult(data) } catch (cause) { if (request === listRequest.current) setError(err(cause)) } finally { if (request === listRequest.current) setLoading(false) } }, [q, clienteId, page])
   useEffect(() => { let active = true; queueMicrotask(() => { if (active) void load() }); return () => { active = false; listRequest.current += 1 } }, [load])

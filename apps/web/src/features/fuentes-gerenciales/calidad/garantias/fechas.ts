@@ -1,3 +1,5 @@
+import { createIdempotencyKey } from '../../../../shared/idempotency'
+
 export const LIMITE_CALIDAD = 25
 export function managuaAhora(): string {
   const instant = new Date()
@@ -13,4 +15,4 @@ export function fechaManagua(value: string): string {
   return Number.isNaN(date.getTime()) ? 'Fecha no válida' : new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Managua' }).format(date)
 }
 export function validarId(value: number): boolean { return Number.isInteger(value) && value > 0 && value <= 2_147_483_647 }
-export function nuevaClave(): string { return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}-${Math.random()}` }
+export const nuevaClave = createIdempotencyKey

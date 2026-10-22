@@ -1,4 +1,5 @@
 import { api } from '../../../../shared/api'
+import { createIdempotencyKey } from '../../../../shared/idempotency'
 import type { CasoDetalle, CrearCaso, FiltrosCasos, PaginaCasos, ResponderCaso, ResolverCaso, CerrarCaso, CrearRetrabajo, CrearCorrectiva, RetrabajoCalidad, CorrectivaCalidad } from './casos.types'
 const base = '/api/fuentes-gerenciales/calidad/casos'
 export function listarCasos(filtros: FiltrosCasos) {
@@ -7,7 +8,7 @@ export function listarCasos(filtros: FiltrosCasos) {
   return api<PaginaCasos>(`${base}?${params}`)
 }
 export const obtenerCaso = (id: number) => api<CasoDetalle>(`${base}/${id}`)
-const nuevaClave = (): string => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}-${Math.random()}`
+const nuevaClave = createIdempotencyKey
 export const crearCaso = (payload: CrearCaso, key = nuevaClave()) => api<CasoDetalle>(base, { method: 'POST', headers: { 'Idempotency-Key': key }, body: JSON.stringify(payload) })
 function post<T>(path: string, payload: unknown, key: string) { return api<T>(`${base}${path}`, { method: 'POST', headers: { 'Idempotency-Key': key }, body: JSON.stringify(payload) }) }
 export const responderCaso = (id: number, payload: ResponderCaso, key: string) => post<CasoDetalle>(`/${id}/responder`, payload, key)

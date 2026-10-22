@@ -1,4 +1,5 @@
 import { api } from '../../../../shared/api'
+import { createIdempotencyKey } from '../../../../shared/idempotency'
 import type { Comprobante, ComprobanteNuevo, Filtros, Pagina } from './documentos.types'
 
 const base = '/api/fuentes-gerenciales/finanzas/comprobantes'
@@ -10,6 +11,6 @@ const query = (filters: Filtros) => {
 }
 export const listarComprobantes = (filters: Filtros) => api<Pagina<Comprobante>>(`${base}?${query(filters)}`)
 export const obtenerComprobante = (id: number) => api<Comprobante>(`${base}/${id}`)
-const key = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}-${Math.random()}`
+const key = createIdempotencyKey
 export const crearComprobante = (payload: ComprobanteNuevo, idempotencyKey: string = key()) => api<Comprobante>(base, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(payload) })
 export const anularComprobante = (id: number, payload: { version: number; fechaEfectiva: string; motivo: string }, idempotencyKey: string = key()) => api<Comprobante>(`${base}/${id}/anular`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(payload) })

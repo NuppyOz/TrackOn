@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActionMenu, Button } from '../../../../shared/ui'
+import { createIdempotencyKey } from '../../../../shared/idempotency'
 import { listarClientes } from '../../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../../clientes/clientes.types'
 import { listarOrdenes } from '../../../ordenes/ordenes.api'
@@ -23,7 +24,7 @@ const localDate = (value: string) => new Date(new Date(value).getTime() - 6 * 60
 const isoDate = (value: string) => new Date(`${value}:00-06:00`).toISOString()
 const date = (value: string) => new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(new Date(value))
 const errorText = (error: unknown) => error instanceof Error ? error.message : 'No se pudo completar la operación.'
-const randomKey = (): string => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}-${Math.random()}`
+const randomKey = createIdempotencyKey
 const milli = (value: string) => { const [whole, fraction = ''] = value.split('.'); return BigInt(whole || '0') * 1000n + BigInt(fraction.padEnd(3, '0')) }
 type Draft = { clienteId: string; conceptoId: string; referencia: string; fechaEfectiva: string; cantidad: string; ordenId: string; ventaId: string; lineaCotizacionId: string; observacion: string; aplicarFecha: string; aplicarCantidad: string; comprobanteId: string; lineaComprobanteId: string }
 const emptyDraft = (): Draft => ({ clienteId: '', conceptoId: '', referencia: '', fechaEfectiva: '', cantidad: '', ordenId: '', ventaId: '', lineaCotizacionId: '', observacion: '', aplicarFecha: '', aplicarCantidad: '', comprobanteId: '', lineaComprobanteId: '' })

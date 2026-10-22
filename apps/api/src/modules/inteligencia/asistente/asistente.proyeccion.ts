@@ -94,8 +94,8 @@ export function proyectarTablero(area: ExplicarInput['area'], tablero: unknown) 
   const proyeccion: ProyeccionAsistente = {
     area, desde, hasta, corte,
     cobertura: { estado: coberturaEstado, desde: textoIso(coberturaRaw.desde), hastaVerificada: textoIso(coberturaRaw.hastaVerificada) },
-    metricas: [...metricasByKey.values()].sort((a, b) => a.clave < b.clave ? -1 : a.clave > b.clave ? 1 : 0),
+    metricas: [...metricasByKey.values()].sort((a, b) => a.clave.localeCompare(b.clave)),
   };
   const canonico = JSON.stringify(proyeccion);
-  return { proyeccion, snapshotId: createHash('sha256').update(canonico).digest('hex'), fuentes: [...fuentes].sort() };
+  return { proyeccion, snapshotId: createHash('sha256').update(canonico).digest('hex'), fuentes: [...fuentes].sort((a, b) => a.localeCompare(b)) };
 }

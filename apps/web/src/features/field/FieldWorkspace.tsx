@@ -55,7 +55,7 @@ export default function FieldWorkspace({ ruta, onOrden }: Readonly<{ ruta: strin
 
     const tecnicos = useMemo(() => Array.from(new Set(ordenes.map(item => item.asignaciones?.[0]?.empleadoResponsable)
         .filter((item): item is NonNullable<typeof item> => Boolean(item))
-        .map(item => `${item.persona.firstName} ${item.persona.firstLastName}`))).sort(), [ordenes]);
+        .map(item => `${item.persona.firstName} ${item.persona.firstLastName}`))).sort((a, b) => a.localeCompare(b)), [ordenes]);
 
     return <section className="field-scope" aria-labelledby="field-titulo">
         <header className="field-header"><div><p>Operación móvil</p><h2 id="field-titulo">TrackOn Field</h2><span>{activa.ayuda}</span></div></header>

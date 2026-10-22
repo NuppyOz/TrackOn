@@ -1,4 +1,5 @@
 import { api } from '../../../../shared/api'
+import { createIdempotencyKey } from '../../../../shared/idempotency'
 import type { Facturable, FacturableNuevo, Filtros, Pagina } from './facturables.types'
 
 const base = '/api/fuentes-gerenciales/finanzas/facturables'
@@ -10,6 +11,6 @@ const query = (filters: Filtros) => {
 }
 export const listarFacturables = (filters: Filtros) => api<Pagina<Facturable>>(`${base}?${query(filters)}`)
 export const obtenerFacturable = (id: number) => api<Facturable>(`${base}/${id}`)
-const key = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}-${Math.random()}`
+const key = createIdempotencyKey
 export const crearFacturable = (payload: FacturableNuevo, idempotencyKey: string = key()) => api<Facturable>(base, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(payload) })
 export const aplicarFacturable = (id: number, payload: { lineaComprobanteId: number; cantidad: string; fechaEfectiva: string }, idempotencyKey: string = key()) => api<Facturable>(`${base}/${id}/aplicar`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(payload) })

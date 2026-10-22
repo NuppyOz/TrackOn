@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActionMenu, Button } from '../../../../shared/ui'
+import { createIdempotencyKey } from '../../../../shared/idempotency'
 import { listarClientes } from '../../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../../clientes/clientes.types'
 import { listarOrdenes } from '../../../ordenes/ordenes.api'
@@ -18,7 +19,7 @@ const isoDate = (value: string) => new Date(`${value}:00-06:00`).toISOString()
 const date = (value: string) => new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(new Date(value))
 const money = (value: string) => `C$ ${value}`
 const errorText = (error: unknown) => error instanceof Error ? error.message : 'No se pudo completar la operación.'
-const randomKey = (): string => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}-${Math.random()}`
+const randomKey = createIdempotencyKey
 const cents = (value: string) => { const [whole, fraction = ''] = value.split('.'); return BigInt(whole || '0') * 100n + BigInt(fraction.padEnd(2, '0')) }
 type DraftLine = { descripcion: string; importe: string; ordenId: string; conceptoId: string }
 type Draft = { clienteId: string; referencia: string; emisor: string; emitidaEn: string; venceEn: string; importeFinal: string; observacion: string; motivo: string; lineas: DraftLine[] }
