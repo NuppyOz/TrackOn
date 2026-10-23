@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ApiError } from '../../shared/api'
-import { contarNoLeidas, listarNotificaciones, marcarNotificacionLeida, type Notificacion } from './notificaciones.api'
+import { contarNoLeidas, listarNotificaciones, marcarNotificacionLeida, marcarTodasNotificacionesLeidas, type Notificacion } from './notificaciones.api'
 import { irA } from '../../shared/navigation'
 
 const fechaRelativa = (date: string) => {
@@ -22,6 +22,7 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
   const [leyendo, setLeyendo] = useState<number | null>(null)
+  const [marcandoTodas, setMarcandoTodas] = useState(false)
 
   useEffect(() => {
     if (!habilitada) return
@@ -66,7 +67,7 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
   }
 
   async function leer(notificacion: Notificacion) {
-    if (leyendo !== null) return
+    if (leyendo !== null || marcandoTodas) return
     setLeyendo(notificacion.id)
     try {
       if (!notificacion.leidaEn) {
@@ -82,6 +83,18 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
     finally { setLeyendo(null) }
   }
 
+  async function marcarTodas() {
+    if (marcandoTodas || leyendo !== null || noLeidas === 0) return
+    setMarcandoTodas(true); setError('')
+    try {
+      await marcarTodasNotificacionesLeidas()
+      const leidaEn = new Date().toISOString()
+      setItems((actuales) => actuales.map((item) => item.leidaEn ? item : { ...item, leidaEn }))
+      setNoLeidas(0)
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudieron marcar las notificaciones como leídas.') }
+    finally { setMarcandoTodas(false) }
+  }
+
   function contenidoPanel() {
     if (!habilitada) return <p className="notification-state">Necesitas una sesión activa para consultar tus notificaciones.</p>
     if (error) return <div className="notice error notification-error" role="alert">{error}<button type="button" onClick={() => void cargar()}>Reintentar</button></div>
@@ -91,7 +104,7 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
     return <div className="notification-list">{items.map((item) => {
       const estadoLectura = item.leidaEn ? '' : 'unread'
       const identificadorOrden = item.ordenId ? ` · OT-${item.ordenId}` : ''
-      return <button type="button" disabled={leyendo !== null} className={`notification-item ${estadoLectura}`} key={item.id} onClick={() => void leer(item)}>
+      return <button type="button" disabled={leyendo !== null || marcandoTodas} className={`notification-item ${estadoLectura}`} key={item.id} onClick={() => void leer(item)}>
         <span className="notification-dot" aria-hidden="true">{item.leidaEn ? '○' : '●'}</span>
         <span className="notification-copy"><strong>{item.tipo.replaceAll('_', ' ')}</strong><span>{item.mensaje}</span><small>{fechaRelativa(item.creadaEn)}{identificadorOrden}</small></span>
       </button>
@@ -109,7 +122,7 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
     {abierto && <>
       <button type="button" className="notification-dismiss" aria-label="Cerrar notificaciones" onClick={() => setAbierto(false)} />
       <section className="notification-panel" aria-label="Notificaciones">
-        <header><div><h2>Notificaciones</h2><span>{subtituloPanel}</span></div><div className="notification-panel-actions">{habilitada && <button type="button" aria-label="Actualizar notificaciones" disabled={cargando || leyendo !== null} onClick={() => void cargar()}>Actualizar</button>}<button type="button" aria-label="Cerrar" onClick={() => setAbierto(false)}>×</button></div></header>
+        <header><div><h2>Notificaciones</h2><span>{subtituloPanel}</span></div><div className="notification-panel-actions">{habilitada && noLeidas > 0 && <button type="button" aria-label="Marcar todas como leídas" disabled={cargando || leyendo !== null || marcandoTodas} onClick={() => void marcarTodas()}>{marcandoTodas ? 'Marcando…' : 'Marcar todas'}</button>}{habilitada && <button type="button" aria-label="Actualizar notificaciones" disabled={cargando || leyendo !== null || marcandoTodas} onClick={() => void cargar()}>Actualizar</button>}<button type="button" aria-label="Cerrar" onClick={() => setAbierto(false)}>×</button></div></header>
         {contenidoPanel()}
         {habilitada && cursor && <button type="button" className="notification-more" disabled={cargando} onClick={() => void cargar(true)}>{cargando ? 'Cargando…' : 'Cargar más'}</button>}
       </section>

@@ -14,6 +14,7 @@ import {
     contarNoLeidas,
     listarNotificaciones,
     marcarNotificacionLeida,
+    marcarTodasNotificacionesLeidas,
 } from '../src/features/notificaciones/notificaciones.api';
 import {
     buscarMateriales,
@@ -73,12 +74,14 @@ describe('clientes HTTP de operaciones', () => {
         expect(mocks.api).toHaveBeenNthCalledWith(2, '/api/notificaciones?limite=20&cursor=42');
     });
 
-    it('consulta el contador y marca una notificación como leída', async () => {
+    it('consulta el contador y marca una o todas las notificaciones como leídas', async () => {
         await contarNoLeidas();
         await marcarNotificacionLeida(9);
+        await marcarTodasNotificacionesLeidas();
 
         expect(mocks.api).toHaveBeenNthCalledWith(1, '/api/notificaciones/unread-count');
         expect(mocks.api).toHaveBeenNthCalledWith(2, '/api/notificaciones/9/leida', { method: 'PATCH' });
+        expect(mocks.api).toHaveBeenNthCalledWith(3, '/api/notificaciones/leidas', { method: 'PATCH' });
     });
 
     it('consulta y registra trabajo para un equipo', async () => {

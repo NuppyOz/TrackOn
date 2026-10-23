@@ -632,4 +632,27 @@ describe("Notificaciones autenticadas", () => {
 
         expect(respuesta.status).toBe(404);
     });
+
+    it("marca todas las notificaciones propias como leídas", async () => {
+        const admin = await prisma.usuario.findUniqueOrThrow({
+            where: { identificador: cuentas.ADMIN.identificador },
+            select: { id: true },
+        });
+        await prisma.notificacion.createMany({
+            data: [
+                { usuarioId: admin.id, tipo: "PRUEBA", mensaje: "Primera notificación pendiente" },
+                { usuarioId: admin.id, tipo: "PRUEBA", mensaje: "Segunda notificación pendiente" },
+            ],
+        });
+
+        const respuesta = await request(app)
+            .patch("/api/notificaciones/leidas")
+            .set("Authorization", `Bearer ${token("ADMIN")}`);
+
+        expect(respuesta.status).toBe(200);
+        expect(respuesta.body.data.actualizadas).toBeGreaterThanOrEqual(2);
+        expect(await prisma.notificacion.count({
+            where: { usuarioId: admin.id, leidaEn: null },
+        })).toBe(0);
+    });
 });
