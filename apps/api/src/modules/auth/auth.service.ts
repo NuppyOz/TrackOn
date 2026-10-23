@@ -59,6 +59,7 @@ export async function login(datos: LoginInput) {
         usuario: {
             id: usuario.id,
             identificador: usuario.identificador,
+            permisos: usuario.permisos,
 
             rol: usuario.rol,
 
@@ -112,6 +113,7 @@ export async function refreshSession(refreshToken: string) {
         usuario: {
             id: usuario.id,
             identificador: usuario.identificador,
+            permisos: usuario.permisos,
 
             rol: usuario.rol,
 
@@ -169,6 +171,7 @@ export async function validarSesionAutenticada(token: VerifiedAccessToken) {
         usuario: {
             id: usuario.id,
             identificador: usuario.identificador,
+            permisos: usuario.permisos,
 
             rol: usuario.rol,
 

@@ -156,6 +156,7 @@ model Usuario {
   rolId                      Int
   identificador              String                       @unique @db.VarChar(100)
   passwordHash               String                       @db.VarChar(255)
+  permisos                   String[]                     @default([])
   activo                     Boolean                      @default(true)
   creadoEn                   DateTime                     @default(now()) @db.Timestamptz(6)
   actualizadoEn              DateTime                     @default(now()) @updatedAt @db.Timestamptz(6)
