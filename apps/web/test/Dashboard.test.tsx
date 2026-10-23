@@ -9,6 +9,7 @@ vi.mock('../src/features/dashboard/dashboard.api', () => ({ obtenerResumen: mock
 const resumen: ResumenOperativo = {
     fecha: '2026-10-14', zonaHoraria: 'America/Managua', abiertas: 5, pendientes: 2,
     enProceso: 1, enRevision: 1, cerradas: 8, programadasHoy: 3, cerradasHoy: 1, urgentes: 1,
+    porEstado: { PENDIENTE: 2, ASIGNADA: 1, EN_EJECUCION: 1, EN_REVISION: 1, CERRADA: 8 },
     requierenAtencion: [{ id: 7, numero: '007', clienteNombreRegistrado: 'Clínica Central',
         estadoCodigo: 'EN_REVISION', fechaProgramada: null, solicitud: 'Revisar compresor', prioridad: 'URGENTE' }],
     proximas: [{ id: 8, numero: '008', clienteNombreRegistrado: 'Hotel Azul', estadoCodigo: 'ASIGNADA',

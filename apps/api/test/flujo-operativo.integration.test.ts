@@ -150,7 +150,12 @@ describe('Flujo operativo real de TrackOn', () => {
         expect(cambioAcceso.status).toBe(200);
         const auditoria = await prisma.auditoria.findFirstOrThrow({ where: { entidad: 'USUARIO', entidadId: String(usuarios.otro), accion: 'ACTUALIZAR' } });
         expect(auditoria.usuarioId).toBe(usuarios.admin);
-        expect(Object.keys(auditoria.datosNuevos as object).sort()).toEqual(['activo', 'identificador', 'rolId']);
+        expect(Object.keys(auditoria.datosNuevos as object).sort()).toEqual([
+            'activo',
+            'identificador',
+            'permisos',
+            'rolId',
+        ]);
         expect((await request(app).get('/api/auditoria').set('Authorization', auth('tecnico'))).status).toBe(403);
     });
 });

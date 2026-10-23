@@ -80,7 +80,8 @@
 .tk-order-form-columns { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 .tk-order-section { padding:12px 0; border-bottom:1px solid var(--tk-border); }
 .tk-order-section summary { cursor:pointer; font-size:14px; font-weight:600; color:var(--tk-purple); }
-.notification-panel-actions { display:flex; align-items:center; gap:14px; }
+.notification-panel-actions { display:flex; align-items:center; gap:10px; }
+.notification-panel header .notification-panel-actions button[aria-label="Marcar todas como leídas"] { font-size:13px; color:var(--tk-purple); white-space:nowrap; }
 .notification-panel header .notification-panel-actions button[aria-label="Actualizar notificaciones"] { font-size:13px; color:var(--tk-purple); }
 @media(max-width:600px) { .tk-modal { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); } .tk-modal-body { padding:16px; } .tk-order-form-columns, .tk-order-summary { grid-template-columns:1fr; } }
 .tk-orders .tk-filters label { display:grid; gap:6px; color:var(--tk-text); font-size:12px; }

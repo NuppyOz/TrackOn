@@ -20,7 +20,9 @@ concurrency:
 jobs:
   validate:
     name: Build and test
-    runs-on: ubuntu-latest
+    # Keep the build reproducible instead of following the ubuntu-latest
+    # migration schedule automatically.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     steps:

@@ -4,6 +4,7 @@ export type AuthContext = {
     usuario: {
         id: number;
         identificador: string;
+        permisos: string[];
 
         rol: {
             id: number;

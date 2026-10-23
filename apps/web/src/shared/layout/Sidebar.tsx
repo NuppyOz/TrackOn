@@ -1,4 +1,4 @@
-export type Seccion = "agenda" | "administracion" | "auditoria" | "dashboard" | "materiales" | "clientes" | "empleados" | "equipos" | "servicios" | "ordenes" | "cuadrillas";
+export type Seccion = "agenda" | "administracion" | "auditoria" | "dashboard" | "materiales" | "clientes" | "empleados" | "equipos" | "servicios" | "ordenes" | "cuadrillas" | "comercial" | "inteligencia" | "operaciones" | "field";
 
 interface SidebarProps {
     seccion: Seccion;
@@ -14,7 +14,7 @@ interface Enlace {
     icono: string;
 }
 
-const gestion: Enlace[] = [{ id: "dashboard", etiqueta: "Dashboard", icono: "○" }, { id: "ordenes", etiqueta: "Órdenes", icono: "▤" }, { id: "agenda", etiqueta: "Agenda", icono: "▦" }];
+const gestion: Enlace[] = [{ id: "dashboard", etiqueta: "Dashboard", icono: "○" }, { id: "operaciones", etiqueta: "Operaciones de servicio", icono: "▤" }, { id: "field", etiqueta: "TrackOn Field", icono: "◈" }, { id: "ordenes", etiqueta: "Órdenes", icono: "▤" }, { id: "agenda", etiqueta: "Agenda", icono: "▦" }];
 const recursos: Enlace[] = [
     { id: "clientes", etiqueta: "Clientes", icono: "◉" },
     { id: "empleados", etiqueta: "Empleados", icono: "♙" },
@@ -26,7 +26,7 @@ const recursos: Enlace[] = [
 
 export function Sidebar({ seccion, onNavigate, abierto, puedeGestionarCuadrillas, puedeAdministrar = false }: Readonly<SidebarProps>) {
     function enlaces(items: Enlace[]) {
-        return items.filter(item => !["dashboard", "cuadrillas", "empleados"].includes(item.id) || puedeGestionarCuadrillas).map(item => (
+        return items.filter(item => !["dashboard", "cuadrillas", "empleados", "operaciones"].includes(item.id) || puedeGestionarCuadrillas).map(item => (
             <button
                 key={item.id}
                 type="button"
@@ -43,6 +43,12 @@ export function Sidebar({ seccion, onNavigate, abierto, puedeGestionarCuadrillas
     return (
         <aside className={`sidebar figma-sidebar ${abierto ? "sidebar--open" : ""}`}>
             <div className="figma-sidebar-groups">
+                {puedeGestionarCuadrillas && <div className="figma-sidebar-group">
+                    <p>COMERCIAL Y CLIENTES</p>
+                    <nav aria-label="Comercial y clientes">{enlaces([
+                        { id: 'comercial', etiqueta: 'Comercial', icono: '◇' },
+                    ])}</nav>
+                </div>}
                 <div className="figma-sidebar-group">
                     <p>GESTIÓN OPERATIVA</p>
                     <nav aria-label="Gestión operativa">{enlaces(gestion)}</nav>
@@ -51,7 +57,13 @@ export function Sidebar({ seccion, onNavigate, abierto, puedeGestionarCuadrillas
                     <p>RECURSOS</p>
                     <nav aria-label="Recursos">{enlaces(recursos)}</nav>
                 </div>
-                {puedeAdministrar && <div className="figma-sidebar-group"><p>ADMINISTRACIÓN</p><nav aria-label="Administración">{enlaces([{ id: 'administracion', etiqueta: 'Usuarios y acceso', icono: '♙' }, { id: 'auditoria', etiqueta: 'Auditoría', icono: '≡' }])}</nav></div>}
+                {puedeAdministrar && <div className="figma-sidebar-group"><p>ADMINISTRACIÓN</p><nav aria-label="Administración">{enlaces([{ id: 'administracion', etiqueta: 'Usuarios y permisos', icono: '♙' }, { id: 'auditoria', etiqueta: 'Auditoría', icono: '≡' }])}</nav></div>}
+                {puedeGestionarCuadrillas && <div className="figma-sidebar-group">
+                    <p>INTELIGENCIA Y CONTROL</p>
+                    <nav aria-label="Inteligencia y control">{enlaces([
+                        { id: 'inteligencia', etiqueta: 'IA y negocio', icono: '▥' },
+                    ])}</nav>
+                </div>}
             </div>
             <div className="figma-sidebar-footer">
                 <a className="figma-help-card" href="https://github.com/NuppyOz/TrackOn#readme" target="_blank" rel="noreferrer">

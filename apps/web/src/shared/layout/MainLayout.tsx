@@ -17,7 +17,7 @@ interface MainLayoutProps {
 }
 
 const etiquetas: Record<Seccion, string> = {
-    agenda: "Agenda", administracion: "Usuarios y acceso", auditoria: "Auditoría",
+    agenda: "Agenda", administracion: "Usuarios y permisos", auditoria: "Auditoría",
     dashboard: "Dashboard",
     materiales: "Materiales",
     clientes: "Clientes",
@@ -26,6 +26,10 @@ const etiquetas: Record<Seccion, string> = {
     equipos: "Equipos",
     servicios: "Servicios",
     cuadrillas: "Cuadrillas",
+    comercial: "Comercial",
+    inteligencia: "IA y negocio",
+    operaciones: "Operaciones de servicio",
+    field: "TrackOn Field",
 };
 
 export function MainLayout({
@@ -63,7 +67,7 @@ export function MainLayout({
             <main className="workspace">
                 {seccion !== "ordenes" && seccion !== "dashboard" && (
                     <div className="tk-context-breadcrumb">
-                        {seccion === 'agenda' ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
+                        {['agenda', 'operaciones', 'field'].includes(seccion) ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : ['comercial', 'inteligencia'].includes(seccion) ? 'TrackOn' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
                     </div>
                 )}
                 {children}

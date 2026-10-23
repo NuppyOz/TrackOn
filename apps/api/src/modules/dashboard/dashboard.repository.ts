@@ -30,7 +30,7 @@ export async function resumen(ahora = new Date()) {
             fecha, zonaHoraria: 'America/Managua',
             abiertas: estados.filter(item => !['CERRADA', 'CANCELADA'].includes(item.estadoCodigo)).reduce((total, item) => total + item._count._all, 0),
             pendientes: porEstado.PENDIENTE ?? 0, enProceso: porEstado.EN_EJECUCION ?? 0,
-            enRevision: porEstado.EN_REVISION ?? 0, cerradas: porEstado.CERRADA ?? 0,
+            enRevision: porEstado.EN_REVISION ?? 0, cerradas: porEstado.CERRADA ?? 0, porEstado,
             programadasHoy, cerradasHoy, urgentes,
             requierenAtencion: recientes.map(item => ({ ...item, numero: String(item.numero) })),
             proximas: atenciones.map(item => ({ ...item, numero: String(item.numero) })),

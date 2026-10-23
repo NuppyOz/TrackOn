@@ -91,9 +91,17 @@ export function crear(datos: CrearOrdenInput, usuarioId: number, historicos: Dat
     });
 }
 
-export async function listar(filtros: ListarOrdenesInput) {
+export async function listar(filtros: ListarOrdenesInput, tecnicoId?: number) {
     const items = await prisma.ordenTrabajo.findMany({
         where: {
+            ...(tecnicoId ? { asignaciones: { some: {
+                fin: null,
+                OR: [
+                    { empleadoResponsableId: tecnicoId },
+                    { tecnicos: { some: { empleadoId: tecnicoId } } },
+                    { cuadrilla: { is: { miembros: { some: { empleadoId: tecnicoId, fin: null } } } } },
+                ],
+            } } } : {}),
             ...(filtros.estado ? { estadoCodigo: filtros.estado } : {}),
             ...(filtros.prioridad ? { prioridad: filtros.prioridad } : {}),
             ...(filtros.clienteId ? { ubicacion: { clienteId: filtros.clienteId } } : {}),
@@ -118,6 +126,20 @@ export async function listar(filtros: ListarOrdenesInput) {
 
 export function buscarPorId(id: number) {
     return prisma.ordenTrabajo.findUnique({ where: { id }, select: detalleSelect });
+}
+
+export function tecnicoAsignadoA(ordenId: number, empleadoId: number) {
+    return prisma.asignacion.findFirst({
+        where: {
+            ordenId, fin: null,
+            OR: [
+                { empleadoResponsableId: empleadoId },
+                { tecnicos: { some: { empleadoId } } },
+                { cuadrilla: { is: { miembros: { some: { empleadoId, fin: null } } } } },
+            ],
+        },
+        select: { id: true },
+    });
 }
 
 export function tieneAsignacionVigente(id: number) {

@@ -36,14 +36,17 @@ export async function crear(datos: CrearOrdenInput, usuarioId: number) {
     return normalizarNumero(orden);
 }
 
-export async function listar(filtros: ListarOrdenesInput) {
-    const pagina = await repository.listar(filtros);
+export async function listar(filtros: ListarOrdenesInput, actor?: ActorOrden) {
+    const pagina = await repository.listar(filtros, actor?.rol === 'TEC' ? actor.empleadoId : undefined);
     return { ...pagina, items: pagina.items.map(normalizarNumero) };
 }
 
-export async function obtener(id: number) {
+export async function obtener(id: number, actor?: ActorOrden) {
     const orden = await repository.buscarPorId(id);
     if (!orden) throw new AppError(404, 'La orden de trabajo no existe.');
+    if (actor?.rol === 'TEC' && !await repository.tecnicoAsignadoA(id, actor.empleadoId)) {
+        throw new AppError(403, 'Solo puedes consultar órdenes asignadas a tu equipo de trabajo.');
+    }
     return normalizarNumero(orden);
 }
 

@@ -1,0 +1,40 @@
+@import '../../erp-ui/tokens.css';
+
+.ventas { color: var(--erp-color-neutral-900); }
+.ventas button, .ventas select { font: inherit; }
+.ventas button:focus-visible, .ventas select:focus-visible, .ventas a:focus-visible { outline: 3px solid var(--erp-color-secondary-500); outline-offset: 2px; }
+.ventas__header { align-items: center; display: flex; gap: var(--erp-space-4); justify-content: space-between; margin-bottom: var(--erp-space-4); }
+.ventas__header p { color: var(--erp-color-neutral-600); font-size: .8rem; margin: 0 0 var(--erp-space-1); }
+.ventas__header h2 { font-size: 1.25rem; margin: 0; }
+.ventas__header span { color: var(--erp-color-neutral-600); display: block; font-size: .9rem; margin-top: var(--erp-space-1); }
+.ventas__notice { background: var(--erp-color-neutral-100); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); color: var(--erp-color-neutral-900); margin: 0 0 var(--erp-space-4); padding: var(--erp-space-3) var(--erp-space-4); }
+.ventas__filters { display: flex; justify-content: end; margin-bottom: var(--erp-space-3); }
+.ventas__filters label { align-items: center; color: var(--erp-color-neutral-600); display: flex; font-size: .85rem; gap: var(--erp-space-2); }
+.ventas__filters select { background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); color: var(--erp-color-neutral-900); min-height: 40px; padding: 0 var(--erp-space-3); }
+.ventas__link { background: transparent; border: 0; color: var(--erp-color-primary-600); cursor: pointer; font: inherit; font-weight: 700; padding: 0; text-decoration: underline; }
+.ventas__money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ventas__error { color: var(--erp-color-error); margin: var(--erp-space-3) 0; }
+.ventas__loading { color: var(--erp-color-neutral-600); padding: var(--erp-space-6); text-align: center; }
+.ventas__detail { background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); display: grid; gap: var(--erp-space-4); padding: var(--erp-space-6); }
+.ventas__detail-head { align-items: center; display: flex; flex-wrap: wrap; gap: var(--erp-space-4); justify-content: space-between; }
+.ventas__eyebrow { color: var(--erp-color-neutral-600); font-size: .75rem; font-weight: 700; letter-spacing: .08em; margin: 0 0 var(--erp-space-1); }
+.ventas__detail-head h3 { font-size: 1.25rem; margin: 0; }
+.ventas__facts { display: grid; gap: var(--erp-space-4); grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin: 0; }
+.ventas__facts dt { color: var(--erp-color-neutral-600); font-size: .8rem; }
+.ventas__facts dd { font-weight: 600; margin: var(--erp-space-1) 0 0; }
+.ventas__table-wrap { max-width: 100%; overflow: auto; }
+.ventas__table-wrap table { border-collapse: collapse; min-width: 780px; width: 100%; }
+.ventas__table-wrap th, .ventas__table-wrap td { border-bottom: 1px solid var(--erp-color-neutral-200); padding: var(--erp-space-3); text-align: left; vertical-align: top; }
+.ventas__table-wrap th { color: var(--erp-color-neutral-600); font-size: .8rem; font-weight: 600; }
+.ventas__table-wrap td { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ventas__table-wrap td:first-child { white-space: normal; }
+.ventas__table-wrap td small { color: var(--erp-color-neutral-600); display: block; margin-top: var(--erp-space-1); }
+.ventas__total { align-items: center; border-top: 1px solid var(--erp-color-neutral-200); display: flex; font-weight: 600; gap: var(--erp-space-4); justify-content: end; padding-top: var(--erp-space-4); }
+.ventas__total strong { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) {
+  .ventas__filters { justify-content: stretch; }
+  .ventas__filters label { align-items: stretch; flex-direction: column; width: 100%; }
+  .ventas__filters select { width: 100%; }
+  .ventas__detail { padding: var(--erp-space-4); }
+  .ventas__detail-head { align-items: flex-start; flex-direction: column; }
+}

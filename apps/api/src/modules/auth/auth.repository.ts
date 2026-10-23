@@ -13,6 +13,7 @@ export function buscarUsuarioParaLogin(
             identificador: true,
             passwordHash: true,
             activo: true,
+            permisos: true,
 
             rol: {
                 select: {
@@ -82,6 +83,7 @@ export async function findSessionByRefreshTokenHash(
                     id: true,
                     identificador: true,
                     activo: true,
+                    permisos: true,
 
                     rol: {
                         select: {
@@ -148,6 +150,7 @@ export function buscarSesionParaAutenticacion(
                     id: true,
                     identificador: true,
                     activo: true,
+                    permisos: true,
 
                     rol: {
                         select: {

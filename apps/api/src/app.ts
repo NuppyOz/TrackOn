@@ -20,6 +20,10 @@ import { ubicacionesRouter } from "./modules/ubicaciones/ubicaciones.routes.js";
 
 
 import { ordenesRouter } from "./modules/ordenes/ordenes.routes.js";
+import { comercialRouter } from './modules/comercial/comercial.routes.js';
+import { portalRouter } from './modules/comercial/portal/portal.routes.js';
+import { fuentesGerencialesRouter } from './modules/fuentes-gerenciales/fuentes-gerenciales.routes.js';
+import { inteligenciaRouter } from './modules/inteligencia/inteligencia.routes.js';
 
 export const app = express();
 
@@ -71,6 +75,10 @@ app.use('/api/notificaciones', notificacionesRouter);
 app.use("/api/ubicaciones", ubicacionesRouter);
 
 app.use("/api/ordenes", ordenesRouter);
+app.use('/api/comercial', comercialRouter);
+app.use('/api/portal', portalRouter);
+app.use('/api/fuentes-gerenciales', fuentesGerencialesRouter);
+app.use('/api/inteligencia', inteligenciaRouter);
 
 // Manejador de errores
 app.use(manageErrors)

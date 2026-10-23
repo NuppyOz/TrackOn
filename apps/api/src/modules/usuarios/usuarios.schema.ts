@@ -1,5 +1,8 @@
 // Validación de entradas con Zod.
 import { z } from 'zod';
+import { PERMISSION_CODES } from '../../security/permissions.js';
+
+const permissionSchema = z.enum(Object.values(PERMISSION_CODES) as [string, ...string[]]);
 
 const intIdSchema = z
     .number({ error: 'El ID debe ser un número.'})
@@ -31,6 +34,10 @@ export const createUsuarioSchema = z.strictObject({
         .max(128, {
             error: 'La contraseña no debe superar 128 caracteres.',
         }),
+
+    permisos: z.array(permissionSchema).min(1, {
+        error: 'Debes asignar al menos un permiso.',
+    }).max(Object.keys(PERMISSION_CODES).length).optional(),
 });
 
 export const usuarioParamsSchema = z.strictObject({
@@ -52,6 +59,10 @@ export const updateUsuarioSchema = z
         identificador: identificadorSchema.optional(),
 
         rolId: intIdSchema.optional(),
+
+        permisos: z.array(permissionSchema).min(1, {
+            error: 'Debes asignar al menos un permiso.',
+        }).max(Object.keys(PERMISSION_CODES).length).optional(),
     })
     .refine(
         (datos) =>

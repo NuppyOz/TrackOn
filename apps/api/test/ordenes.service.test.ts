@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
     listar: vi.fn(),
     buscarPorId: vi.fn(),
     tieneAsignacionVigente: vi.fn(),
+    tecnicoAsignadoA: vi.fn(),
     cambiarEstado: vi.fn(),
 }));
 
@@ -33,6 +34,7 @@ beforeEach(() => {
     mocks.listar.mockResolvedValue({ items: [orden], pagina: 1, limite: 25, hayMas: false });
     mocks.buscarPorId.mockResolvedValue(orden);
     mocks.tieneAsignacionVigente.mockResolvedValue({ id: 2 });
+    mocks.tecnicoAsignadoA.mockResolvedValue({ id: 2 });
     mocks.cambiarEstado.mockResolvedValue({ ...orden, estadoCodigo: 'CANCELADA', version: 2 });
 });
 
@@ -76,6 +78,11 @@ describe('Reglas de negocio de órdenes', () => {
         expect(respuesta.hayMas).toBe(false);
     });
 
+    it('limita el listado para el rol técnico', async () => {
+        await service.listar({ pagina: 1, limite: 25 }, { id: 9, empleadoId: 22, rol: 'TEC' });
+        expect(mocks.listar).toHaveBeenCalledWith({ pagina: 1, limite: 25 }, 22);
+    });
+
     it('consulta el detalle y serializa el número', async () => {
         expect((await service.obtener(14)).numero).toBe('140');
         expect(mocks.buscarPorId).toHaveBeenCalledWith(14);
@@ -84,6 +91,12 @@ describe('Reglas de negocio de órdenes', () => {
     it('retorna 404 al consultar una orden inexistente', async () => {
         mocks.buscarPorId.mockResolvedValue(null);
         await expect(service.obtener(2)).rejects.toMatchObject({ statusCode: 404 });
+    });
+
+    it('impide al técnico consultar una orden no asignada', async () => {
+        mocks.tecnicoAsignadoA.mockResolvedValue(null);
+        await expect(service.obtener(14, { id: 9, empleadoId: 22, rol: 'TEC' }))
+            .rejects.toMatchObject({ statusCode: 403 });
     });
 
     it('registra una transición válida con versión y usuario', async () => {

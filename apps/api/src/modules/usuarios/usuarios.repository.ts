@@ -81,6 +81,7 @@ export function crearUsuario(
             rolId: datos.rolId,
             identificador: datos.identificador,
             passwordHash: datos.passwordHash,
+            permisos: datos.permisos ?? [],
         },
 
         select: {
@@ -89,6 +90,7 @@ export function crearUsuario(
             activo: true,
             creadoEn: true,
             actualizadoEn: true,
+            permisos: true,
 
             rol: {
                 select: {
@@ -127,6 +129,7 @@ export function listarUsuarios() {
             activo: true,
             creadoEn: true,
             actualizadoEn: true,
+            permisos: true,
 
             rol: {
                 select: {
@@ -173,6 +176,7 @@ export function buscarUsuarioPorId(id: number) {
             activo: true,
             creadoEn: true,
             actualizadoEn: true,
+            permisos: true,
 
             rol: {
                 select: {
@@ -228,6 +232,10 @@ export function actualizarUsuario(
                       rolId: datos.rolId,
                   }
                 : {}),
+
+            ...(datos.permisos !== undefined
+                ? { permisos: datos.permisos }
+                : {}),
         },
 
         select: {
@@ -236,6 +244,7 @@ export function actualizarUsuario(
             activo: true,
             creadoEn: true,
             actualizadoEn: true,
+            permisos: true,
 
             rol: {
                 select: {
@@ -284,6 +293,7 @@ export function actualizarEstadoUsuario(
             id: true,
             identificador: true,
             activo: true,
+            permisos: true,
 
             rol: {
                 select: {
@@ -304,17 +314,17 @@ export function actualizarEstadoUsuario(
         },
     }));
 }
-async function conAuditoria<T extends { id: number; identificador: string; activo: boolean; rol: { id: number } }>(
+async function conAuditoria<T extends { id: number; identificador: string; activo: boolean; permisos?: string[]; rol: { id: number } }>(
     actorId: number | undefined, accion: string, id: number | undefined, operacion: (tx: Prisma.TransactionClient) => Promise<T>,
 ): Promise<T> {
     if (actorId === undefined) return operacion(prisma);
     return prisma.$transaction(async tx => {
-        const anterior = id === undefined ? null : await tx.usuario.findUnique({ where: { id }, select: { identificador: true, activo: true, rolId: true } });
+        const anterior = id === undefined ? null : await tx.usuario.findUnique({ where: { id }, select: { identificador: true, activo: true, rolId: true, permisos: true } });
         const usuario = await operacion(tx);
         await tx.auditoria.create({ data: {
             usuarioId: actorId, tipoActor: 'USUARIO', entidad: 'USUARIO', entidadId: String(usuario.id), accion,
             ...(anterior ? { datosAnteriores: anterior } : {}),
-            datosNuevos: { identificador: usuario.identificador, activo: usuario.activo, rolId: usuario.rol.id },
+            datosNuevos: { identificador: usuario.identificador, activo: usuario.activo, rolId: usuario.rol.id, permisos: usuario.permisos },
         } });
         return usuario;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });

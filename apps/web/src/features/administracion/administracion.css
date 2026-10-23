@@ -1,0 +1,13 @@
+.administracion-workspace { display:grid; gap:18px; }
+.administracion-nav { display:flex; gap:8px; border-bottom:1px solid var(--tk-border); }
+.administracion-nav button { padding:11px 14px; border:0; border-bottom:2px solid transparent; color:var(--tk-text); background:transparent; font:inherit; cursor:pointer; }
+.administracion-nav button[aria-current="page"] { border-bottom-color:var(--tk-purple); color:var(--tk-purple); font-weight:700; }
+.roles-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+.roles-grid .card { padding:18px; }
+.roles-card-title span { display:inline-block; padding:3px 8px; border-radius:999px; color:var(--tk-purple); background:var(--tk-soft-purple); font-size:11px; font-weight:700; }
+.roles-card-title h3 { margin:8px 0 0; color:var(--tk-purple); font-size:17px; }
+.roles-grid p,.roles-grid li,.security-note { color:var(--tk-muted); font-size:13px; line-height:1.5; }
+.roles-grid h4 { margin:16px 0 8px; font-size:13px; }
+.roles-grid ul { margin:0; padding-left:18px; }
+.roles-grid li { margin-bottom:6px; }
+.security-note { padding:12px 14px; border-left:3px solid var(--tk-purple); background:var(--tk-soft-purple); }

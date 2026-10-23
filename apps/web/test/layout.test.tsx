@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MainLayout } from "../src/shared/layout/MainLayout";
 import { Sidebar } from "../src/shared/layout/Sidebar";
 import { Header } from "../src/shared/layout/Header";
@@ -25,6 +25,19 @@ describe("Layout responsive de TrackOn", () => {
         fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
         expect(onOpenMenu).toHaveBeenCalledTimes(1);
         expect(onLogout).toHaveBeenCalledTimes(1);
+    });
+
+    it("mantiene Comercial primero e Inteligencia como último módulo del administrador", () => {
+        const onNavigate = vi.fn();
+        render(<Sidebar seccion="inteligencia" abierto puedeGestionarCuadrillas puedeAdministrar onNavigate={onNavigate} />);
+        const sidebar = document.querySelector('aside')!;
+        const opciones = within(sidebar).getAllByRole('button');
+        expect(opciones[0].textContent).toContain('Comercial');
+        expect(opciones.at(-1)?.textContent).toContain('IA y negocio');
+        expect(within(sidebar).getByRole('navigation', { name: 'Comercial y clientes' })).toBeTruthy();
+        expect(within(sidebar).getByRole('navigation', { name: 'Inteligencia y control' })).toBeTruthy();
+        fireEvent.click(opciones.at(-1)!);
+        expect(onNavigate).toHaveBeenCalledWith('inteligencia');
     });
 
     it("marca la sección seleccionada y permite navegar a los catálogos", () => {
