@@ -18,7 +18,7 @@ export function CrmPage() {
   const [error, setError] = useState('');
   useEffect(() => {
     let vigente = true;
-    listarClientes().then(items => { if (vigente) { setClientes(items); setError(''); } }).catch(() => { if (vigente) setError('No se pudo cargar el catálogo de clientes.'); }).finally(() => { if (vigente) setCargando(false); });
+    listarClientes().then(items => { if (vigente) { setClientes(items); setSeleccionado(actual => actual ?? items[0]?.id ?? null); setError(''); } }).catch(() => { if (vigente) setError('No se pudo cargar el catálogo de clientes.'); }).finally(() => { if (vigente) setCargando(false); });
     return () => { vigente = false; };
   }, []);
   const opciones = useMemo(() => {

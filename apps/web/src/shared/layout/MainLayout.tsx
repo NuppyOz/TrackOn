@@ -59,6 +59,7 @@ export function MainLayout({
             )}
             <Sidebar
                 seccion={seccion}
+                usuarioNombre={usuarioNombre}
                 abierto={menuAbierto}
                 onNavigate={onNavigate}
                 puedeGestionarCuadrillas={puedeGestionarCuadrillas}

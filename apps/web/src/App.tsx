@@ -6,6 +6,7 @@ import "./shared/styles/figma-ui.css";
 import "./shared/styles/responsive.css";
 import "./shared/styles/asignaciones.css";
 import "./shared/styles/operacion.css";
+import "./shared/styles/erp-reference.css";
 import { lazy, Suspense, useEffect, useState } from "react";
 import EquiposManager from "./features/equipos/EquiposManager";
 import ClientesManager from "./features/clientes/ClientesManager";
@@ -101,7 +102,12 @@ export default function App() {
 
         void renovarSesion()
             .then(usuarioRecuperado => {
-                if (vigente) setUsuario(usuarioRecuperado);
+                if (vigente) {
+                    setUsuario(usuarioRecuperado);
+                    if (usuarioRecuperado && window.location.pathname === '/') {
+                        irA(puedeAdministrarCatalogos(usuarioRecuperado.rol.cod) ? '/dashboard' : '/field');
+                    }
+                }
             })
             .catch(() => {
                 if (vigente) setUsuario(null);
@@ -166,7 +172,10 @@ export default function App() {
     }
 
     if (!usuario) {
-        return <LoginPage onLogin={setUsuario} />;
+        return <LoginPage onLogin={cuenta => {
+            setUsuario(cuenta);
+            irA(puedeAdministrarCatalogos(cuenta.rol.cod) ? '/dashboard' : '/field');
+        }} />;
     }
 
     const nombreUsuario = usuario.empleado.persona

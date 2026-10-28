@@ -29,7 +29,7 @@ describe('Centro operativo', () => {
         expect(screen.getByText('1 de 2 cuadrillas sin órdenes activas')).toBeTruthy();
         expect(screen.getByText(/Hotel Azul/)).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: 'Revisar' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Consultar' }));
+        fireEvent.click(screen.getByRole('button', { name: /OT-008.*Consultar/ }));
         fireEvent.click(screen.getByRole('button', { name: 'Ver cuadrillas' }));
         fireEvent.click(screen.getByRole('button', { name: 'Ver órdenes' }));
         expect(onOrden.mock.calls).toEqual([[7], [8], []]);
@@ -44,6 +44,22 @@ describe('Centro operativo', () => {
         expect(screen.getByText('No hay cuadrillas activas.')).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: 'Actualizar' }));
         await waitFor(() => expect(mocks.obtenerResumen).toHaveBeenCalledTimes(2));
+    });
+
+    it('consulta el período elegido para las cifras financieras', async () => {
+        render(<Dashboard onOrden={vi.fn()} onCuadrillas={vi.fn()} />);
+        await screen.findByText(/Clínica Central/);
+        fireEvent.click(screen.getByRole('button', { name: 'Semana' }));
+        await waitFor(() => expect(mocks.obtenerResumen).toHaveBeenLastCalledWith('semana'));
+        expect(screen.getByRole('button', { name: 'Semana' }).getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('mantiene el resumen listo al pulsar el período activo', async () => {
+        render(<Dashboard onOrden={vi.fn()} onCuadrillas={vi.fn()} />);
+        await screen.findByText(/Clínica Central/);
+        fireEvent.click(screen.getByRole('button', { name: 'Mes' }));
+        expect(screen.queryByText('Actualizando el centro operativo…')).toBeNull();
+        expect(screen.getByRole('button', { name: 'Actualizar' }).hasAttribute('disabled')).toBe(false);
     });
 
     it('informa el error y reintenta la consulta', async () => {

@@ -33,7 +33,7 @@ describe('clientes HTTP de operaciones', () => {
     it('consulta el resumen operativo', async () => {
         await obtenerResumen();
 
-        expect(mocks.api).toHaveBeenCalledWith('/api/dashboard/resumen');
+        expect(mocks.api).toHaveBeenCalledWith('/api/dashboard/resumen?periodo=mes');
     });
 
     it('lista materiales con filtros y paginación codificados', async () => {

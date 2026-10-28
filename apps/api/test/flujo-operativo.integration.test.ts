@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
+import { Prisma } from '@prisma/client';
 import { randomUUID, createHash } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -53,6 +54,23 @@ afterAll(async () => {
 const auth = (actor = 'admin') => `Bearer ${tokens[actor]}`;
 
 describe('Flujo operativo real de TrackOn', () => {
+    it('calcula facturación y saldos desde comprobantes y aplicaciones, y valida el período', async () => {
+        const url = '/api/dashboard/resumen?periodo=semana';
+        const antes = await request(app).get(url).set('Authorization', auth());
+        expect(antes.status).toBe(200);
+        const cliente = await prisma.cliente.create({ data: { codigo: `${prefijo}-FIN`, organizacion: { create: { razonSocial: 'Cliente resumen financiero' } } } });
+        const ahora = new Date(); const emitidaEn = new Date(ahora.getTime() - 2 * 86400000);
+        const comprobante = await prisma.comprobanteGerencial.create({ data: { clienteId: cliente.id, referencia: prefijo, emisor: prefijo, emitidaEn, venceEn: new Date(ahora.getTime() + 86400000), importeFinal: '100.00', autorId: usuarios.admin!, lineas: { create: { descripcion: 'Servicio de prueba', importe: '100.00' } } } });
+        await prisma.cobroGerencial.create({ data: { clienteId: cliente.id, referencia: prefijo, fechaEfectiva: new Date(ahora.getTime() - 1000), importe: '60.00', autorId: usuarios.admin!, aplicaciones: { create: { comprobanteId: comprobante.id, importe: '60.00' } } } });
+        const despues = await request(app).get(url).set('Authorization', auth());
+        expect(despues.status).toBe(200);
+        for (const [campo, diferencia] of [['facturacion', '100.00'], ['cobros', '60.00'], ['porCobrar', '40.00']]) {
+            expect(new Prisma.Decimal(despues.body.data.finanzas[campo!]).minus(antes.body.data.finanzas[campo!]).toFixed(2)).toBe(diferencia);
+        }
+        expect(typeof despues.body.data.stockCritico).toBe('number');
+        expect((await request(app).get('/api/dashboard/resumen?periodo=invalido').set('Authorization', auth())).status).toBe(400);
+    });
+
     it('edita datos con control de versión, permisos y notificaciones sin cambiar el estado', async () => {
         const nueva = await request(app).post('/api/ordenes').set('Authorization', auth()).send({ ubicacionId, solicitud: 'Orden para probar edición concisa' });
         expect(nueva.status).toBe(201);
