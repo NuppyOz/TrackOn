@@ -7,4 +7,5 @@ export function listarNotificaciones(cursor?: number | null) {
   return api<NotificacionesPagina>(`/api/notificaciones?${query}`)
 }
 export function contarNoLeidas() { return api<{ noLeidas: number }>('/api/notificaciones/unread-count') }
+export function marcarTodasNotificacionesLeidas() { return api<{ actualizadas: number }>('/api/notificaciones/leidas', { method: 'PATCH' }) }
 export function marcarNotificacionLeida(id: number) { return api<{ id: number }>(`/api/notificaciones/${id}/leida`, { method: 'PATCH' }) }

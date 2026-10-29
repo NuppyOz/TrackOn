@@ -1,0 +1,1 @@
+export { CoberturaPage } from './CoberturaPage'

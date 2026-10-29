@@ -22,6 +22,14 @@ export function contarNoLeidas(usuarioId: number) {
     return prisma.notificacion.count({ where: { usuarioId, leidaEn: null } });
 }
 
+export async function marcarTodasLeidas(usuarioId: number) {
+    const result = await prisma.notificacion.updateMany({
+        where: { usuarioId, leidaEn: null },
+        data: { leidaEn: new Date() },
+    });
+    return { actualizadas: result.count };
+}
+
 export async function marcarLeida(usuarioId: number, id: number) {
     const notification = await prisma.notificacion.findFirst({ where: { id, usuarioId }, select: { id: true, leidaEn: true } });
     if (!notification) return null;

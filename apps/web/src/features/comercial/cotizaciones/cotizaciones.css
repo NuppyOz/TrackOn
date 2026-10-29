@@ -1,0 +1,37 @@
+.cotizaciones { display: grid; gap: var(--erp-space-4); color: var(--erp-color-neutral-900); }
+.cotizaciones__header, .cotizaciones__detail-heading, .cotizaciones__buttons { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.cotizaciones__header h1, .cotizaciones__panel h2 { margin: .15rem 0; }
+.cotizaciones__tabs { display: flex; gap: .5rem; border-bottom: 1px solid var(--erp-color-neutral-200); overflow-x: auto; }
+.cotizaciones__tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; color: var(--erp-color-neutral-900); cursor: pointer; font: inherit; padding: .7rem 1rem; white-space: nowrap; }
+.cotizaciones__tabs button[aria-current="page"] { border-bottom-color: var(--erp-color-primary-600); font-weight: 700; }
+.cotizaciones__tabs button:focus-visible { outline: 3px solid var(--erp-color-secondary-500); outline-offset: 2px; }
+.cotizaciones__header p { margin: 0; color: var(--erp-color-neutral-600); }
+.cotizaciones__filter { display: inline-flex; align-items: center; gap: .6rem; width: fit-content; }
+.cotizaciones__filters { display: flex; align-items: end; flex-wrap: wrap; gap: 1rem; }
+.cotizaciones__filters label { min-width: 13rem; }
+.cotizaciones select, .cotizaciones input:not([type=checkbox]), .cotizaciones textarea { display: block; width: 100%; min-height: 2.5rem; padding: .55rem .7rem; border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); background: var(--erp-color-neutral-0); color: inherit; }
+.cotizaciones label { display: grid; gap: .35rem; font-weight: 600; }
+.cotizaciones textarea { min-height: 5rem; resize: vertical; }
+.cotizaciones__panel { display: grid; gap: var(--erp-space-4); padding: 1.25rem; border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); background: var(--erp-color-neutral-0); }
+.cotizaciones__panel form { display: grid; gap: 1rem; }
+.cotizaciones__line { display: grid; grid-template-columns: minmax(14rem, 2fr) minmax(7rem, .7fr) minmax(8rem, .8fr) auto; align-items: end; gap: .75rem; padding: .75rem 0; border-bottom: 1px solid var(--erp-color-neutral-200); }
+.cotizaciones__line button, .cotizaciones__link { border: 0; background: transparent; color: var(--erp-color-primary-600); cursor: pointer; text-decoration: underline; }
+.cotizaciones__link { padding: 0; font: inherit; }
+.cotizaciones__warning { padding: .75rem; border-left: 3px solid var(--erp-color-warning-text); background: var(--erp-color-neutral-100); }
+.cotizaciones__warning input { width: auto; }
+.cotizaciones__buttons { justify-content: flex-start; }
+.cotizaciones__status { display: inline-block; padding: .2rem .55rem; border-radius: 1rem; background: var(--erp-color-neutral-100); font-size: .85rem; }
+.cotizaciones__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .8rem; margin: 0; }
+.cotizaciones__facts div { padding: .75rem; background: var(--erp-color-neutral-100); border-radius: var(--erp-radius-sm); }
+.cotizaciones__facts dt { color: var(--erp-color-neutral-600); font-size: .85rem; }
+.cotizaciones__facts dd { margin: .25rem 0 0; font-weight: 600; }
+.cotizaciones__table-wrap { overflow-x: auto; }
+.cotizaciones__table-wrap table { width: 100%; border-collapse: collapse; }
+.cotizaciones__table-wrap th, .cotizaciones__table-wrap td { padding: .65rem; text-align: left; border-bottom: 1px solid var(--erp-color-neutral-200); }
+.cotizaciones__total { text-align: right; font-size: 1.1rem; font-weight: 700; }
+.cotizaciones__note { margin: .5rem 0; padding: .7rem; border-left: 3px solid var(--erp-color-secondary-500); background: var(--erp-color-neutral-100); }
+.cotizaciones__note p { margin: 0 0 .3rem; white-space: pre-wrap; }
+.cotizaciones__note small { color: var(--erp-color-neutral-600); }
+.cotizaciones__notice { padding: .75rem; background: var(--erp-color-neutral-100); border-radius: var(--erp-radius-sm); }
+.cotizaciones__error { color: var(--erp-color-error); }
+@media (max-width: 700px) { .cotizaciones__header, .cotizaciones__detail-heading { align-items: flex-start; flex-direction: column; } .cotizaciones__line { grid-template-columns: 1fr; } }

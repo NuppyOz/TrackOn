@@ -1,0 +1,1 @@
+export { CobrosPage } from './CobrosPage'

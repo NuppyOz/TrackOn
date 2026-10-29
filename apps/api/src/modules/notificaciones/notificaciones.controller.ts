@@ -40,6 +40,18 @@ export async function contarNoLeidas(req: Request, res: Response, next: NextFunc
     }
 }
 
+export async function marcarTodasLeidas(req: Request, res: Response, next: NextFunction) {
+    try {
+        const usuarioId = obtenerUsuarioId(req);
+
+        res.json({
+            data: await service.marcarTodasLeidas(usuarioId),
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function marcarLeida(req: Request, res: Response, next: NextFunction) {
     try {
         const usuarioId = obtenerUsuarioId(req);

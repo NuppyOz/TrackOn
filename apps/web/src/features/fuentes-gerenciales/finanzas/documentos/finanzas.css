@@ -1,0 +1,16 @@
+.h5-source .finanzas-grid { display: grid; gap: var(--erp-space-3); grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+.h5-source .finanzas-fieldset { border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); display: grid; gap: var(--erp-space-3); padding: var(--erp-space-3); }
+.h5-source .finanzas-fieldset legend { font-weight: 700; padding: 0 var(--erp-space-2); }
+.h5-source .finanzas-line-form { align-items: end; border-bottom: 1px solid var(--erp-color-neutral-200); display: grid; gap: var(--erp-space-3); grid-template-columns: 2fr 1fr 1.3fr 1.5fr auto; padding: var(--erp-space-2) 0; }
+.h5-source .finanzas-line-form label, .h5-source .finanzas-selector-tools label { display: grid; gap: var(--erp-space-1); font-weight: 600; }
+.h5-source .finanzas-line-form input, .h5-source .finanzas-line-form select, .h5-source .finanzas-selector-tools input { border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); font: inherit; min-height: 2.5rem; padding: var(--erp-space-2); width: 100%; }
+.h5-source .finanzas-selector-pages, .h5-source .finanzas-selector-tools { align-items: center; display: flex; flex-wrap: wrap; gap: var(--erp-space-2); }
+.h5-source .finanzas-selector-pages button { background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); cursor: pointer; min-height: 2.25rem; padding: 0 var(--erp-space-3); }
+.h5-source .finanzas-selector-pages button:disabled { cursor: not-allowed; opacity: .55; }
+.h5-source .finanzas-lines { overflow-x: auto; }
+.h5-source .finanzas-lines table { border-collapse: collapse; min-width: 36rem; width: 100%; }
+.h5-source .finanzas-lines th, .h5-source .finanzas-lines td { border-bottom: 1px solid var(--erp-color-neutral-200); padding: var(--erp-space-2); text-align: left; }
+.h5-source .finanzas-lines th { color: var(--erp-color-neutral-600); font-size: .85rem; }
+.h5-source .finanzas-selector-pages button:focus-visible, .h5-source .finanzas-line-form button:focus-visible { outline: 3px solid var(--erp-color-secondary-500); outline-offset: 2px; }
+@media (max-width: 800px) { .h5-source .finanzas-line-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 500px) { .h5-source .finanzas-line-form { grid-template-columns: 1fr; } }

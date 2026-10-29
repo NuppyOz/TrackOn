@@ -1,0 +1,25 @@
+@import '../../erp-ui/tokens.css';
+.inteligencia-scope .h7-dashboard { color: var(--erp-color-neutral-900); display: grid; gap: var(--erp-space-6); }
+.h7-dashboard .erp-ui__module-header { margin: 0; }
+.h7-range { align-items: end; background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); display: flex; flex-wrap: wrap; gap: var(--erp-space-3); padding: var(--erp-space-4); }
+.h7-range label, .h7-filter label { display: grid; flex: 1 1 12rem; gap: var(--erp-space-1); font-weight: 600; }
+.h7-range input, .h7-filter input, .h7-filter select { border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); font: inherit; min-height: 2.5rem; padding: var(--erp-space-2); }
+.h7-coverage, .h7-note { background: var(--erp-color-neutral-100); border-radius: var(--erp-radius-sm); display: flex; flex-wrap: wrap; gap: var(--erp-space-2); margin: 0; padding: var(--erp-space-3); }
+.h7-note { display: block; }
+.h7-error { color: var(--erp-color-danger-700); }
+.h7-metric-table, .h7-breakdowns { background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); padding: var(--erp-space-4); }
+.h7-metric-table h2, .h7-breakdowns h2 { font-size: 1.05rem; margin: 0 0 var(--erp-space-3); }
+.h7-table-scroll { overflow-x: auto; }
+.h7-table-scroll table { border-collapse: collapse; min-width: 38rem; width: 100%; }
+.h7-table-scroll th, .h7-table-scroll td { border-bottom: 1px solid var(--erp-color-neutral-200); padding: var(--erp-space-3); text-align: left; vertical-align: top; }
+.h7-table-scroll tbody th { font-weight: 600; }
+.h7-filter { align-items: end; display: flex; flex-wrap: wrap; gap: var(--erp-space-3); }
+.h7-filter label { flex: 0 1 14rem; }
+.h7-filter-controls { display: flex; align-items: center; gap: var(--erp-space-2); flex-wrap: wrap; }
+.h7-source-link { color: var(--erp-color-primary-600); font-weight: 600; }
+.h7-article-detail { display: grid; gap: var(--erp-space-1); }
+.h7-article-detail small { color: var(--erp-color-neutral-600); }
+.h7-dashboard .erp-ui__table-section { padding: 0; }
+.h7-dashboard .erp-ui__table-section .erp-ui__search { padding: var(--erp-space-3) 0; }
+.h7-dashboard .erp-ui__table-section .erp-ui__pagination { padding: var(--erp-space-3) 0 0; }
+@media(max-width:600px){.h7-range{align-items:stretch;flex-direction:column}.h7-filter{align-items:stretch;flex-direction:column}}

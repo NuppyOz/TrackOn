@@ -9,6 +9,7 @@ vi.mock('../src/features/dashboard/dashboard.api', () => ({ obtenerResumen: mock
 const resumen: ResumenOperativo = {
     fecha: '2026-10-14', zonaHoraria: 'America/Managua', abiertas: 5, pendientes: 2,
     enProceso: 1, enRevision: 1, cerradas: 8, programadasHoy: 3, cerradasHoy: 1, urgentes: 1,
+    porEstado: { PENDIENTE: 2, ASIGNADA: 1, EN_EJECUCION: 1, EN_REVISION: 1, CERRADA: 8 },
     requierenAtencion: [{ id: 7, numero: '007', clienteNombreRegistrado: 'Clínica Central',
         estadoCodigo: 'EN_REVISION', fechaProgramada: null, solicitud: 'Revisar compresor', prioridad: 'URGENTE' }],
     proximas: [{ id: 8, numero: '008', clienteNombreRegistrado: 'Hotel Azul', estadoCodigo: 'ASIGNADA',
@@ -28,7 +29,7 @@ describe('Centro operativo', () => {
         expect(screen.getByText('1 de 2 cuadrillas sin órdenes activas')).toBeTruthy();
         expect(screen.getByText(/Hotel Azul/)).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: 'Revisar' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Consultar' }));
+        fireEvent.click(screen.getByRole('button', { name: /OT-008.*Consultar/ }));
         fireEvent.click(screen.getByRole('button', { name: 'Ver cuadrillas' }));
         fireEvent.click(screen.getByRole('button', { name: 'Ver órdenes' }));
         expect(onOrden.mock.calls).toEqual([[7], [8], []]);
@@ -43,6 +44,22 @@ describe('Centro operativo', () => {
         expect(screen.getByText('No hay cuadrillas activas.')).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: 'Actualizar' }));
         await waitFor(() => expect(mocks.obtenerResumen).toHaveBeenCalledTimes(2));
+    });
+
+    it('consulta el período elegido para las cifras financieras', async () => {
+        render(<Dashboard onOrden={vi.fn()} onCuadrillas={vi.fn()} />);
+        await screen.findByText(/Clínica Central/);
+        fireEvent.click(screen.getByRole('button', { name: 'Semana' }));
+        await waitFor(() => expect(mocks.obtenerResumen).toHaveBeenLastCalledWith('semana'));
+        expect(screen.getByRole('button', { name: 'Semana' }).getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('mantiene el resumen listo al pulsar el período activo', async () => {
+        render(<Dashboard onOrden={vi.fn()} onCuadrillas={vi.fn()} />);
+        await screen.findByText(/Clínica Central/);
+        fireEvent.click(screen.getByRole('button', { name: 'Mes' }));
+        expect(screen.queryByText('Actualizando el centro operativo…')).toBeNull();
+        expect(screen.getByRole('button', { name: 'Actualizar' }).hasAttribute('disabled')).toBe(false);
     });
 
     it('informa el error y reintenta la consulta', async () => {
