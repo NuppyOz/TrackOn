@@ -1,6 +1,15 @@
 import { z } from "zod";
 
 import { createPersonaSchema, updatePersonaSchema } from "../personas/personas.schema.js";
+import { paginacionQueryShape } from "../../shared/pagination.js";
+
+export const listarClientesSchema = z.strictObject({
+    ...paginacionQueryShape,
+    buscar: z.string().trim().max(150).default(""),
+    tipo: z.enum(["todos", "NATURAL", "EMPRESA"]).default("todos"),
+    estado: z.enum(["todos", "activos", "inactivos"]).default("todos"),
+});
+export type ListarClientesInput = z.infer<typeof listarClientesSchema>;
 
 const codigoClienteSchema = z
     .string({

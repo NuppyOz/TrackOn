@@ -319,6 +319,8 @@ describe("Aplicación TrackOn", () => {
         fireEvent.click(
             screen.getByRole("button", { name: "Cerrar sesión" }),
         );
+        expect(screen.getByRole('dialog', { name: 'Cerrar sesión' })).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: 'Sí, cerrar sesión' }));
 
         await waitFor(() => {
             expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
@@ -327,6 +329,16 @@ describe("Aplicación TrackOn", () => {
         expect(
             await screen.findByText("Página de login"),
         ).toBeTruthy();
+    });
+
+    it("conserva la sesión cuando se cancela la confirmación", async () => {
+        render(<App />);
+        await screen.findByText("Equipos - gestión");
+        fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+        fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+        expect(mocks.cerrarSesion).not.toHaveBeenCalled();
+        expect(screen.getByText("Equipos - gestión")).toBeTruthy();
+        expect(screen.queryByRole('dialog', { name: 'Cerrar sesión' })).toBeNull();
     });
 
     it("cierra la interfaz aunque falle el logout del servidor", async () => {
@@ -341,6 +353,7 @@ describe("Aplicación TrackOn", () => {
         fireEvent.click(
             screen.getByRole("button", { name: "Cerrar sesión" }),
         );
+        fireEvent.click(screen.getByRole('button', { name: 'Sí, cerrar sesión' }));
 
         expect(
             await screen.findByText("Página de login"),

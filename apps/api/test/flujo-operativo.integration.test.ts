@@ -47,6 +47,12 @@ beforeAll(async () => {
 afterAll(async () => {
     delete process.env.EVIDENCE_STORAGE_DIR;
     if (almacenamiento) await rm(almacenamiento, { recursive: true, force: true });
+    // La prueba usa una base compartida en desarrollo: oculta sus artefactos operativos
+    // aunque una ejecución anterior haya terminado antes de limpiar los datos relacionados.
+    await prisma.cuadrilla.updateMany({
+        where: { nombre: { startsWith: 'FLOW-' } },
+        data: { activa: false },
+    });
     await prisma.$disconnect();
 });
 

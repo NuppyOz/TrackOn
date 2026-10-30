@@ -2,6 +2,7 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import { cambiarEstadoServicio, crearServicio, editarServicio, listarServicios } from "./servicios.api";
 import type { EstadoServicio, Servicio, ServicioInput } from "./servicios.types";
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
+import { DataTable, TablePagination } from '../../shared/ui';
 
 const vacio = { codigo: "", nombre: "", descripcion: "" };
 const filtrosIniciales = { estado: 'todos' as EstadoServicio, buscar: '' };
@@ -20,6 +21,8 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
     const [guardando, setGuardando] = useState(false);
     const [mensaje, setMensaje] = useState<{ tipo: "error" | "exito"; texto: string } | null>(null);
     const [formularioVisible, setFormularioVisible] = useState(false);
+    const [pagina, setPagina] = useState(1);
+    const [hayMas, setHayMas] = useState(false);
 
     function cargar() {
         setCargando(true);
@@ -27,8 +30,8 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
     }
     useEffect(() => {
         let vigente = true;
-        void listarServicios(aplicados.estado, aplicados.buscar)
-            .then(pagina => { if (vigente) setServicios(pagina.items); })
+        void (pagina === 1 ? listarServicios(aplicados.estado, aplicados.buscar) : listarServicios(aplicados.estado, aplicados.buscar, pagina))
+            .then(resultado => { if (vigente) { setServicios(resultado.items); setHayMas(resultado.hayMas); } })
             .catch(error => {
                 if (!vigente) return;
                 setServicios([]);
@@ -39,11 +42,11 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
             })
             .finally(() => { if (vigente) setCargando(false); });
         return () => { vigente = false; };
-    }, [aplicados]);
+    }, [aplicados, pagina]);
 
     function filtrar(nuevos: typeof filtrosIniciales, esperar = false) {
         setMensaje(null); setCargando(true);
-        cambiarFiltros(nuevos, esperar);
+        setPagina(1); cambiarFiltros(nuevos, esperar);
     }
 
     function cancelar() {
@@ -114,8 +117,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
         if (servicios.length === 0) return <p className="empty">No hay servicios que coincidan.</p>;
 
         return (
-            <div className="table-wrap">
-                <table>
+            <DataTable label="Servicios">
                     <thead>
                         <tr>
                             <th>Servicio</th>
@@ -153,8 +155,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                             </tr>
                         ))}
                     </tbody>
-                </table>
-            </div>
+            </DataTable>
         );
     }
 
@@ -255,6 +256,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                             </button>
                             <button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
                         </form>
+                        <TablePagination pagina={pagina} hayMas={hayMas} cargando={cargando} cantidad={servicios.length} etiqueta="servicios" onPagina={setPagina} />
                         {contenidoLista()}
                     </div>
                 )}

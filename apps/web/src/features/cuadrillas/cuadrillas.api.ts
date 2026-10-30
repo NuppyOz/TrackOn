@@ -2,10 +2,12 @@ import { api } from '../../shared/api'
 import type { Cuadrilla, CuadrillaFiltros, CuadrillaInput, EmpleadoCuadrilla, MiembroCuadrilla } from './cuadrillas.types'
 import type { Pagina } from '../../shared/pagination'
 
-export function listarCuadrillas(filtros: CuadrillaFiltros) {
+export function listarCuadrillas(filtros: CuadrillaFiltros, pagina = 1, limite = 25) {
   const query = new URLSearchParams()
   if (filtros.estado) query.set('estado', filtros.estado)
   if (filtros.nombre) query.set('nombre', filtros.nombre)
+  if (pagina !== 1) query.set('pagina', String(pagina))
+  if (limite !== 25) query.set('limite', String(limite))
   return api<Pagina<Cuadrilla>>(`/api/cuadrillas?${query}`)
 }
 export function listarEmpleadosElegibles() { return api<EmpleadoCuadrilla[]>('/api/cuadrillas/empleados-elegibles') }

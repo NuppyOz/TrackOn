@@ -5,6 +5,7 @@ import {
     clienteParamsSchema,
     updateClienteSchema,
     updateEstadoClienteSchema,
+    listarClientesSchema,
 } from "./clientes.schema.js";
 
 import * as clientesService from "./clientes.service.js";
@@ -23,9 +24,10 @@ export async function crearCliente(req: Request, res: Response, next: NextFuncti
     }
 }
 
-export async function listarClientes(_req: Request, res: Response, next: NextFunction) {
+export async function listarClientes(req: Request, res: Response, next: NextFunction) {
     try {
-        const clientes = await clientesService.listarClientes();
+        const filtros = listarClientesSchema.parse(req.query);
+        const clientes = await clientesService.listarClientes(filtros);
 
         res.status(200).json({
             data: clientes,

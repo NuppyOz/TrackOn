@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { AppError } from '../../errors/AppError.js';
 import * as empleadosRepository from './empleados.repository.js';
-import type { CreateEmpleadoInput, UpdateEmpleadoInput } from './empleados.schema.js';
+import type { CreateEmpleadoInput, ListarEmpleadosInput, UpdateEmpleadoInput } from './empleados.schema.js';
 import { createPersonaSchema } from '../personas/personas.schema.js'
 import type { NextFunction, Response } from 'express';
 
@@ -21,8 +21,8 @@ export async function crearEmpleado(datos:CreateEmpleadoInput) {
     }
 }
 
-export function listarEmpleados(){
-    return empleadosRepository.listarEmpleados()
+export function listarEmpleados(filtros: ListarEmpleadosInput){
+    return empleadosRepository.listarEmpleados(filtros)
 }
 
 export async function obtenerEmpleadoPorId(id: number) {
