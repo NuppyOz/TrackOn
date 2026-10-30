@@ -1,6 +1,6 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { cambiarEstadoMaterial, crearMaterial, editarMaterial, listarMateriales, type EstadoMaterial, type Material, type MaterialInput } from './materiales.api';
-import { Button, StatePanel, StatusBadge } from '../../shared/ui';
+import { Button, DataTable, StatePanel, StatusBadge, TablePagination } from '../../shared/ui';
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
 
 const vacio: MaterialInput = { codigo: '', nombre: '', unidadMedida: '' };
@@ -76,17 +76,17 @@ export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGe
                     <option value="activos">Activos</option><option value="inactivos">Inactivos</option><option value="todos">Todos</option>
                 </select><Button type="submit">Buscar</Button><Button type="button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</Button>
             </form>
+            <TablePagination pagina={aplicados.pagina} hayMas={datos.hayMas} cargando={cargando} cantidad={datos.items.length} etiqueta="materiales"
+                onPagina={pagina => { setCargando(true); aplicarFiltros({ ...aplicados, pagina }); }} />
             {cargando ? <StatePanel type="loading" title="Cargando materiales…" /> : datos.items.length === 0 ? <StatePanel type="empty" title="No hay materiales para estos filtros" /> :
-                <div className="table-wrap"><table><thead><tr><th>Material</th><th>Unidad de medida</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+                <DataTable label="Materiales"><thead><tr><th>Material</th><th>Unidad de medida</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
                     {datos.items.map(material => <tr key={material.id}>
                         <td data-label="Material"><strong>{material.nombre}</strong><small>{material.codigo}</small></td><td data-label="Unidad">{material.unidadMedida}</td>
                         <td data-label="Estado"><StatusBadge active={material.activo} /></td><td data-label="Acciones" className="actions">{puedeGestionar && <>
                             <Button onClick={() => { setEditando(material.id); setFormulario({ codigo: material.codigo, nombre: material.nombre, unidadMedida: material.unidadMedida }); }}>Editar</Button>
                             <Button onClick={() => setConfirmacion(material)}>{material.activo ? 'Desactivar' : 'Activar'}</Button>
                         </>}</td></tr>)}
-                </tbody></table></div>}
-            <div className="pagination"><Button disabled={cargando || aplicados.pagina === 1} onClick={() => { setCargando(true); aplicarFiltros({ ...aplicados, pagina: aplicados.pagina - 1 }); }}>Anterior</Button>
-                <span>Página {aplicados.pagina}</span><Button disabled={cargando || !datos.hayMas} onClick={() => { setCargando(true); aplicarFiltros({ ...aplicados, pagina: aplicados.pagina + 1 }); }}>Siguiente</Button></div>
+                </tbody></DataTable>}
         </div>}
         {confirmacion && <div className="card form-card" role="dialog" aria-modal="false" aria-labelledby="material-confirmar">
             <h3 id="material-confirmar">{confirmacion.activo ? 'Desactivar' : 'Activar'} {confirmacion.nombre}</h3>

@@ -22,44 +22,56 @@ afterEach(() => {
     cleanup();
 });
 
+const filtros = { buscar: '', estado: 'todos' as const, tecnico: 'todos' as const, pagina: 1, limite: 10 };
+function props(items = [empleado, inactivo]) {
+    return {
+        datos: { items, pagina: 1, limite: 10, hayMas: false, total: items.length,
+            resumen: { total: items.length, activos: items.filter(item => item.active).length, tecnicosHabilitados: items.filter(item => item.active && item.habilitadoComoTecnico).length } },
+        filtros,
+        cargando: false,
+        onFiltros: vi.fn(),
+        onPagina: vi.fn(),
+        onLimite: vi.fn(),
+        onVer: vi.fn(),
+        onCrear: vi.fn(),
+    };
+}
+
 describe("Listado y detalle de empleados", () => {
     it("filtra por habilitados y muestra estadísticas de técnicos activos", () => {
-        render(<EmpleadosListado empleados={[empleado, inactivo]} onVer={vi.fn()} onCrear={vi.fn()} />);
+        const propiedades = props();
+        render(<EmpleadosListado {...propiedades} />);
         fireEvent.change(screen.getByLabelText("Habilitación técnica"), { target: { value: "habilitados" } });
-        expect(screen.getByText("T-001")).toBeTruthy();
-        expect(screen.queryByText("T-002")).toBe(null);
+        expect(propiedades.onFiltros).toHaveBeenCalledWith(expect.objectContaining({ tecnico: 'habilitados', pagina: 1 }), false);
+        expect(screen.getByText("Técnicos habilitados")).toBeTruthy();
     });
     it("filtra por no habilitados", () => {
-        render(<EmpleadosListado empleados={[empleado, inactivo]} onVer={vi.fn()} onCrear={vi.fn()} />);
+        const propiedades = props();
+        render(<EmpleadosListado {...propiedades} />);
         fireEvent.change(screen.getByLabelText("Habilitación técnica"), { target: { value: "no-habilitados" } });
-        expect(screen.getByText("T-002")).toBeTruthy();
-        expect(screen.queryByText("T-001")).toBe(null);
+        expect(propiedades.onFiltros).toHaveBeenCalledWith(expect.objectContaining({ tecnico: 'no-habilitados', pagina: 1 }), false);
     });
     it("consulta el ID indicado al pulsar detalle", () => {
-        const onVer = vi.fn();
-        render(<EmpleadosListado empleados={[empleado]} onVer={onVer} onCrear={vi.fn()} />);
+        const propiedades = props([empleado]);
+        render(<EmpleadosListado {...propiedades} />);
         fireEvent.click(screen.getByRole("button", { name: "Ver detalle" }));
-        expect(onVer).toHaveBeenCalledWith(1);
+        expect(propiedades.onVer).toHaveBeenCalledWith(1);
     });
     it("presenta estado vacío con opción de registro", () => {
-        const onCrear = vi.fn();
-        render(<EmpleadosListado empleados={[]} onVer={vi.fn()} onCrear={onCrear} />);
+        const propiedades = props([]);
+        render(<EmpleadosListado {...propiedades} />);
         fireEvent.click(screen.getByRole("button", { name: "Registrar empleado" }));
-        expect(onCrear).toHaveBeenCalledOnce();
+        expect(propiedades.onCrear).toHaveBeenCalledOnce();
     });
-    it("pagina después de diez empleados", () => {
-        const datos = Array.from({ length: 12 }, (_, indice) => ({
-            ...empleado,
-            id: indice + 1,
-            codEmpleado: `T-${indice + 1}`,
-        }));
-        render(<EmpleadosListado empleados={datos} onVer={vi.fn()} onCrear={vi.fn()} />);
-        expect(screen.getByText("T-1")).toBeTruthy();
+    it("delega la página y la cantidad al servidor", () => {
+        const propiedades = props([empleado]);
+        propiedades.datos.hayMas = true;
+        propiedades.datos.total = 12;
+        render(<EmpleadosListado {...propiedades} />);
         fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
-        expect(screen.queryByText("T-1")).toBe(null);
-        expect(screen.getByText("T-12")).toBeTruthy();
-        fireEvent.click(screen.getByRole("button", { name: "Anterior" }));
-        expect(screen.getByText("T-1")).toBeTruthy();
+        expect(propiedades.onPagina).toHaveBeenCalledWith(2);
+        fireEvent.change(screen.getByLabelText("Filas por página"), { target: { value: "50" } });
+        expect(propiedades.onLimite).toHaveBeenCalledWith(50);
     });
     it("no permite habilitar empleado inactivo", () => {
         const onCambiar = vi.fn();

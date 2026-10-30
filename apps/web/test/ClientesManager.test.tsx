@@ -65,8 +65,8 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         fireEvent.change(screen.getByRole("textbox", { name: "Buscar cliente" }), {
             target: { value: "Clínica" },
         });
-        expect(screen.getByText("Clínica Santa María S.A.")).toBeTruthy();
-        expect(screen.queryByText("Ana López")).toBeNull();
+        expect(await screen.findByText("Clínica Santa María S.A.")).toBeTruthy();
+        await waitFor(() => expect(screen.queryByText("Ana López")).toBeNull());
     });
 
     it("filtra por tipo y estado", async () => {
@@ -79,7 +79,7 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         fireEvent.change(screen.getByRole("combobox", { name: "Filtrar estado de cliente" }), {
             target: { value: "activos" },
         });
-        expect(screen.getByText("No hay clientes que coincidan con los filtros.")).toBeTruthy();
+        expect(await screen.findByText("No hay clientes que coincidan con los filtros.")).toBeTruthy();
     });
 
     it("muestra fallos de consulta", async () => {

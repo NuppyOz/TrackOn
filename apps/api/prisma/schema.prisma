@@ -149,6 +149,8 @@ model Usuario {
   auditorias                 Auditoria[]
   notificaciones             Notificacion[]
   sesiones                   Sesion[]
+  integracionGoogleCalendar  IntegracionGoogleCalendar?
+  estadosOAuthGoogle         EstadoOAuthGoogle[]
   restablecimientosRecibidos RestablecimientoCredencial[] @relation("DestinatarioRestablecimiento")
   restablecimientosIniciados RestablecimientoCredencial[] @relation("IniciadorRestablecimiento")
 
@@ -212,29 +214,30 @@ model EstadoOrden {
 }
 
 model OrdenTrabajo {
-  id                              Int               @id @default(autoincrement())
-  numero                          BigInt            @unique @default(autoincrement())
+  id                              Int                    @id @default(autoincrement())
+  numero                          BigInt                 @unique @default(autoincrement())
   ubicacionId                     Int
-  estadoCodigo                    String            @db.VarChar(30)
+  estadoCodigo                    String                 @db.VarChar(30)
   creadaPorId                     Int
-  solicitud                       String            @db.Text
-  prioridad                       PrioridadOrden    @default(MEDIA)
-  fechaProgramada                 DateTime?         @db.Timestamptz(6)
-  creadaEn                        DateTime          @default(now()) @db.Timestamptz(6)
-  actualizadaEn                   DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
-  cerradaEn                       DateTime?         @db.Timestamptz(6)
-  version                         Int               @default(1)
-  clienteNombreRegistrado         String            @db.VarChar(200)
-  clienteIdentificacionRegistrada String?           @db.VarChar(50)
-  ubicacionNombreRegistrado       String            @db.VarChar(150)
-  direccionRegistrada             String            @db.Text
-  ubicacion                       Ubicacion         @relation(fields: [ubicacionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  estado                          EstadoOrden       @relation(fields: [estadoCodigo], references: [codigo], onDelete: Restrict, onUpdate: Cascade)
-  creadaPor                       Usuario           @relation("CreadorOrden", fields: [creadaPorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  solicitud                       String                 @db.Text
+  prioridad                       PrioridadOrden         @default(MEDIA)
+  fechaProgramada                 DateTime?              @db.Timestamptz(6)
+  creadaEn                        DateTime               @default(now()) @db.Timestamptz(6)
+  actualizadaEn                   DateTime               @default(now()) @updatedAt @db.Timestamptz(6)
+  cerradaEn                       DateTime?              @db.Timestamptz(6)
+  version                         Int                    @default(1)
+  clienteNombreRegistrado         String                 @db.VarChar(200)
+  clienteIdentificacionRegistrada String?                @db.VarChar(50)
+  ubicacionNombreRegistrado       String                 @db.VarChar(150)
+  direccionRegistrada             String                 @db.Text
+  ubicacion                       Ubicacion              @relation(fields: [ubicacionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  estado                          EstadoOrden            @relation(fields: [estadoCodigo], references: [codigo], onDelete: Restrict, onUpdate: Cascade)
+  creadaPor                       Usuario                @relation("CreadorOrden", fields: [creadaPorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   equipos                         OrdenEquipo[]
   asignaciones                    Asignacion[]
   historial                       HistorialEstado[]
   notificaciones                  Notificacion[]
+  eventosGoogleCalendar           EventoGoogleCalendar[]
 
   @@index([ubicacionId])
   @@index([estadoCodigo, fechaProgramada])
@@ -468,6 +471,47 @@ model Sesion {
   @@index([usuarioId, revocadaEn])
   @@index([expiraEn])
   @@map("sesiones")
+}
+
+model IntegracionGoogleCalendar {
+  id                  Int                    @id @default(autoincrement())
+  usuarioId           Int                    @unique
+  accessTokenCifrado  String                 @db.Text
+  refreshTokenCifrado String?                @db.Text
+  expiraEn            DateTime?              @db.Timestamptz(6)
+  scope               String?                @db.Text
+  calendarId          String                 @default("primary") @db.VarChar(255)
+  creadaEn            DateTime               @default(now()) @db.Timestamptz(6)
+  actualizadaEn       DateTime               @default(now()) @updatedAt @db.Timestamptz(6)
+  usuario             Usuario                @relation(fields: [usuarioId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  eventos             EventoGoogleCalendar[]
+
+  @@map("integraciones_google_calendar")
+}
+
+model EventoGoogleCalendar {
+  id             Int                       @id @default(autoincrement())
+  integracionId  Int
+  ordenId        Int
+  googleEventId  String                    @db.VarChar(1024)
+  sincronizadoEn DateTime                  @default(now()) @db.Timestamptz(6)
+  integracion    IntegracionGoogleCalendar @relation(fields: [integracionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orden          OrdenTrabajo              @relation(fields: [ordenId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([integracionId, ordenId])
+  @@index([ordenId])
+  @@map("eventos_google_calendar")
+}
+
+model EstadoOAuthGoogle {
+  id        String   @id @db.VarChar(128)
+  usuarioId Int
+  expiraEn  DateTime @db.Timestamptz(6)
+  creadaEn  DateTime @default(now()) @db.Timestamptz(6)
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([expiraEn])
+  @@map("estados_oauth_google")
 }
 
 model RestablecimientoCredencial {

@@ -10,7 +10,7 @@ beforeEach(() => { vi.resetAllMocks(); mocks.api.mockResolvedValue({}); });
 describe("API de clientes y ubicaciones", () => {
     it("consulta los clientes", async () => {
         await listarClientes();
-        expect(mocks.api).toHaveBeenCalledWith("/api/clientes");
+        expect(mocks.api).toHaveBeenCalledWith("/api/clientes?buscar=&tipo=todos&estado=todos&pagina=1&limite=25");
     });
 
     it("crea una persona natural", async () => {

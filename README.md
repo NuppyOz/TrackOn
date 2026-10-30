@@ -20,3 +20,5 @@ Preparación inicial del entorno de desarrollo.
 - [Configuración del backend, Prisma y creación del primer módulo como base](docs/backend-prisma.md)
 - [Docker Compose y despliegue local](docs/docker.md)
 - [SonarQube Quality Gate](docs/sonarqube-quality-gate.md)
+- [Google Calendar, trabajos en segundo plano y tiempo real](docs/google-calendar-realtime.md)
+- [Rendimiento con Redis y worker threads](docs/rendimiento-redis-workers.md)

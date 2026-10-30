@@ -1,8 +1,14 @@
 import { api } from "../../shared/api";
 import type { Cliente, ClienteNuevo, PaginaUbicaciones, UbicacionCliente, UbicacionNueva } from "./clientes.types";
+import type { Pagina } from "../../shared/pagination";
 
-export function listarClientes() {
-    return api<Cliente[]>("/api/clientes");
+export interface FiltrosClientes { buscar?: string; tipo?: string; estado?: string; pagina?: number; limite?: number }
+export function listarClientes(filtros: FiltrosClientes = {}) {
+    const query = new URLSearchParams({
+        buscar: filtros.buscar ?? "", tipo: filtros.tipo ?? "todos", estado: filtros.estado ?? "todos",
+        pagina: String(filtros.pagina ?? 1), limite: String(filtros.limite ?? 25),
+    });
+    return api<Pagina<Cliente>>(`/api/clientes?${query}`);
 }
 
 export function crearCliente(datos: ClienteNuevo) {

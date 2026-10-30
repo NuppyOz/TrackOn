@@ -20,6 +20,19 @@ services:
     networks:
       - backend
 
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - backend
+
   migrate:
     build:
       context: .
@@ -47,11 +60,15 @@ services:
       EVIDENCE_STORAGE_DIR: /app/storage/evidencias
       DATABASE_URL: ${DATABASE_URL:?Define DATABASE_URL en .env}
       AUTH_ACCESS_TOKEN_SECRET: ${AUTH_ACCESS_TOKEN_SECRET:?Define AUTH_ACCESS_TOKEN_SECRET en .env}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      CPU_WORKER_COUNT: ${CPU_WORKER_COUNT:-2}
     volumes:
       - evidence_data:/app/storage/evidencias
     depends_on:
       migrate:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     expose:
       - "3000"
     healthcheck:

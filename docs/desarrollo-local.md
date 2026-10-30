@@ -1,10 +1,25 @@
 # Desarrollo local con recarga automática
 
-Este flujo ejecuta solamente PostgreSQL en Docker. La API usa `tsx watch` y la
+Este flujo ejecuta PostgreSQL y Redis en Docker. La API usa `tsx watch` y la
 interfaz usa Vite, por lo que los cambios en `apps/api/src` y `apps/web/src` se
 reflejan automáticamente.
 
 ## Preparación inicial
+
+Usa Node.js `24.22.1` (incluye los [parches de seguridad del 21 de octubre de
+2026](https://nodejs.org/en/blog/release/v24.22.1)) y pnpm `10.34.5`, fijados en
+`mise.toml`. Si usas mise, ejecuta `mise install` y activa mise en tu terminal.
+Si usas nvm:
+
+```bash
+nvm install 24.22.1
+nvm use 24.22.1
+corepack enable pnpm
+```
+
+Si aparece `pnpm: orden no encontrada` con Node ya instalado, ejecuta
+`corepack enable pnpm`. Corepack usa la versión de pnpm de `package.json`.
+Comprueba `node --version` y `pnpm --version` antes de instalar dependencias.
 
 Desde la raíz del repositorio:
 
@@ -16,6 +31,23 @@ pnpm install --frozen-lockfile
 Revisa las credenciales de desarrollo en `.env`. `POSTGRES_PORT` puede omitirse;
 en ese caso se utiliza el puerto local `5433`.
 
+Prepara también el archivo que carga la API al ejecutarse desde `apps/api`:
+
+```bash
+[ -f apps/api/.env ] || cp apps/api/.env.example apps/api/.env
+```
+
+En `apps/api/.env`, ajusta el usuario, contraseña y base de `DATABASE_URL` para
+que coincidan con `POSTGRES_USER`, `POSTGRES_PASSWORD` y `POSTGRES_DB` del `.env`
+raíz. Usa `127.0.0.1` y el puerto `POSTGRES_PORT` (por defecto `5433`). Copia
+también `AUTH_ACCESS_TOKEN_SECRET` del `.env` raíz. Si cambias `REDIS_PORT`,
+ajusta `REDIS_URL` (por defecto `redis://127.0.0.1:6380`). Codifica los caracteres
+especiales del usuario y contraseña al escribirlos en una URL.
+
+El `.env` raíz conserva las direcciones `db:5432` y `redis:6379` para Docker;
+`apps/api/.env` usa los puertos locales publicados. Ambos archivos se excluyen
+del repositorio porque contienen secretos.
+
 ## Arranque
 
 Si antes se levantó el entorno completo de Docker, detén la web y la API
@@ -23,21 +55,21 @@ contenedorizadas. Luego inicia la base con el override de desarrollo:
 
 ```bash
 docker compose stop web api
-docker compose -f compose.yaml -f compose.dev.yaml up -d db
+docker compose -f compose.yaml -f compose.dev.yaml up -d db redis
 ```
 
 En otra terminal, inicia la API:
 
 ```bash
-set -a
-source .env
-set +a
-export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:${POSTGRES_PORT:-5433}/${POSTGRES_DB}?schema=public"
 pnpm --filter @trackon/api dev
 ```
 
+Desde `apps/api` también puedes ejecutar `pnpm dev`. La API carga su `.env`
+automáticamente. Si tu terminal tiene variables antiguas exportadas, elimínalas
+con `unset DATABASE_URL REDIS_URL` para que se usen los valores del archivo.
+
 La primera vez, crea los usuarios `administrador` y `tecnico` desde otra terminal
-que tenga la misma `DATABASE_URL` exportada. Elige una contraseña de al menos 12
+en la raíz del repositorio. Elige una contraseña de al menos 12
 caracteres:
 
 ```bash
@@ -67,8 +99,8 @@ en `http://localhost:3000`.
 
 ## Migraciones y comprobación
 
-Con `DATABASE_URL` exportada como en la terminal de la API, aplica migraciones
-cuando el repositorio incorpore alguna nueva:
+Con `apps/api/.env` configurado, aplica migraciones cuando el repositorio
+incorpore alguna nueva:
 
 ```bash
 pnpm --filter @trackon/api exec prisma migrate deploy

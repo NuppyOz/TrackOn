@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
 import { cambiarEstadoEquipo, crearEquipo, editarEquipo, listarEquipos, listarUbicaciones } from "./equipos.api";
 import type { Equipo, EquipoFiltros, EquipoInput, Ubicacion } from "./equipos.types";
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
+import { TablePagination } from '../../shared/ui';
 
 const LIMITE = 25;
 const filtrosIniciales: EquipoFiltros = {
@@ -465,6 +466,8 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                             </button>
                         </form>
 
+                        <TablePagination pagina={pagina} limite={LIMITE} hayMas={hayMas} cargando={cargando} cantidad={equipos.length} etiqueta="equipos"
+                            onPagina={valor => { setCargando(true); setPagina(valor); }} />
                         {cargando && <output className="empty">Cargando inventario…</output>}
                         {!cargando && equipos.length === 0 && (
                             <p className="empty">No hay equipos que coincidan con los filtros.</p>
@@ -525,31 +528,6 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                 </table>
                             </div>
                         )}
-                        <div className="equipos-pagination">
-                            <p aria-live="polite">{`Página ${pagina} · ${LIMITE} registros por página`}</p>
-                            <div className="equipos-pagination-actions">
-                                <button
-                                    type="button"
-                                    disabled={cargando || pagina <= 1}
-                                    onClick={() => {
-                                        setCargando(true);
-                                        setPagina(p => Math.max(1, p - 1));
-                                    }}
-                                >
-                                    Anterior
-                                </button>
-                                <button
-                                    type="button"
-                                    disabled={cargando || !hayMas}
-                                    onClick={() => {
-                                        setCargando(true);
-                                        setPagina(p => p + 1);
-                                    }}
-                                >
-                                    Siguiente
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 )}
             </div>

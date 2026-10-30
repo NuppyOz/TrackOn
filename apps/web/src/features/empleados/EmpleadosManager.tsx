@@ -1,20 +1,23 @@
 import { useEffect, useState } from 'react';
-import { cambiarEstadoEmpleado, cambiarHabilitacionTecnica, crearEmpleado, editarEmpleado, listarEmpleados, obtenerEmpleado } from './empleados.api';
-import type { CrearEmpleado, EditarEmpleado, EmpleadoDetalle, EmpleadoResumen } from './empleados.types';
+import { cambiarEstadoEmpleado, cambiarHabilitacionTecnica, crearEmpleado, editarEmpleado, listarEmpleados, obtenerEmpleado, type PaginaEmpleados } from './empleados.api';
+import type { CrearEmpleado, EditarEmpleado, EmpleadoDetalle, FiltrosEmpleados } from './empleados.types';
 import { nombreEmpleado } from './empleados.types';
 import EmpleadosListado from './EmpleadosListado';
 import EmpleadoFormulario from './EmpleadoFormulario';
 import EmpleadoDetallePanel from './EmpleadoDetallePanel';
 import ConfirmarAccionEmpleado from './ConfirmarAccionEmpleado';
+import { useFiltrosListado } from '../../shared/useFiltrosListado';
 
 type Vista = 'listado' | 'crear' | 'detalle' | 'editar';
 type Accion = 'estado' | 'tecnico';
 
 const errorTexto = (error: unknown) => error instanceof Error ? error.message : 'No se pudo completar la operación.';
+const filtrosIniciales: FiltrosEmpleados = { buscar: '', estado: 'todos', tecnico: 'todos', pagina: 1, limite: 25 };
 
 export default function EmpleadosManager() {
     const [vista, setVista] = useState<Vista>('listado');
-    const [empleados, setEmpleados] = useState<EmpleadoResumen[]>([]);
+    const [datos, setDatos] = useState<PaginaEmpleados | null>(null);
+    const { filtros, aplicados, pendiente, cambiarFiltros } = useFiltrosListado(filtrosIniciales);
     const [seleccionado, setSeleccionado] = useState<EmpleadoDetalle | null>(null);
     const [cargando, setCargando] = useState(true);
     const [ocupada, setOcupada] = useState(false);
@@ -23,14 +26,22 @@ export default function EmpleadosManager() {
 
     useEffect(() => {
         let activo = true;
-        void listarEmpleados().then(datos => { if (activo) setEmpleados(datos); })
+        void Promise.resolve().then(() => {
+            if (activo) setCargando(true);
+            return listarEmpleados(aplicados);
+        }).then(resultado => { if (activo) setDatos(resultado); })
             .catch(error => { if (activo) setAviso({ tipo: 'error', texto: errorTexto(error) }); })
             .finally(() => { if (activo) setCargando(false); });
         return () => { activo = false; };
-    }, []);
+    }, [aplicados]);
 
     async function actualizarListado() {
-        setEmpleados(await listarEmpleados());
+        setDatos(await listarEmpleados(aplicados));
+    }
+
+    function actualizarFiltros(nuevos: FiltrosEmpleados, esperar = false) {
+        setCargando(true);
+        cambiarFiltros(nuevos, esperar);
     }
 
     async function abrirDetalle(id: number) {
@@ -93,8 +104,12 @@ export default function EmpleadosManager() {
                 : <button type="button" className="tk-employee-secondary" onClick={volver}>← Volver al listado</button>}
         </header>
         {aviso && <div role="alert" className={`tk-employee-notice ${aviso.tipo}`}>{aviso.texto}</div>}
-        {cargando ? <div className="tk-employee-panel tk-employee-loading" role="status">Cargando información de empleados…</div> : <>
-            {vista === 'listado' && <EmpleadosListado empleados={empleados} onVer={id => void abrirDetalle(id)} onCrear={() => setVista('crear')} />}
+        {cargando && !datos ? <div className="tk-employee-panel tk-employee-loading" role="status">Cargando información de empleados…</div> : <>
+            {vista === 'listado' && datos && <EmpleadosListado datos={datos} filtros={filtros} cargando={cargando || pendiente}
+                onFiltros={actualizarFiltros}
+                onPagina={pagina => actualizarFiltros({ ...aplicados, pagina })}
+                onLimite={limite => actualizarFiltros({ ...aplicados, pagina: 1, limite })}
+                onVer={id => void abrirDetalle(id)} onCrear={() => setVista('crear')} />}
             {(vista === 'crear' || vista === 'editar') && <EmpleadoFormulario key={`${vista}-${seleccionado?.id ?? 'nuevo'}`}
                 empleado={vista === 'editar' ? seleccionado : null} guardando={ocupada}
                 onCancelar={volver} onGuardar={guardar} />}

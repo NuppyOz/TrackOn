@@ -58,7 +58,7 @@ En desarrollo, Vite escucha en el puerto 5173, Express en el 3000 y PostgreSQL e
 
 | Herramienta | Versión verificada | Función |
 | --- | --- | --- |
-| Node.js | 24.20.0 | Ejecutar el backend. |
+| Node.js | 24.22.1 | Ejecutar el backend con los parches de seguridad del 21 de octubre de 2026. |
 | pnpm | 10.34.5 | Administrar dependencias y workspace. |
 | TypeScript | 6.0.3 | Comprobar tipos y compilar. |
 | Express | 5.2.1 | Atender solicitudes HTTP. |

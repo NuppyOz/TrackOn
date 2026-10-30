@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { ApiError } from '../../shared/api'
-import { contarNoLeidas, listarNotificaciones, marcarNotificacionLeida, type Notificacion } from './notificaciones.api'
+import { contarNoLeidas, listarNotificaciones, marcarNotificacionLeida, marcarTodasNotificacionesLeidas, type Notificacion } from './notificaciones.api'
 import { irA } from '../../shared/navigation'
+import { connectRealtime } from '../../shared/realtime'
 
 const fechaRelativa = (date: string) => {
   const minutos = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000))
@@ -22,6 +23,7 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
   const [leyendo, setLeyendo] = useState<number | null>(null)
+  const [leyendoTodas, setLeyendoTodas] = useState(false)
 
   useEffect(() => {
     if (!habilitada) return
@@ -37,12 +39,14 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
       finally { pendiente = false }
     }
     void actualizar()
-    const intervalo = window.setInterval(() => void actualizar(), 30000)
+    const disconnect = connectRealtime(event => {
+      if (event.type === 'data.changed') void actualizar()
+    })
     window.addEventListener('focus', actualizar)
     document.addEventListener('visibilitychange', actualizar)
     return () => {
       activa = false
-      window.clearInterval(intervalo)
+      disconnect()
       window.removeEventListener('focus', actualizar)
       document.removeEventListener('visibilitychange', actualizar)
     }
@@ -57,6 +61,17 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
       setNoLeidas(page.noLeidas); setCursor(page.nextCursor)
     } catch (cause) { setError(cause instanceof ApiError ? cause.message : 'No se pudieron cargar las notificaciones.') }
     finally { setCargando(false) }
+  }
+
+  async function leerTodas() {
+    if (leyendoTodas || noLeidas === 0) return
+    setLeyendoTodas(true); setError('')
+    try {
+      const result = await marcarTodasNotificacionesLeidas()
+      setItems(actuales => actuales.map(item => item.leidaEn ? item : { ...item, leidaEn: result.leidaEn }))
+      setNoLeidas(0)
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudieron marcar todas como leídas.') }
+    finally { setLeyendoTodas(false) }
   }
 
   async function abrir() {
@@ -109,7 +124,7 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
     {abierto && <>
       <button type="button" className="notification-dismiss" aria-label="Cerrar notificaciones" onClick={() => setAbierto(false)} />
       <section className="notification-panel" aria-label="Notificaciones">
-        <header><div><h2>Notificaciones</h2><span>{subtituloPanel}</span></div><div className="notification-panel-actions">{habilitada && <button type="button" aria-label="Actualizar notificaciones" disabled={cargando || leyendo !== null} onClick={() => void cargar()}>Actualizar</button>}<button type="button" aria-label="Cerrar" onClick={() => setAbierto(false)}>×</button></div></header>
+        <header><div><h2>Notificaciones</h2><span>{subtituloPanel}</span></div><div className="notification-panel-actions">{habilitada && noLeidas > 0 && <button type="button" disabled={leyendoTodas || leyendo !== null} onClick={() => void leerTodas()}>{leyendoTodas ? 'Marcando…' : 'Leer todas'}</button>}{habilitada && <button type="button" aria-label="Actualizar notificaciones" disabled={cargando || leyendo !== null || leyendoTodas} onClick={() => void cargar()}>Actualizar</button>}<button type="button" aria-label="Cerrar" onClick={() => setAbierto(false)}>×</button></div></header>
         {contenidoPanel()}
         {habilitada && cursor && <button type="button" className="notification-more" disabled={cargando} onClick={() => void cargar(true)}>{cargando ? 'Cargando…' : 'Cargar más'}</button>}
       </section>
