@@ -82,7 +82,7 @@ export function AsistenteIndicadores({ area, desde, hasta }: Readonly<AsistenteI
   </section>
 }
 
-function Interpretation({ result, area }: { result: InterpretacionAsistente; area: AreaAsistente }) {
+function Interpretation({ result, area }: Readonly<{ result: InterpretacionAsistente; area: AreaAsistente }>) {
   const readableSources = result.fuentes.map(source => sourceNames[area][source] ?? 'Fuente de indicadores')
   return <article className="asistente-result" aria-label="Interpretación generada">
     <div className="asistente-result__meta"><SemanticBadge label="Interpretación generada" variant="info" icon="✦" /><span>{areaNames[area]} · {dateLabel(result.desde)} – {dateLabel(result.hasta)}</span><span>Corte: {dateLabel(result.corte)}</span><span>Generada: {dateLabel(result.generadaEn)}</span><span>Referencia: {result.snapshotId.slice(0, 12)}</span></div>

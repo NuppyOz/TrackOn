@@ -14,7 +14,7 @@ vi.mock('../src/features/comercial/tarifas/tarifas.api', () => ({ listarConcepto
 const page = <T,>(items: T[] = []) => ({ items, pagina: 1, limite: 25, hayMas: false })
 const quote = {
   id: 41, clienteId: 5, clienteNombreRegistrado: 'Taller Central', clienteIdentificacionRegistrada: null, contactoId: null, estadoPersistido: 'BORRADOR', estadoEfectivo: 'BORRADOR',
-  subtotal: '125.00', descuento: '0.00', total: '125.00', moneda: 'NIO', venceEn: '2026-11-01T12:00:00.000Z', version: 2, creadaEn: '2026-10-20T12:00:00Z', actualizadaEn: '2026-10-20T12:00:00Z', enviadaEn: null, decididaEn: null, ventaId: null,
+  subtotal: '125.00', descuento: '0.00', total: '125.00', moneda: 'NIO', venceEn: '2099-11-01T12:00:00.000Z', version: 2, creadaEn: '2026-10-20T12:00:00Z', actualizadaEn: '2026-10-20T12:00:00Z', enviadaEn: null, decididaEn: null, ventaId: null,
   accionesPermitidas: { editar: true, enviar: true, decidir: false, convertirVenta: false }, nota: null, creadaPorId: 1, decisionOrigen: null, decisionComentario: null,
   lineas: [{ id: 1, posicion: 1, conceptoId: 10, descripcion: 'Mantenimiento', tipo: 'SERVICIO', unidad: 'servicio', cantidad: '1.000', precio: '125.00', descuento: '0.00', subtotal: '125.00', total: '125.00' }], notas: [],
 }
@@ -58,7 +58,7 @@ describe('CotizacionesPage FE03', () => {
     render(<CotizacionesPage />); await screen.findByRole('cell', { name: 'Taller Central' }); fireEvent.click(screen.getByRole('button', { name: 'Nueva cotización' }))
     await screen.findByRole('option', { name: 'MANT-1 · Mantenimiento (servicio)' })
     fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: '5' } }); fireEvent.change(screen.getByLabelText('Concepto línea 1'), { target: { value: '10' } })
-    fireEvent.change(screen.getByLabelText('Vence en'), { target: { value: '2026-12-01T12:00' } })
+    fireEvent.change(screen.getByLabelText('Vence en'), { target: { value: '2099-12-01T12:00' } })
     fireEvent.submit(screen.getByRole('form', { name: 'Nueva cotización' }))
     await screen.findByText('Temporal')
     fireEvent.submit(screen.getByRole('form', { name: 'Nueva cotización' }))

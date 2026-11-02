@@ -96,7 +96,7 @@ export async function aplicar(id: number, body: AplicarFacturable, autorId: numb
   const ultimoHito = row.aplicaciones.reduce((ultimo, aplicacion) => {
     const anuladaEn = aplicacion.lineaComprobante.comprobante.anuladaEn;
     const hito = anuladaEn && anuladaEn > aplicacion.fechaEfectiva ? anuladaEn : aplicacion.fechaEfectiva;
-    return hito > ultimo ? hito : ultimo;
+    return new Date(Math.max(hito.getTime(), ultimo.getTime()));
   }, row.fechaEfectiva);
   if (fecha < ultimoHito) throw new AppError(400, 'La aplicación no puede ser anterior a las aplicaciones o anulaciones previas de este servicio.');
   const restante = pendiente(row);

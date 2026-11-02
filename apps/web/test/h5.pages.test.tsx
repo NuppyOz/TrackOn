@@ -64,4 +64,50 @@ describe('H5 pages', () => {
     await waitFor(() => expect(screen.getAllByRole('alert').some(node => node.textContent?.includes('El contrato cambió'))).toBe(true))
     expect((screen.getByLabelText('Referencia') as HTMLInputElement).value).toBe('CON-409')
   })
+  it('renueva desde el vencimiento del contrato y mantiene el vínculo al anterior', async () => {
+    const contract = { id: 12, clienteId: 4, clienteNombre: 'Ana Ruiz', referencia: 'CON-12', inicio: '2026-01-01T06:00:00.000Z', fin: '2027-01-01T06:00:00.000Z', importe: '300.00', anteriorId: null, siguienteId: null, terminadoEn: null, registradoEn: '2026-01-01T06:00:00.000Z', observacion: null, version: 3 }
+    apiMock.mockImplementation(async (url, init) => {
+      if (typeof url === 'string' && url === '/api/fuentes-gerenciales/contratos/12') return contract as never
+      if (typeof url === 'string' && url === '/api/fuentes-gerenciales/contratos/12/renovar' && init?.method === 'POST') return { ...contract, id: 13, referencia: 'CON-13', anteriorId: 12 } as never
+      if (typeof url === 'string' && url.startsWith('/api/fuentes-gerenciales/contratos?')) return { items: [contract], pagina: 1, limite: 25, hayMas: false } as never
+      return [] as never
+    })
+    const previous = window.location.pathname + window.location.search
+    window.history.replaceState({}, '', '/inteligencia/origen/contratos?contratoId=12')
+    try {
+      render(<ContratosFuentesPage />)
+      expect(await screen.findByRole('heading', { name: 'CON-12 · Ana Ruiz' })).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: 'Renovar contrato' }))
+      fireEvent.change(screen.getByLabelText('Referencia'), { target: { value: 'CON-13' } })
+      fireEvent.change(screen.getByLabelText('Fin'), { target: { value: '2028-01-01T10:00' } })
+      fireEvent.change(screen.getByLabelText('Importe (NIO)'), { target: { value: '350.00' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Registrar renovación' }))
+      await waitFor(() => expect(apiMock).toHaveBeenCalledWith('/api/fuentes-gerenciales/contratos/12/renovar', expect.objectContaining({ method: 'POST' })))
+      const body = JSON.parse(String(apiMock.mock.calls.find(([url]) => url === '/api/fuentes-gerenciales/contratos/12/renovar')?.[1]?.body))
+      expect(body).toMatchObject({ version: 3, referencia: 'CON-13', importe: '350.00' })
+      expect(body.inicio).toBe(contract.fin)
+    } finally { window.history.replaceState({}, '', previous) }
+  })
+  it('termina un contrato dentro de su vigencia y conserva el motivo', async () => {
+    const contract = { id: 12, clienteId: 4, clienteNombre: 'Ana Ruiz', referencia: 'CON-12', inicio: '2025-01-01T06:00:00.000Z', fin: '2027-01-01T06:00:00.000Z', importe: '300.00', anteriorId: null, siguienteId: null, terminadoEn: null, registradoEn: '2025-01-01T06:00:00.000Z', observacion: null, version: 3 }
+    apiMock.mockImplementation(async (url, init) => {
+      if (typeof url === 'string' && url === '/api/fuentes-gerenciales/contratos/12') return contract as never
+      if (typeof url === 'string' && url === '/api/fuentes-gerenciales/contratos/12/terminar' && init?.method === 'POST') return { ...contract, terminadoEn: '2026-10-20T16:00:00.000Z' } as never
+      if (typeof url === 'string' && url.startsWith('/api/fuentes-gerenciales/contratos?')) return { items: [], pagina: 1, limite: 25, hayMas: false } as never
+      return [] as never
+    })
+    const previous = window.location.pathname + window.location.search
+    window.history.replaceState({}, '', '/inteligencia/origen/contratos?contratoId=12')
+    try {
+      render(<ContratosFuentesPage />)
+      expect(await screen.findByRole('heading', { name: 'CON-12 · Ana Ruiz' })).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: 'Terminar contrato' }))
+      fireEvent.change(screen.getByLabelText('Fecha de terminación'), { target: { value: '2026-10-20T10:00' } })
+      fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Servicio concluido' } })
+      fireEvent.click(screen.getAllByRole('button', { name: 'Terminar contrato' }).at(-1)!)
+      await waitFor(() => expect(apiMock).toHaveBeenCalledWith('/api/fuentes-gerenciales/contratos/12/terminar', expect.objectContaining({ method: 'POST' })))
+      const body = JSON.parse(String(apiMock.mock.calls.find(([url]) => url === '/api/fuentes-gerenciales/contratos/12/terminar')?.[1]?.body))
+      expect(body).toMatchObject({ version: 3, motivo: 'Servicio concluido' })
+    } finally { window.history.replaceState({}, '', previous) }
+  })
 })

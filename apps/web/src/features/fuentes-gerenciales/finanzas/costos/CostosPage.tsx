@@ -54,7 +54,18 @@ export function CostosPage({ onBusyChange }: PageProps = {}) {
   const openCreate = () => { detailRequest.current++; intent.current = null; setDetail(null); setDraft(draftVacio()); setMode('create'); setError(''); setClientSearch(''); setClientPage(1); setOrderSearch(''); setOrderPage(1); setOrders([]); setSelectedOrder(null); setInvoiceSearch(''); setInvoicePage(1); setInvoices([]); setSelectedInvoice(null) }
   const view = async (id: number) => { const current = ++detailRequest.current; setError(''); try { const record = await obtenerCosto(id); if (current === detailRequest.current) { setDetail(record); setMode(null) } } catch (cause) { if (current === detailRequest.current) setError(textoError(cause)) } }
   const close = () => { if (!saving) { detailRequest.current++; setMode(null); setError('') } }
-  useEffect(() => { let active = true; queueMicrotask(() => { if (!active) return; const raw = new URLSearchParams(window.location.search).get('costoId'); if (raw && /^[1-9]\d*$/.test(raw)) { const id = Number(raw); if (Number.isSafeInteger(id) && id <= 2_147_483_647) void view(id) } }); return () => { active = false } }, [])
+  useEffect(() => {
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      const raw = new URLSearchParams(window.location.search).get('costoId')
+      if (raw && /^[1-9]\d*$/.test(raw)) {
+        const id = Number(raw)
+        if (Number.isSafeInteger(id) && id <= 2_147_483_647) void view(id)
+      }
+    })
+    return () => { active = false }
+  }, [])
   const openReverse = () => { if (!detail) return; intent.current = null; setDraft({ ...draftVacio(), fechaReversion: inputManagua(new Date().toISOString()) }); setMode('reverse'); setError('') }
   const submitCreate = async () => {
     if (saving) return

@@ -14,6 +14,11 @@ const money = (value: string) => `C$ ${value}`
 const err = (cause: unknown) => cause instanceof Error ? cause.message : 'No se pudo completar la operación.'
 const newDraft = () => ({ clienteId: '', referencia: '', inicio: '', fin: '', importe: '', observacion: '', terminadoEn: '' })
 type Mode = 'create' | 'renew' | 'terminate' | null
+function formTitle(mode: Exclude<Mode, null>, detail: ContratoGerencial | null) {
+  if (mode === 'create') return 'Nuevo contrato'
+  if (mode === 'renew') return `Renovar ${detail?.referencia ?? ''}`
+  return `Terminar ${detail?.referencia ?? ''}`
+}
 const managuaIso = (value: string) => new Date(`${value}:00-06:00`).toISOString()
 const managuaInput = (value: string) => new Date(new Date(value).getTime() - 6 * 60 * 60 * 1000).toISOString().slice(0, 16)
 export function ContratosFuentesPage() {
@@ -66,7 +71,7 @@ export function ContratosFuentesPage() {
       <div className="h5-filters"><label>Cliente<select value={clienteId} onChange={event => { setClienteId(event.currentTarget.value); setPage(1) }}><option value="">Todos los clientes</option>{clientes.map(client => <option key={client.id} value={client.id}>{nombreCliente(client)}</option>)}</select></label></div>
       <DataTable columns={columns} rows={result?.items ?? []} getRowKey={row => row.id} search={{ value: q, onChange: value => { setQ(value.slice(0, 100)); setPage(1) }, placeholder: 'Referencia o cliente', label: 'Buscar contratos' }} pagination={{ pagina: result?.pagina ?? page, limite: result?.limite ?? LIMITE, hayMas: result?.hayMas ?? false, onPageChange: setPage }} state={loading ? 'loading' : error ? 'error' : 'ready'} error={{ title: error }} onRetry={() => void load()} emptyTitle="No hay contratos registrados" emptyDescription="Registra una ficha contractual para consultar su vigencia." />
     </>) }
-    {mode && <section className="h5-dialog h5-form-page" aria-labelledby="contract-form-title"><h2 id="contract-form-title">{mode === 'create' ? 'Nuevo contrato' : mode === 'renew' ? `Renovar ${detail?.referencia ?? ''}` : `Terminar ${detail?.referencia ?? ''}`}</h2>
+    {mode && <section className="h5-dialog h5-form-page" aria-labelledby="contract-form-title"><h2 id="contract-form-title">{formTitle(mode, detail)}</h2>
       {mode === 'terminate' ? <><p>La ficha se conserva en el historial. Elige una fecha dentro de la vigencia.</p><label>Fecha de terminación<input disabled={saving} type="datetime-local" min={detail ? managuaInput(detail.inicio) : undefined} max={detail ? managuaInput(new Date(detail.fin) < new Date() ? detail.fin : new Date().toISOString()) : undefined} value={draft.terminadoEn} onChange={event => { resetKey(); setDraft({ ...draft, terminadoEn: event.currentTarget.value }) }} required /></label><label>Motivo<textarea disabled={saving} maxLength={1000} value={draft.observacion} onChange={event => { resetKey(); setDraft({ ...draft, observacion: event.currentTarget.value }) }} required /></label></> : <>
         {mode === 'create' && <label>Cliente<select disabled={saving} required value={draft.clienteId} onChange={event => { resetKey(); setDraft({ ...draft, clienteId: event.currentTarget.value }) }}><option value="">Selecciona un cliente</option>{clientes.map(client => <option key={client.id} value={client.id}>{nombreCliente(client)}</option>)}</select></label>}
         <label>Referencia<input disabled={saving} maxLength={100} required value={draft.referencia} onChange={event => { resetKey(); setDraft({ ...draft, referencia: event.currentTarget.value }) }} /></label>

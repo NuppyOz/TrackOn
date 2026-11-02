@@ -25,16 +25,18 @@ async function leerAcotado(response: Response, maxBytes: number): Promise<string
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   let length = 0;
-  while (true) {
+  async function readNext(): Promise<void> {
     const { done, value } = await reader.read();
-    if (done) break;
+    if (done) return;
     length += value.byteLength;
     if (length > maxBytes) {
       await reader.cancel().catch(() => undefined);
       throw new Error('oversize');
     }
     chunks.push(value);
+    await readNext();
   }
+  await readNext();
   const bytes = new Uint8Array(length);
   let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }

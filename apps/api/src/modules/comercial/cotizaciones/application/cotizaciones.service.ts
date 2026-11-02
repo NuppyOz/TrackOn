@@ -124,6 +124,6 @@ function proyeccionPortal(dto: ReturnType<typeof detalleDto>) {
 }
 export async function obtenerCotizacionPortal(clienteId: number, id: number) {
   const row = await repository.detalle(id);
-  if (!row || row.clienteId !== clienteId || row.estado === 'BORRADOR') throw new AppError(404, 'La cotización no existe.');
+  if (row?.clienteId !== clienteId || row?.estado === 'BORRADOR') throw new AppError(404, 'La cotización no existe.');
   return proyeccionPortal(detalleDto(row));
 }

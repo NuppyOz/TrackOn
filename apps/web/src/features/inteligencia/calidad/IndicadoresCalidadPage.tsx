@@ -65,6 +65,20 @@ function rowFailure(row: DesgloseCalidad) {
   if (row.tipo === 'CASO' || row.tipo === 'FALLA_REPETIDA') return row.codigoFalla
   return ''
 }
+function breakdownDate(row: DesgloseCalidad) {
+  if (row.tipo === 'GARANTIA') return `${fechaHora(row.inicio)} – ${fechaHora(row.fin)}`
+  if (row.tipo === 'CASO') return fechaHora(row.abiertaEn)
+  if (row.tipo === 'RETRABAJO') return fechaHora(row.fechaEfectiva)
+  if (row.tipo === 'CORRECTIVA') return `${fechaHora(row.creadaEn)} · vence ${fechaHora(row.venceEn)}`
+  return `${row.cantidad} casos · ventana de 90 días al corte`
+}
+function breakdownState(row: DesgloseCalidad) {
+  if (row.tipo === 'GARANTIA') return badgeEstado(row.vigente ? 'VIGENTE' : 'VENCIDA')
+  if (row.tipo === 'CASO') return <span className="h8-sla">{badgeEstado(row.estadoAlCorte)}<small>Respuesta: {slaBadge(row.respuestaEvaluable, row.respuestaCumple)} Resolución: {slaBadge(row.resolucionEvaluable, row.resolucionCumple)}</small></span>
+  if (row.tipo === 'CORRECTIVA') return <span className="h8-sla">{badgeEstado(row.abiertaAlCorte ? 'ABIERTA' : 'CERRADA')}{row.vencidaAlCorte && <SemanticBadge label="Vencida al corte" variant="warning" />}</span>
+  if (row.tipo === 'FALLA_REPETIDA') return <span>{row.cantidad} casos agrupados por cliente, activo y falla</span>
+  return row.ordenId ? `Orden #${row.ordenId}` : 'Sin orden asociada'
+}
 function rowKey(row: DesgloseCalidad) { return 'clave' in row ? `${row.tipo}-${row.clave}` : `${row.tipo}-${row.id}` }
 
 export function IndicadoresCalidadPage() {
@@ -107,8 +121,8 @@ export function IndicadoresCalidadPage() {
     { key: 'registro', header: 'Registro', render: (row) => sourceLinks(row) },
     { key: 'cliente', header: 'Cliente', render: (row) => 'clienteNombre' in row ? `${row.clienteNombre} · #${row.clienteId}` : row.tipo === 'FALLA_REPETIDA' ? `Cliente #${row.clienteId}` : row.casoReferencia },
     { key: 'activo', header: 'Activo / falla', render: (row) => 'activoReferencia' in row ? `${row.activoReferencia}${row.tipo === 'CASO' ? ` · ${row.codigoFalla}` : row.tipo === 'FALLA_REPETIDA' ? ` · ${row.codigoFalla}` : ''}` : '—' },
-    { key: 'fecha', header: 'Fecha', render: (row) => row.tipo === 'GARANTIA' ? `${fechaHora(row.inicio)} – ${fechaHora(row.fin)}` : row.tipo === 'CASO' ? fechaHora(row.abiertaEn) : row.tipo === 'RETRABAJO' ? fechaHora(row.fechaEfectiva) : row.tipo === 'CORRECTIVA' ? `${fechaHora(row.creadaEn)} · vence ${fechaHora(row.venceEn)}` : `${row.cantidad} casos · ventana de 90 días al corte` },
-    { key: 'estado', header: 'Estado al corte', render: (row) => row.tipo === 'GARANTIA' ? badgeEstado(row.vigente ? 'VIGENTE' : 'VENCIDA') : row.tipo === 'CASO' ? <span className="h8-sla">{badgeEstado(row.estadoAlCorte)}<small>Respuesta: {slaBadge(row.respuestaEvaluable, row.respuestaCumple)} Resolución: {slaBadge(row.resolucionEvaluable, row.resolucionCumple)}</small></span> : row.tipo === 'CORRECTIVA' ? <span className="h8-sla">{badgeEstado(row.abiertaAlCorte ? 'ABIERTA' : 'CERRADA')}{row.vencidaAlCorte && <SemanticBadge label="Vencida al corte" variant="warning" />}</span> : row.tipo === 'FALLA_REPETIDA' ? <span>{row.cantidad} casos agrupados por cliente, activo y falla</span> : row.ordenId ? `Orden #${row.ordenId}` : 'Sin orden asociada' },
+    { key: 'fecha', header: 'Fecha', render: breakdownDate },
+    { key: 'estado', header: 'Estado al corte', render: breakdownState },
     { key: 'hitos', header: 'Trazabilidad', render: (row) => row.tipo === 'CASO' ? <>Plazo de respuesta {time(row.respuestaLimiteEn)} · respuesta {time(row.respondidaEn)}<br />Plazo de resolución {time(row.resolucionLimiteEn)} · resolución {time(row.resueltaEn)}<br />Cierre {time(row.cerradaEn)}</> : row.tipo === 'CORRECTIVA' ? <>Responsable: {row.responsableNombre}<br />Cierre: {time(row.cerradaEn)}</> : row.tipo === 'FALLA_REPETIDA' ? <span className="h8-case-links">{row.casoIds.map((id) => <a key={id} href={`/inteligencia/origen/calidad?casoId=${id}`}>Caso #{id}</a>)}</span> : row.tipo === 'RETRABAJO' ? <>Caso {row.casoReferencia} · trabajo {row.referenciaTrabajo}</> : `Cliente: ${row.clienteNombre}` },
   ]
   const sourceTitle = <a href="/inteligencia/origen/calidad">Registros de origen de calidad</a>

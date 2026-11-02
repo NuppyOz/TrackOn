@@ -105,7 +105,7 @@ export function VentasPage({ ventaInicialId }: VentasPageProps) {
       <div className="ventas__table-wrap" role="region" aria-label="Líneas de venta" tabIndex={0}><table><thead><tr><th>Descripción</th><th>Tipo</th><th>Cantidad</th><th>Precio</th><th>Descuento</th><th>Subtotal</th><th>Total</th></tr></thead><tbody>{detail.lineas.map(line => <tr key={line.id}><td>{line.descripcion}<small>{line.unidad}</small></td><td>{line.tipo}</td><td>{quantity(line.cantidad)}</td><td>{money(line.precio)}</td><td>{money(line.descuento)}</td><td>{money(line.subtotal)}</td><td>{money(line.total)}</td></tr>)}</tbody></table></div>
       <div className="ventas__total"><span>Total de venta</span><strong>{money(detail.total)} {detail.moneda}</strong></div>
       <SemanticBadge label="Venta registrada" variant="success" icon="✓" />
-    </section> : loadingDetail ? <p role="status" className="ventas__loading">Cargando venta…</p> : <DataTable columns={columns} rows={rows} getRowKey={row => row.id}
+    </section> : loadingDetail ? <output className="ventas__loading">Cargando venta…</output> : <DataTable columns={columns} rows={rows} getRowKey={row => row.id}
       search={{ value: q, onChange: value => { setQ(value.slice(0, 100)); setPage(1) }, placeholder: 'Cliente o venta', label: 'Buscar' }}
       sort={{ key: sortBy, direction: sortDir, onChange: changeSort }} pagination={{ pagina: page, limite: LIMITE, hayMas: hasMore, onPageChange: value => setPage(value) }}
       state={loading ? 'loading' : error ? 'error' : 'ready'} error={{ title: error }} onRetry={() => void load()} emptyTitle="No hay ventas registradas" emptyDescription="Las ventas aparecen aquí cuando conviertes una cotización aprobada." />}

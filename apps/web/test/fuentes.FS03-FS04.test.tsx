@@ -87,4 +87,32 @@ describe('FS03–FS04 cobros y costos', () => {
     expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({ version: 4, motivo: 'Registro duplicado' })
     expect((screen.getByLabelText('Motivo') as HTMLTextAreaElement).value).toBe('Registro duplicado')
   })
+
+  it('revierte un cobro desde el detalle y conserva fecha, motivo y aplicaciones históricas', async () => {
+    const cobro = { id: 20, clienteId: 4, clienteNombre: 'Ana Ruiz', referencia: 'COB-20', fechaEfectiva: '2026-10-01T16:00:00.000Z', importe: '60.00', registradoEn: '2026-10-01T16:00:00.000Z', observacion: 'Pago transferencia', revertidoEn: null, motivoReversion: null, version: 2, aplicaciones: [{ id: 30, comprobanteId: 12, comprobanteReferencia: 'FAC-12', importe: '60.00' }] }
+    apiMock.mockImplementation(async (url, init) => {
+      if (url === '/api/fuentes-gerenciales/finanzas/cobros/20/revertir' && init?.method === 'POST') return { ...cobro, revertidoEn: '2026-11-01T16:00:00.000Z', motivoReversion: 'Pago duplicado' } as never
+      if (url === '/api/fuentes-gerenciales/finanzas/cobros/20') return cobro as never
+      return page as never
+    })
+    const previous = window.location.pathname + window.location.search
+    window.history.replaceState({}, '', '/inteligencia/origen/finanzas?cobroId=20')
+    try {
+      render(<CobrosPage />)
+      expect(await screen.findByRole('heading', { name: 'COB-20 · Ana Ruiz' })).toBeTruthy()
+      expect(screen.getByText('FAC-12 · #12')).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: 'Revertir cobro' }))
+      const confirm = screen.getByRole('button', { name: 'Confirmar reversión' })
+      expect(confirm.hasAttribute('disabled')).toBe(true)
+      fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Pago duplicado' } })
+      expect(confirm.hasAttribute('disabled')).toBe(false)
+      fireEvent.click(confirm)
+      await waitFor(() => expect(apiMock.mock.calls.some(([url, init]) => url === '/api/fuentes-gerenciales/finanzas/cobros/20/revertir' && init?.method === 'POST')).toBe(true))
+      const post = apiMock.mock.calls.find(([url, init]) => url === '/api/fuentes-gerenciales/finanzas/cobros/20/revertir' && init?.method === 'POST')
+      expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({ version: 2, motivo: 'Pago duplicado' })
+      expect(await screen.findByText(/Pago duplicado/)).toBeTruthy()
+      expect(screen.getAllByText('Revertido').length).toBeGreaterThan(0)
+      expect(screen.queryByRole('button', { name: 'Revertir cobro' })).toBeNull()
+    } finally { window.history.replaceState({}, '', previous) }
+  })
 })

@@ -27,6 +27,31 @@ describe('H8 B1 pages', () => {
     expect(screen.getByText('BOMBA-01')).toBeTruthy()
     expect(screen.getByText('Vigente')).toBeTruthy()
   })
+  it('valida fechas y registra una garantía normalizada sin asociaciones opcionales', async () => {
+    apiMock.mockImplementation(async (url, init) => {
+      if (typeof url === 'string' && url === '/api/fuentes-gerenciales/calidad/garantias' && init?.method === 'POST') return { ...garantia, referencia: 'GAR-NUEVA', activoReferencia: 'BOMBA-02', equipoId: null, ordenId: null, cobertura: 'Mano de obra extendida' } as never
+      return emptyPage as never
+    })
+    render(<GarantiasGerencialesPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Nueva garantía' }))
+    fireEvent.change(screen.getByLabelText('Referencia'), { target: { value: ' gar-nueva ' } })
+    fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: '4' } })
+    fireEvent.change(screen.getByLabelText('Referencia del activo'), { target: { value: 'bomba-02' } })
+    fireEvent.change(screen.getByLabelText('Inicio'), { target: { value: '2027-01-01T10:00' } })
+    fireEvent.change(screen.getByLabelText('Fin'), { target: { value: '2027-01-01T10:00' } })
+    fireEvent.change(screen.getByLabelText('Cobertura'), { target: { value: 'Mano de obra' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar garantía' }))
+    expect(await screen.findByText('La fecha final debe ser posterior a la inicial.')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Fin'), { target: { value: '2028-01-01T10:00' } })
+    fireEvent.change(screen.getByLabelText('Cobertura'), { target: { value: ' Mano de obra extendida ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar garantía' }))
+    await waitFor(() => expect(apiMock.mock.calls.some(([url, init]) => url === '/api/fuentes-gerenciales/calidad/garantias' && init?.method === 'POST')).toBe(true))
+    const post = apiMock.mock.calls.find(([url, init]) => url === '/api/fuentes-gerenciales/calidad/garantias' && init?.method === 'POST')
+    expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({ referencia: 'GAR-NUEVA', clienteId: 4, activoReferencia: 'BOMBA-02', cobertura: 'Mano de obra extendida' })
+    expect(JSON.parse(String(post?.[1]?.body))).not.toHaveProperty('equipoId')
+    expect(await screen.findByText('GAR-NUEVA')).toBeTruthy()
+    expect(screen.getByText('Sin exclusiones registradas')).toBeTruthy()
+  })
   it('conserva el formulario de caso frente a 409 y envía apertura Managua con segundos y offset', async () => {
     let rejectPost: ((reason: unknown) => void) | undefined
     apiMock.mockImplementation(async (url, init) => {
@@ -59,5 +84,25 @@ describe('H8 B1 pages', () => {
     render(<CasosCalidadPage />)
     expect(await screen.findByText('Fuga en sello')).toBeTruthy()
     expect(screen.getAllByText('Pendiente').length).toBeGreaterThan(0)
+  })
+  it('crea un caso sin asociaciones opcionales y confirma su referencia normalizada', async () => {
+    const created = { ...caso, id: 32, referencia: 'CAS-NUEVO', activoReferencia: 'BOMBA-02', codigoFalla: 'FUGA', descripcion: 'Fuga en sello' }
+    apiMock.mockImplementation(async (url, init) => {
+      if (typeof url === 'string' && url === '/api/fuentes-gerenciales/calidad/casos' && init?.method === 'POST') return created as never
+      return emptyPage as never
+    })
+    render(<CasosCalidadPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Nuevo caso' }))
+    fireEvent.change(screen.getByLabelText('Referencia'), { target: { value: ' cas-nuevo ' } })
+    fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: '4' } })
+    fireEvent.change(screen.getByRole('textbox', { name: /Referencia del activo/ }), { target: { value: 'bomba-02' } })
+    fireEvent.change(screen.getByLabelText('Código de falla'), { target: { value: 'fuga' } })
+    fireEvent.change(screen.getByLabelText('Descripción'), { target: { value: 'Fuga en sello' } })
+    fireEvent.change(screen.getByLabelText('Apertura'), { target: { value: '2025-10-20T10:23' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar caso' }))
+    await waitFor(() => expect(apiMock.mock.calls.some(([url, init]) => url === '/api/fuentes-gerenciales/calidad/casos' && init?.method === 'POST')).toBe(true))
+    const post = apiMock.mock.calls.find(([url, init]) => url === '/api/fuentes-gerenciales/calidad/casos' && init?.method === 'POST')
+    expect(JSON.parse(String(post?.[1]?.body))).toMatchObject({ referencia: 'CAS-NUEVO', clienteId: 4, activoReferencia: 'BOMBA-02', codigoFalla: 'FUGA', descripcion: 'Fuga en sello' })
+    expect(await screen.findByText('Caso CAS-NUEVO registrado.')).toBeTruthy()
   })
 })

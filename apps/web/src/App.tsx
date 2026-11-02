@@ -41,24 +41,29 @@ interface ModuleContentProps {
     puedeAdministrar: boolean;
 }
 
+const accessDenied = <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+function protectedContent(allowed: boolean, content: React.ReactNode) {
+    return allowed ? content : accessDenied;
+}
+
 function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadrillas, ruta, ordenNueva, puedeAdministrar }: Readonly<ModuleContentProps>) {
     switch (seccion) {
-        case "comercial": return puedeGestionar ? <Suspense fallback={<p role="status">Cargando Comercial…</p>}><ComercialWorkspace ruta={ruta} puedeAdministrar={puedeAdministrar} /></Suspense> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
-        case "inteligencia": return puedeGestionar ? <Suspense fallback={<p role="status">Cargando IA y negocio…</p>}><InteligenciaWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
-        case "operaciones": return puedeGestionar ? <Suspense fallback={<p role="status">Cargando operaciones…</p>}><OperacionesWorkspace ruta={ruta} puedeGestionar={puedeGestionar} onOrden={onOrden} /></Suspense> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "comercial": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando Comercial…</p>}><ComercialWorkspace ruta={ruta} puedeAdministrar={puedeAdministrar} /></Suspense>);
+        case "inteligencia": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando IA y negocio…</p>}><InteligenciaWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense>);
+        case "operaciones": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando operaciones…</p>}><OperacionesWorkspace ruta={ruta} puedeGestionar={puedeGestionar} onOrden={onOrden} /></Suspense>);
         case "field": return <Suspense fallback={<p role="status">Cargando TrackOn Field…</p>}><FieldWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense>;
         case "agenda": return <Agenda onOrden={onOrden} />;
-        case "administracion": return puedeAdministrar ? <AdministracionWorkspace ruta={ruta} /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
-        case "auditoria": return puedeAdministrar ? <AuditoriaManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+        case "administracion": return protectedContent(puedeAdministrar, <AdministracionWorkspace ruta={ruta} />);
+        case "auditoria": return protectedContent(puedeAdministrar, <AuditoriaManager />);
         case "dashboard":
-            return puedeGestionar ? <Dashboard onOrden={onOrden} onCuadrillas={onCuadrillas} /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+            return protectedContent(puedeGestionar, <Dashboard onOrden={onOrden} onCuadrillas={onCuadrillas} />);
         case "materiales":
             return <MaterialesManager puedeGestionar={puedeGestionar} />;
         case "clientes":
             return <ClientesManager puedeGestionar={puedeGestionar} />;
 
         case "empleados":
-            return puedeGestionar ? <EmpleadosManager /> : <p role="alert">No tienes permisos para acceder a este módulo.</p>;
+            return protectedContent(puedeGestionar, <EmpleadosManager />);
 
         case "equipos":
             return <EquiposManager puedeGestionar={puedeGestionar} />;
@@ -70,11 +75,7 @@ function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadr
             return <OrdenesManager key={ruta} puedeGestionar={puedeGestionar} ordenInicial={ordenInicial} crearInicial={ordenNueva} />;
 
         case "cuadrillas":
-            return puedeGestionar ? (
-                <CuadrillasManager />
-            ) : (
-                <p role="alert">No tienes permisos para acceder a este módulo.</p>
-            );
+            return protectedContent(puedeGestionar, <CuadrillasManager />);
     }
 }
 

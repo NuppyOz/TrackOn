@@ -48,7 +48,13 @@ export function CorrectivasGerencialesPage({ onBusyChange }: Props) {
     { key: 'estado', header: 'Estado', render: (row: CorrectivaGerencial) => <SemanticBadge label={row.cerradaEn ? 'Cerrada' : 'Abierta'} variant={row.cerradaEn ? 'success' : 'warning'} /> },
   ], [])
   async function openDetail(id: number) { if (!validarId(id)) return; setDetailLoading(true); try { const data = await obtenerCorrectiva(id); setDetail(data); const u = new URL(window.location.href); u.searchParams.set('correctivaId', String(id)); window.history.replaceState(null, '', u) } catch (e) { setError(errMsg(e)) } finally { setDetailLoading(false) } }
-  function beginClose() { if (!detail || detail.cerradaEn || busy) return; setFrozenVersion(detail.version); setForm({ fecha: managuaAhora(), resultado: '' }); setFormError(''); setClosing(true) }
+  function beginClose() {
+    if (!detail || detail.cerradaEn || busy) return
+    setFrozenVersion(detail.version)
+    setForm({ fecha: managuaAhora(), resultado: '' })
+    setFormError('')
+    setClosing(true)
+  }
   function cancelClose() { if (busy) return; setClosing(false); setFormError('') }
   async function submitClose(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (busy || !detail || frozenVersion === null) return

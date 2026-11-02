@@ -69,7 +69,9 @@ export async function obtener(id: number) {
 
 export async function crear(body: CrearContratoGerencial, autorId: number, tx: Prisma.TransactionClient) {
   const inicio = new Date(body.inicio), fin = new Date(body.fin);
-  if (inicio >= fin) throw new AppError(400, 'El inicio debe ser anterior al fin.');
+    if (inicio >= fin) {
+        throw new AppError(400, 'El inicio debe ser anterior al fin.');
+    }
   const cliente = await tx.cliente.findUnique({ where: { id: body.clienteId }, select: { id: true, activo: true } });
   if (!cliente) throw new AppError(404, 'El cliente no existe.');
   if (!cliente.activo) throw new AppError(400, 'El cliente está inactivo.');

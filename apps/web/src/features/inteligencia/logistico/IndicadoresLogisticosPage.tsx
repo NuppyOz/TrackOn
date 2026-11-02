@@ -38,6 +38,27 @@ function sourceHref(row: DesgloseLogistico) {
   if (row.tipo === 'COMPRA_LINEA' || row.tipo === 'RECEPCION') return `/inteligencia/origen/logistica?compraId=${row.compraId}`
   return `/inteligencia/origen/logistica?herramientaId=${row.id}`
 }
+function rowLabel(row: DesgloseLogistico) {
+  if (row.tipo === 'ARTICULO') return `${row.codigo} · ${row.nombre}`
+  if (row.tipo === 'COMPRA_LINEA') return `${row.compraReferencia} · ${row.articuloCodigo}`
+  if (row.tipo === 'RECEPCION') return `${row.referencia} · ${row.compraReferencia}`
+  return `${row.codigo} · ${row.nombre}`
+}
+function coverageLabel(status: string) {
+  if (status === 'COMPLETA') return 'Cobertura verificada'
+  if (status === 'PARCIAL') return 'Cobertura parcial'
+  return 'Sin registros'
+}
+function coverageIcon(status: string) {
+  if (status === 'COMPLETA') return '✓'
+  if (status === 'PARCIAL') return '!'
+  return '○'
+}
+function coverageVariant(status: string) {
+  if (status === 'COMPLETA') return 'success'
+  if (status === 'PARCIAL') return 'warning'
+  return 'neutral'
+}
 function mergeById<T extends { id: number }>(old: T[], next: T[]) { const map = new Map(old.map(row => [row.id, row])); next.forEach(row => map.set(row.id, row)); return [...map.values()] }
 function currentMetricExplanation(key: string, metric: TableroLogistico['metricas'][number] | undefined) {
   if (metric?.motivo) return metric.motivo
@@ -70,11 +91,14 @@ export function IndicadoresLogisticosPage() {
   const validFrom = isoManagua(from); const validUntil = isoManagua(until)
   const validRange = Boolean(validFrom && validUntil && new Date(validFrom).getTime() < new Date(validUntil).getTime() && new Date(validUntil).getTime() - new Date(validFrom).getTime() <= 366 * 86_400_000)
   const applyRange = () => { if (validRange && validFrom && validUntil) { setRange({ desde: validFrom, hasta: validUntil }); setPage(1) } }
+  let tableState: 'loading' | 'error' | 'ready' = 'ready'
+  if (loading) tableState = 'loading'
+  else if (error) tableState = 'error'
   const shownArticles = article && !articles.some(item => item.id === article.id) ? [article, ...articles] : articles
   const sourceTitle = <a className="h7-source-link" href="/inteligencia/origen/logistica">Registros de origen logístico</a>
   const columns: DataTableColumn<DesgloseLogistico>[] = [
     { key: 'tipo', header: 'Tipo', render: row => <SemanticBadge label={typeLabel[row.tipo]} variant={row.tipo === 'HERRAMIENTA' ? 'warning' : row.tipo === 'RECEPCION' ? 'success' : 'info'} icon={typeIcon[row.tipo]} /> },
-    { key: 'registro', header: 'Registro', render: row => <a className="h7-source-link" href={sourceHref(row)}>{row.tipo === 'ARTICULO' ? `${row.codigo} · ${row.nombre}` : row.tipo === 'COMPRA_LINEA' ? `${row.compraReferencia} · ${row.articuloCodigo}` : row.tipo === 'RECEPCION' ? `${row.referencia} · ${row.compraReferencia}` : `${row.codigo} · ${row.nombre}`}</a> },
+    { key: 'registro', header: 'Registro', render: row => <a className="h7-source-link" href={sourceHref(row)}>{rowLabel(row)}</a> },
     { key: 'referencia', header: 'Referencia / responsable', render: row => row.tipo === 'ARTICULO' ? 'Existencias al corte' : row.tipo === 'COMPRA_LINEA' ? `${row.proveedor} · ${row.articuloCodigo}` : row.tipo === 'RECEPCION' ? row.proveedor : row.empleadoNombre },
     { key: 'cantidad', header: 'Cantidad', render: row => row.tipo === 'ARTICULO' ? `${row.stock} ${row.unidad}` : row.tipo === 'COMPRA_LINEA' ? `${row.pendiente} ${row.unidad} pendientes de ${row.cantidad}` : row.tipo === 'RECEPCION' ? `${row.cantidad} ${row.unidad}` : fechaHora(row.prestadaEn) },
     { key: 'detalle', header: 'Detalle', render: row => row.tipo === 'ARTICULO' ? <span className="h7-article-detail"><span>Mínimo {row.minimo} {row.unidad} · valorizado C$ {row.valor}</span><span>Consumo neto del período {row.consumoNeto} {row.unidad}</span><span>Existencia media {row.stockMedio === null ? 'Sin base' : `${row.stockMedio} ${row.unidad}`} · rotación {row.rotacion === null ? 'Sin base' : `${row.rotacion} veces`}</span>{row.motivo && <small>{reasonText(row.motivo)}</small>}</span> : row.tipo === 'COMPRA_LINEA' ? <>Recibido {row.recibido} · cancelado {row.cancelado} · promesa {fechaHora(row.prometidaEn)}</> : row.tipo === 'RECEPCION' ? <>Prometida {fechaHora(row.prometidaEn)} · {row.tardia ? <SemanticBadge label="Recepción tardía" icon="!" variant="warning" /> : 'Dentro de fecha'}</> : <>Préstamo previsto hasta {fechaHora(row.previstaEn)}{row.vencida && <> · <SemanticBadge label="Vencida al corte" icon="!" variant="danger" /></>}</> },
@@ -84,7 +108,7 @@ export function IndicadoresLogisticosPage() {
     <form className="h7-range" onSubmit={event => { event.preventDefault(); applyRange() }}><label>Desde<input type="datetime-local" step="1" value={from} onChange={event => setFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" step="1" value={until} onChange={event => setUntil(event.currentTarget.value)} /></label><Button type="submit" variant="primary" disabled={!validRange || loading}>Consultar</Button>{from && until && !validRange && <p className="h7-error" role="alert">El rango debe ser válido, Desde debe preceder a Hasta y no puede superar 366 días.</p>}</form>
     {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="logistico" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h7-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}
-    {board && <p className="h7-coverage" role="note"><SemanticBadge label={board.cobertura.estado === 'COMPLETA' ? 'Cobertura verificada' : board.cobertura.estado === 'PARCIAL' ? 'Cobertura parcial' : 'Sin registros'} icon={board.cobertura.estado === 'COMPLETA' ? '✓' : board.cobertura.estado === 'PARCIAL' ? '!' : '○'} variant={board.cobertura.estado === 'COMPLETA' ? 'success' : board.cobertura.estado === 'PARCIAL' ? 'warning' : 'neutral'} /> Período {fechaHora(board.desde)} a {fechaHora(board.hasta)} · corte evaluado {fechaHora(board.corteEvaluacion)}. Cobertura de datos: {fechaHora(board.cobertura.desde)} a {fechaHora(board.cobertura.hastaVerificada)}. {board.cobertura.observaciones.join(' ')}</p>}
+    {board && <p className="h7-coverage" role="note"><SemanticBadge label={coverageLabel(board.cobertura.estado)} icon={coverageIcon(board.cobertura.estado)} variant={coverageVariant(board.cobertura.estado)} /> Período {fechaHora(board.desde)} a {fechaHora(board.hasta)} · corte evaluado {fechaHora(board.corteEvaluacion)}. Cobertura de datos: {fechaHora(board.cobertura.desde)} a {fechaHora(board.cobertura.hastaVerificada)}. {board.cobertura.observaciones.join(' ')}</p>}
     {board && new Date(board.hasta).getTime() > new Date(board.corteEvaluacion).getTime() && <p className="h7-note">El rango termina después del momento actual; los saldos y préstamos se evaluaron hasta el corte mostrado.</p>}
     {missing.length > 0 && <p className="h7-error" role="alert">No se recibieron todos los indicadores ({missing.join(', ')}). Reintenta la consulta.</p>}
     {board ? <MetricSummary metrics={summary} label="Indicadores logísticos destacados" /> : loading ? <p role="status">Cargando indicadores logísticos…</p> : null}
@@ -92,7 +116,7 @@ export function IndicadoresLogisticosPage() {
     <section className="h7-breakdowns" aria-labelledby="h7-breakdowns-title"><div className="h7-filter"><div><h2 id="h7-breakdowns-title">Desgloses y registros de origen</h2><p>Los conteos y cantidades conservan la unidad de cada artículo; no se suman existencias de unidades distintas.</p></div><label>Tipo de registro<select value={kind} onChange={event => { setKind(event.currentTarget.value as TipoDesgloseLogistico); setPage(1) }}><option value="TODOS">Todos</option><option value="ARTICULO">Artículos</option><option value="COMPRA_LINEA">Compras pendientes</option><option value="RECEPCION">Recepciones</option><option value="HERRAMIENTA">Herramientas prestadas</option></select></label><label>Buscar artículo<input value={articleQ} maxLength={100} onChange={event => { setArticleQ(event.currentTarget.value.slice(0, 100)); setArticlePage(1) }} placeholder="Código o nombre" /></label><label>Filtrar por artículo<select value={articleId} onChange={event => { const next = articles.find(item => String(item.id) === event.target.value) ?? null; setArticleId(event.target.value); setArticle(next); setPage(1) }}><option value="">Todos los artículos</option>{shownArticles.map(item => <option key={item.id} value={item.id}>{item.codigo} · {item.nombre}</option>)}</select></label><div className="h7-filter-controls"><Button type="button" disabled={articlePage <= 1} onClick={() => setArticlePage(value => value - 1)}>Página anterior de artículos</Button><span>{articleMore ? `Página ${articlePage}` : `Página ${articlePage} de ${articlePage}`}</span><Button type="button" disabled={!articleMore} onClick={() => setArticlePage(value => value + 1)}>Más artículos</Button>{articleId && <Button type="button" onClick={() => { setArticleId(''); setArticle(null); setPage(1) }}>Quitar filtro de artículo</Button>}</div></div>
       {articleError && <p className="h7-error" role="alert">No se pudo cargar el selector de artículos. <Button type="button" onClick={() => setArticleRetry(value => value + 1)}>Reintentar artículos</Button></p>}
       {articleId && <p className="h7-note">El filtro por artículo se aplica a existencias, compromisos y recepciones. Los préstamos de herramientas no están vinculados a artículos y se mantienen visibles.</p>}
-      {board && <DataTable columns={columns} rows={shown} getRowKey={row => `${row.tipo}-${row.id}`} search={{ value: query, onChange: value => { setQuery(value.slice(0, 100)); setPage(1) }, label: 'Buscar desgloses', placeholder: 'Referencia, artículo, proveedor o empleado' }} pagination={{ pagina: page, limite: LIMIT, hayMas: rows.length > page * LIMIT, onPageChange: setPage }} state={loading ? 'loading' : error ? 'error' : 'ready'} error={{ title: error }} onRetry={() => void load(range.desde, range.hasta)} emptyTitle="No hay registros para estos filtros" emptyDescription="Amplía el período o cambia los filtros de tipo y artículo." />}
+      {board && <DataTable columns={columns} rows={shown} getRowKey={row => `${row.tipo}-${row.id}`} search={{ value: query, onChange: value => { setQuery(value.slice(0, 100)); setPage(1) }, label: 'Buscar desgloses', placeholder: 'Referencia, artículo, proveedor o empleado' }} pagination={{ pagina: page, limite: LIMIT, hayMas: rows.length > page * LIMIT, onPageChange: setPage }} state={tableState} error={{ title: error }} onRetry={() => void load(range.desde, range.hasta)} emptyTitle="No hay registros para estos filtros" emptyDescription="Amplía el período o cambia los filtros de tipo y artículo." />}
       {!board && loading && <p role="status">Cargando desgloses…</p>}
     </section>
   </div></section>
