@@ -78,4 +78,44 @@ describe("Portal FE05", () => {
     expect(await screen.findByRole("heading", { name: "Mis cotizaciones" })).toBeTruthy();
     expect(screen.queryByText(/sesión expiró/i)).toBeNull();
   });
+
+  it("muestra errores del servidor al iniciar sesión y permite volver a intentar", async () => {
+    let attempts = 0
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input) === "/api/portal/me") return json({ error: { message: "Unauthorized" } }, 401)
+      if (String(input) === "/api/portal/login" && attempts++ === 0) return json({ error: { message: "Portal no disponible" } }, 503)
+      if (String(input) === "/api/portal/login") return ok(session)
+      if (String(input).startsWith("/api/portal/cotizaciones?")) return ok(list)
+      throw new Error(`Unexpected request ${String(input)}`)
+    }))
+    render(<PortalApp />)
+    fireEvent.change(await screen.findByLabelText("Identificador"), { target: { value: "cliente.demo" } })
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "secret-pass-123" } })
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }))
+    expect((await screen.findByRole("alert")).textContent).toContain("Portal no disponible")
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }))
+    expect(await screen.findByText("Taller Central")).toBeTruthy()
+  })
+
+  it("trata el detalle 404 como cotización no disponible y cierra una sesión ya expirada", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url === "/api/portal/me") return json({ error: { message: "Unauthorized" } }, 401)
+      if (url === "/api/portal/login") return ok(session)
+      if (url.startsWith("/api/portal/cotizaciones?") && !url.endsWith("/decision")) return ok(list)
+      if (url === "/api/portal/cotizaciones/18") return json({ error: { message: "No disponible" } }, 404)
+      if (url === "/api/portal/logout") return json({ error: { message: "Unauthorized" } }, 401)
+      throw new Error(`Unexpected request ${url}`)
+    })
+    vi.stubGlobal("fetch", fetchMock)
+    render(<PortalApp />)
+    fireEvent.change(await screen.findByLabelText("Identificador"), { target: { value: "cliente.demo" } })
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "secret-pass-123" } })
+    fireEvent.click(screen.getByRole("button", { name: "Ingresar" }))
+    fireEvent.click(await screen.findByRole("button", { name: "Ver cotización" }))
+    expect((await screen.findByRole("alert")).textContent).toContain("ya no está disponible")
+    fireEvent.click(screen.getByRole("button", { name: "Salir" }))
+    expect(await screen.findByLabelText("Identificador")).toBeTruthy()
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/portal/logout")).toBe(true)
+  })
 });

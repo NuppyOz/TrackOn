@@ -99,6 +99,89 @@ describe('H8 B2 pages', () => {
     expect(await screen.findByText('Cierra todas las acciones correctivas antes de cerrar el caso.')).toBeTruthy()
     expect(apiMock).not.toHaveBeenCalledWith('/api/fuentes-gerenciales/calidad/casos/31/cerrar', expect.anything())
   })
+  it('solo permite cerrar después del último hito y conserva la versión del caso', async () => {
+    window.history.replaceState(null, '', '/inteligencia/origen/calidad?casoId=31')
+    const resolved = {
+      ...detail,
+      estado: 'RESUELTO' as const,
+      respondidaEn: '2025-10-20T15:24:00.000Z',
+      resueltaEn: '2025-10-21T15:00:00.000Z',
+      retrabajos: [{ id: 4, referenciaTrabajo: 'OT-30', fechaEfectiva: '2025-10-22T15:00:00.000Z', motivo: 'Verificar sello', ordenId: null }],
+      correctivas: [{ ...correctiva, cerradaEn: '2025-10-23T15:00:00.000Z', resultado: 'Verificada' }],
+    }
+    apiMock.mockImplementation(async (url, init) => {
+      if (typeof url === 'string' && url.endsWith('/casos/31/cerrar') && init?.method === 'POST') return { ...resolved, estado: 'CERRADO', cerradaEn: '2025-10-24T16:00:00.000Z', version: 8 } as never
+      if (typeof url === 'string' && url.endsWith('/casos/31')) return resolved as never
+      return page as never
+    })
+    render(<CasosCalidadPage />)
+    await screen.findByText('Fuga en sello')
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar caso' }))
+    fireEvent.change(screen.getByLabelText('Fecha de cierre'), { target: { value: '2025-10-22T10:00' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+    expect(await screen.findByText('El cierre debe ser posterior a la resolución y a todos los hitos, y no puede ser futuro.')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Fecha de cierre'), { target: { value: '2025-10-24T10:00' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+    await waitFor(() => expect(apiMock).toHaveBeenCalledWith('/api/fuentes-gerenciales/calidad/casos/31/cerrar', expect.objectContaining({ method: 'POST' })))
+    const post = apiMock.mock.calls.find(([url, init]) => url === '/api/fuentes-gerenciales/calidad/casos/31/cerrar' && init?.method === 'POST')
+    expect(JSON.parse(String(post?.[1]?.body))).toEqual({ version: 7, cerradaEn: '2025-10-24T10:00:00-06:00' })
+    expect(await screen.findByText('CERRADO')).toBeTruthy()
+  })
+  it('valida que una resolución ocurra después de la respuesta y no en el futuro', async () => {
+    window.history.replaceState(null, '', '/inteligencia/origen/calidad?casoId=31')
+    const inAttention = { ...detail, estado: 'EN_ATENCION' as const, respondidaEn: '2025-10-20T15:24:00.000Z', version: 8 }
+    const resolved = { ...inAttention, estado: 'RESUELTO' as const, resueltaEn: '2025-10-20T16:00:00.000Z', resultado: 'PROCEDE', causaRaiz: 'Sello desgastado', version: 9 }
+    apiMock.mockImplementation(async (url, init) => {
+      if (typeof url === 'string' && url.endsWith('/casos/31/resolver') && init?.method === 'POST') return resolved as never
+      if (typeof url === 'string' && url.endsWith('/casos/31')) return inAttention as never
+      return page as never
+    })
+    render(<CasosCalidadPage />)
+    await screen.findByText('Fuga en sello')
+    fireEvent.click(screen.getByRole('button', { name: 'Resolver caso' }))
+    fireEvent.change(screen.getByLabelText('Fecha de resolución'), { target: { value: '2025-10-20T09:00' } })
+    fireEvent.change(screen.getByLabelText('Causa raíz'), { target: { value: 'Sello desgastado' } })
+    fireEvent.submit(document.querySelector('form')!)
+    expect(await screen.findByText('La resolución debe ocurrir desde la respuesta y hasta ahora.')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Fecha de resolución'), { target: { value: '2099-10-20T10:00' } })
+    fireEvent.submit(document.querySelector('form')!)
+    expect(await screen.findByText('La resolución debe ocurrir desde la respuesta y hasta ahora.')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Fecha de resolución'), { target: { value: '2025-10-20T10:00' } })
+    fireEvent.submit(document.querySelector('form')!)
+    await waitFor(() => expect(apiMock).toHaveBeenCalledWith('/api/fuentes-gerenciales/calidad/casos/31/resolver', expect.objectContaining({ method: 'POST' })))
+    expect(await screen.findByText('RESUELTO')).toBeTruthy()
+  })
+  it('valida las fechas de creación y vencimiento y el responsable de una acción correctiva', async () => {
+    window.history.replaceState(null, '', '/inteligencia/origen/calidad?casoId=31')
+    apiMock.mockImplementation(async (url, init) => {
+      if (typeof url === 'string' && url.endsWith('/casos/31/correctivas') && init?.method === 'POST') return { id: 15 } as never
+      if (typeof url === 'string' && url.endsWith('/casos/31')) return detail as never
+      return page as never
+    })
+    render(<CasosCalidadPage />)
+    await screen.findByText('Fuga en sello')
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar acción correctiva' }))
+    fireEvent.change(screen.getByLabelText('Descripción'), { target: { value: 'Cambiar sello' } })
+    fireEvent.change(screen.getByLabelText('Creada'), { target: { value: '2025-10-19T10:00' } })
+    fireEvent.change(screen.getByLabelText('Fecha límite'), { target: { value: '2025-10-20T10:00' } })
+    fireEvent.change(screen.getByLabelText('Responsable'), { target: { value: '5' } })
+    fireEvent.submit(document.querySelector('form')!)
+    expect(await screen.findByText('Revisa la creación, fecha límite y responsable de la acción correctiva.')).toBeTruthy()
+
+    fireEvent.change(screen.getByLabelText('Creada'), { target: { value: '2025-10-20T10:00' } })
+    fireEvent.change(screen.getByLabelText('Fecha límite'), { target: { value: '2025-10-19T10:00' } })
+    fireEvent.submit(document.querySelector('form')!)
+    expect(await screen.findByText('Revisa la creación, fecha límite y responsable de la acción correctiva.')).toBeTruthy()
+
+    fireEvent.change(screen.getByLabelText('Fecha límite'), { target: { value: '2025-10-21T10:00' } })
+    fireEvent.change(screen.getByLabelText('Responsable'), { target: { value: '0' } })
+    fireEvent.submit(document.querySelector('form')!)
+    expect(await screen.findByText('Revisa la creación, fecha límite y responsable de la acción correctiva.')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Responsable'), { target: { value: '5' } })
+    fireEvent.submit(document.querySelector('form')!)
+    await waitFor(() => expect(apiMock).toHaveBeenCalledWith('/api/fuentes-gerenciales/calidad/casos/31/correctivas', expect.objectContaining({ method: 'POST' })))
+    expect(await screen.findByText('Los datos del caso se actualizaron.')).toBeTruthy()
+  })
   it('cierra una acción correctiva usando su versión y mantiene enlace al caso', async () => {
     window.history.replaceState(null, '', '/inteligencia/origen/calidad?correctivaId=9')
     apiMock.mockImplementation(async (url, init) => {
