@@ -1,0 +1,5 @@
+.finanzas-h6 { --finanzas-control-border: var(--erp-color-neutral-200); }
+.finanzas-h6 .finanzas-h6__search { display: grid; gap: var(--erp-space-1); font-weight: 600; }
+.finanzas-h6 .finanzas-h6__search input { border: 1px solid var(--finanzas-control-border); border-radius: var(--erp-radius-sm); font: inherit; min-height: 2.5rem; padding: var(--erp-space-2); }
+.finanzas-h6 .finanzas-selector-tools { align-items: end; }
+.finanzas-h6 .finanzas-fieldset { width: 100%; }

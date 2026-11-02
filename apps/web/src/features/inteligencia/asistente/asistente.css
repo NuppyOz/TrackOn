@@ -1,0 +1,12 @@
+@import '../../erp-ui/tokens.css';
+.asistente-indicadores { display: grid; gap: var(--erp-space-3); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); padding: var(--erp-space-4); background: var(--erp-color-neutral-0); }
+.asistente-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--erp-space-3); flex-wrap: wrap; }
+.asistente-heading h2 { margin: 0; font-size: 1.1rem; }
+.asistente-heading p { margin: var(--erp-space-1) 0 0; color: var(--erp-color-neutral-600); }
+.asistente-note, .asistente-error { margin: 0; }
+.asistente-error { color: var(--erp-color-error); }
+.asistente-result { display: grid; gap: var(--erp-space-3); border-top: 1px solid var(--erp-color-neutral-200); padding-top: var(--erp-space-3); }
+.asistente-result__meta { display: flex; align-items: center; flex-wrap: wrap; gap: var(--erp-space-2) var(--erp-space-3); color: var(--erp-color-neutral-600); font-size: .875rem; }
+.asistente-result__text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.asistente-result__sources { margin: 0; color: var(--erp-color-neutral-600); font-size: .875rem; }
+@media (max-width: 640px) { .asistente-indicadores { padding: var(--erp-space-3); } .asistente-heading { align-items: stretch; flex-direction: column; } }

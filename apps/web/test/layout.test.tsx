@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MainLayout } from "../src/shared/layout/MainLayout";
 import { Sidebar } from "../src/shared/layout/Sidebar";
 import { Header } from "../src/shared/layout/Header";
@@ -16,15 +16,27 @@ describe("Layout responsive de TrackOn", () => {
             onLogout={onLogout}
             acciones={<span>Acción especial</span>}
         />);
-        expect(screen.getByText("TrackOn")).toBeTruthy();
+        expect(screen.getByText("Managua Central")).toBeTruthy();
         expect(screen.getByText("Usuario de prueba")).toBeTruthy();
         expect(screen.getByText("Administrador")).toBeTruthy();
         expect(screen.getByText("Acción especial")).toBeTruthy();
-        expect(screen.getByRole("img", { name: "MULTICAS" })).toBeTruthy();
         fireEvent.click(screen.getByRole("button", { name: "Abrir navegación" }));
         fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
         expect(onOpenMenu).toHaveBeenCalledTimes(1);
         expect(onLogout).toHaveBeenCalledTimes(1);
+    });
+
+    it("presenta Resumen general e Inteligencia como último subsistema del administrador", () => {
+        const onNavigate = vi.fn();
+        render(<Sidebar seccion="inteligencia" abierto puedeGestionarCuadrillas puedeAdministrar onNavigate={onNavigate} />);
+        const sidebar = document.querySelector('aside')!;
+        const opciones = within(sidebar).getAllByRole('button', { hidden: true });
+        expect(opciones[0].textContent).toContain('Resumen general');
+        expect(within(sidebar).getByRole('navigation', {name: 'Inteligencia y control', hidden: true}).textContent).toContain('IA y negocio');
+        expect(within(sidebar).getByRole('navigation', { name: 'Gestión comercial y clientes', hidden: true })).toBeTruthy();
+        expect(within(sidebar).getByRole('navigation', { name: 'Inteligencia y control', hidden: true })).toBeTruthy();
+        fireEvent.click(within(sidebar).getByRole('button', { name: 'IA y negocio', hidden: true }));
+        expect(onNavigate).toHaveBeenCalledWith('inteligencia');
     });
 
     it("marca la sección seleccionada y permite navegar a los catálogos", () => {
@@ -35,9 +47,9 @@ describe("Layout responsive de TrackOn", () => {
             puedeGestionarCuadrillas
             onNavigate={onNavigate}
         />);
-        expect(screen.getByRole("button", { name: /Servicios/ }).classList.contains("selected")).toBe(true);
-        fireEvent.click(screen.getByRole("button", { name: /Equipos/ }));
-        fireEvent.click(screen.getByRole("button", { name: /Cuadrillas/ }));
+        expect(screen.getByRole("button", { name: /Tipos de servicio/, hidden: true }).classList.contains("selected")).toBe(true);
+        fireEvent.click(screen.getByRole("button", { name: /Equipos/, hidden: true }));
+        fireEvent.click(screen.getByRole("button", { name: /Cuadrillas/, hidden: true }));
         expect(onNavigate).toHaveBeenNthCalledWith(1, "equipos");
         expect(onNavigate).toHaveBeenNthCalledWith(2, "cuadrillas");
     });
@@ -51,7 +63,7 @@ describe("Layout responsive de TrackOn", () => {
         />);
         expect(screen.queryByRole("button", { name: /Cuadrillas/ })).toBeNull();
         expect(document.querySelector("aside.sidebar--open")).not.toBeNull();
-        expect(screen.getByRole("button", { name: /Equipos/ }).classList.contains("selected")).toBe(true);
+        expect(screen.getByRole("button", { name: /Equipos/, hidden: true }).classList.contains("selected")).toBe(true);
     });
 
     it("renderiza el layout sin capa de fondo cuando el menú está cerrado", () => {
@@ -86,8 +98,8 @@ describe("Layout responsive de TrackOn", () => {
         expect(document.querySelector("aside.sidebar--open")).not.toBeNull();
         fireEvent.click(screen.getByRole("button", { name: "Cerrar navegación" }));
         expect(onCloseMenu).toHaveBeenCalledTimes(1);
-        fireEvent.click(screen.getByRole("button", { name: /Servicios/ }));
+        fireEvent.click(screen.getByRole("button", { name: /Tipos de servicio/, hidden: true }));
         expect(onNavigate).toHaveBeenCalledWith("servicios");
-        expect(screen.getByRole("button", { name: /Cuadrillas/ }).classList.contains("selected")).toBe(true);
+        expect(screen.getByRole("button", { name: /Cuadrillas/, hidden: true }).classList.contains("selected")).toBe(true);
     });
 });

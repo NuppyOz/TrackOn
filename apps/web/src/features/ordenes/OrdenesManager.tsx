@@ -13,7 +13,7 @@ import DesactivarOrdenForm from './DesactivarOrdenForm';
 import OrdenAcciones from './OrdenAcciones';
 import { permiteAccionOrden, type AccionOrden } from './ordenes.acciones';
 
-const filtrosIniciales: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 25 };
+const filtrosBase: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 25 };
 const estados: EstadoOrden[] = [
     'BORRADOR', 'PENDIENTE', 'ASIGNADA', 'EN_EJECUCION', 'EN_REVISION', 'CERRADA', 'CANCELADA',
 ];
@@ -37,9 +37,22 @@ const fecha = (valor: string) => new Intl.DateTimeFormat('es-NI', { dateStyle: '
 const nombreCliente = (ubicacion: Ubicacion) => ubicacion.cliente.organizacion?.razonSocial ??
     [ubicacion.cliente.persona?.firstName, ubicacion.cliente.persona?.firstLastName].filter(Boolean).join(' ');
 
-interface Props { puedeGestionar?: boolean; ordenInicial?: number; crearInicial?: boolean }
+export type VistaOrdenes = 'ordenes' | 'solicitudes' | 'diagnostico' | 'ejecucion' | 'evidencias' | 'despacho';
 
-export default function OrdenesManager({ puedeGestionar = true, ordenInicial, crearInicial = false }: Readonly<Props>) {
+const configuracionVista: Record<VistaOrdenes, { titulo: string; descripcion: string; estado: EstadoOrden | ''; permiteCrear: boolean }> = {
+    ordenes: { titulo: 'Órdenes de trabajo', descripcion: 'Consulta, edita o asigna una orden con los iconos de cada fila.', estado: '', permiteCrear: true },
+    solicitudes: { titulo: 'Solicitudes de servicio', descripcion: 'Registra y consulta las solicitudes que originan el trabajo operativo.', estado: '', permiteCrear: true },
+    diagnostico: { titulo: 'Diagnóstico técnico', descripcion: 'Abre una orden en ejecución para documentar el diagnóstico de sus equipos.', estado: 'EN_EJECUCION', permiteCrear: false },
+    ejecucion: { titulo: 'Ejecución técnica', descripcion: 'Controla las intervenciones que se encuentran en trabajo de campo.', estado: 'EN_EJECUCION', permiteCrear: false },
+    evidencias: { titulo: 'Evidencias del servicio', descripcion: 'Abre la orden para cargar o revisar evidencias de cada equipo intervenido.', estado: 'EN_EJECUCION', permiteCrear: false },
+    despacho: { titulo: 'Despacho y asignación', descripcion: 'Asigna cuadrillas y programa las solicitudes pendientes de atención.', estado: 'PENDIENTE', permiteCrear: false },
+};
+
+interface Props { puedeGestionar?: boolean; ordenInicial?: number; crearInicial?: boolean; vista?: VistaOrdenes }
+
+export default function OrdenesManager({ puedeGestionar = true, ordenInicial, crearInicial = false, vista = 'ordenes' }: Readonly<Props>) {
+    const configuracion = configuracionVista[vista];
+    const filtrosIniciales: FiltrosOrdenes = { ...filtrosBase, estado: configuracion.estado };
     const { filtros, aplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales);
     const [pagina, setPagina] = useState<{ items: OrdenResumen[]; hayMas: boolean }>({ items: [], hayMas: false });
     const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
@@ -375,11 +388,11 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
             <div className="tk-breadcrumb">Gestión operativa › <span>Órdenes</span></div>
             <div className="tk-orders-heading">
                 <div>
-                    <h2 id="ordenes-titulo">Órdenes de trabajo</h2>
-                    <p>Consulta, edita o asigna una orden con los iconos de cada fila.</p>
+                    <h2 id="ordenes-titulo">{configuracion.titulo}</h2>
+                    <p>{configuracion.descripcion}</p>
                 </div>
                 <div className="tk-order-toolbar"><button type="button" className="secondary-button" aria-label="Actualizar órdenes" disabled={cargando} onClick={() => { setMensaje(null); cargar(); }}>Actualizar</button>
-                {puedeGestionar && !creando && !detalle && !ordenInicial && (
+                {puedeGestionar && configuracion.permiteCrear && !creando && !detalle && !ordenInicial && (
                     <button type="button" className="primary-button tk-order-create"
                         onClick={() => { setMensaje(null); setDetalle(null); setOperacion(null); setCreando(true); }}>+ Nueva orden</button>
                 )}</div>

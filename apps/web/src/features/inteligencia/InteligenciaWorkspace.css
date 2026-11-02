@@ -1,0 +1,5 @@
+@import '../erp-ui/tokens.css';
+.inteligencia-workspace__nav { display: flex; flex-wrap: wrap; gap: var(--erp-space-2); margin-bottom: var(--erp-space-6); border-bottom: 1px solid var(--erp-color-neutral-200); }
+.inteligencia-workspace__nav button { background: transparent; color: var(--erp-color-neutral-900); border: 0; border-bottom: 2px solid transparent; padding: var(--erp-space-3); cursor: pointer; font: inherit; }
+.inteligencia-workspace__nav button[aria-current="page"] { border-bottom-color: var(--erp-color-primary-600); font-weight: 600; }
+.inteligencia-workspace__nav button:focus-visible { outline: 3px solid var(--erp-color-primary-100); outline-offset: 2px; }

@@ -1,0 +1,1 @@
+export { IndicadoresFinancierosPage } from './IndicadoresFinancierosPage'

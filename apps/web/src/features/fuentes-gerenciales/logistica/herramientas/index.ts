@@ -1,0 +1,1 @@
+export { HerramientasGerencialesPage } from './HerramientasGerencialesPage'

@@ -1,0 +1,1 @@
+export { ArticulosPage } from './ArticulosPage'

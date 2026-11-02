@@ -20,16 +20,14 @@ export async function crear(req: Request, res: Response, next: NextFunction) {
 
 export async function listar(req: Request, res: Response, next: NextFunction) {
     try {
-        usuarioActual(req);
-        res.json({ data: await service.listar(listarOrdenesSchema.parse(req.query)) });
+        res.json({ data: await service.listar(listarOrdenesSchema.parse(req.query), obtenerActorOrden(req)) });
     } catch (error) { next(error); }
 }
 
 export async function obtener(req: Request, res: Response, next: NextFunction) {
     try {
-        usuarioActual(req);
         const { id } = ordenParamsSchema.parse(req.params);
-        res.json({ data: await service.obtener(id) });
+        res.json({ data: await service.obtener(id, obtenerActorOrden(req)) });
     } catch (error) { next(error); }
 }
 

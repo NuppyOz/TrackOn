@@ -1,0 +1,25 @@
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Button } from '../../../../shared/ui'
+import { listarEmpleados } from '../../../empleados/empleados.api'
+import { nombreEmpleado } from '../../../empleados/empleados.types'
+import type { EmpleadoResumen } from '../../../empleados/empleados.types'
+import { aEntradaManagua, aIsoManagua } from '../articulos/fechas'
+import { tiempoActualMs } from './fechas'
+import type { Herramienta, PrestamoNuevo } from './herramientas.types'
+
+const PAGE_SIZE = 25
+export function PrestamoForm({ herramienta, busy, onSave, onCancel }: Readonly<{ herramienta: Herramienta; busy: boolean; onSave: (payload: PrestamoNuevo) => Promise<boolean>; onCancel: () => void }>) {
+  const [employees, setEmployees] = useState<EmpleadoResumen[]>([]); const [employeeId, setEmployeeId] = useState(''); const [employeeQ, setEmployeeQ] = useState(''); const [page, setPage] = useState(1); const [loading, setLoading] = useState(true); const [error, setError] = useState('')
+  const [reference, setReference] = useState(''); const [start, setStart] = useState(aEntradaManagua(new Date().toISOString())); const [due, setDue] = useState(''); const [observation, setObservation] = useState('')
+  useEffect(() => { let live = true; listarEmpleados().then(data => { if (live) { setEmployees(data.filter(item => item.active)); setLoading(false) } }).catch(cause => { if (live) { setError(cause instanceof Error ? cause.message : 'No se pudieron cargar empleados.'); setLoading(false) } }); return () => { live = false } }, [])
+  const filtered = useMemo(() => employees.filter(item => `${nombreEmpleado(item)} ${item.codEmpleado}`.toLocaleLowerCase().includes(employeeQ.trim().toLocaleLowerCase())), [employees, employeeQ])
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)); const visible = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const chosen = employees.find(item => String(item.id) === employeeId)
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); const prestadaEn = aIsoManagua(start); const previstaEn = aIsoManagua(due)
+    if (!chosen || !reference.trim() || reference.trim().length > 100 || observation.trim().length > 1000 || !prestadaEn || !previstaEn || new Date(prestadaEn).getTime() > tiempoActualMs() || new Date(previstaEn).getTime() < new Date(prestadaEn).getTime()) { setError('Selecciona un empleado activo, referencia, fecha de préstamo válida y devolución prevista igual o posterior.'); return }
+    if (!window.confirm(`${nombreEmpleado(chosen)} recibirá la herramienta ${herramienta.codigo}. Devolución prevista: ${due}. La herramienta quedará marcada como prestada. ¿Continuar?`)) return
+    setError(''); await onSave({ empleadoId: chosen.id, referencia: reference.trim().toUpperCase(), prestadaEn, previstaEn, ...(observation.trim() ? { observacion: observation.trim() } : {}) })
+  }
+  return <form className="logistica-herramientas__form" aria-label="Prestar herramienta" onSubmit={event => void submit(event)}><h3>Prestar {herramienta.codigo}</h3>{error && <p role="alert">{error}</p>}<fieldset disabled={busy}><legend>Responsable y fechas</legend><label>Buscar empleado activo<input value={employeeQ} maxLength={100} onChange={event => { setEmployeeQ(event.target.value); setPage(1) }} /></label><label>Empleado<select aria-label="Empleado" value={employeeId} onChange={event => setEmployeeId(event.target.value)} required><option value="">Selecciona empleado</option>{chosen && !visible.some(item => item.id === chosen.id) && <option value={chosen.id}>{nombreEmpleado(chosen)} · {chosen.codEmpleado}</option>}{visible.map(item => <option key={item.id} value={item.id}>{nombreEmpleado(item)} · {item.codEmpleado}</option>)}</select></label><div className="logistica__actions"><span>{loading ? 'Cargando empleados…' : error ? 'No se pudieron cargar empleados.' : `${filtered.length} empleados activos`}</span><Button type="button" disabled={page <= 1} onClick={() => setPage(value => value - 1)}>Anterior</Button><span>Página {page} de {pages}</span><Button type="button" disabled={page >= pages} onClick={() => setPage(value => value + 1)}>Siguiente</Button></div><label>Referencia<input value={reference} maxLength={100} onChange={event => setReference(event.target.value)} required /></label><label>Fecha de préstamo<input type="datetime-local" step="1" value={start} onChange={event => setStart(event.target.value)} required /></label><label>Devolución prevista<input type="datetime-local" step="1" min={start} value={due} onChange={event => setDue(event.target.value)} required /></label><label>Observación (opcional)<textarea maxLength={1000} value={observation} onChange={event => setObservation(event.target.value)} /></label></fieldset>{error && <p role="alert">{error}</p>}<div className="logistica__actions"><Button type="submit" variant="primary" loading={busy} disabled={busy || loading || !employees.length}>Confirmar préstamo</Button><Button type="button" disabled={busy} onClick={onCancel}>Cancelar</Button></div></form>
+}

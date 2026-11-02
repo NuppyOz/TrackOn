@@ -20,3 +20,5 @@ Preparación inicial del entorno de desarrollo.
 - [Configuración del backend, Prisma y creación del primer módulo como base](docs/backend-prisma.md)
 - [Docker Compose y despliegue local](docs/docker.md)
 - [SonarQube Quality Gate](docs/sonarqube-quality-gate.md)
+
+- [Comercial e indicadores H.5–H.8](docs/comercial-inteligencia.md)

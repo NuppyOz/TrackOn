@@ -47,6 +47,9 @@ services:
       EVIDENCE_STORAGE_DIR: /app/storage/evidencias
       DATABASE_URL: ${DATABASE_URL:?Define DATABASE_URL en .env}
       AUTH_ACCESS_TOKEN_SECRET: ${AUTH_ACCESS_TOKEN_SECRET:?Define AUTH_ACCESS_TOKEN_SECRET en .env}
+      PORTAL_ALLOWED_ORIGIN: ${PORTAL_ALLOWED_ORIGIN:-http://localhost:8080}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
     volumes:
       - evidence_data:/app/storage/evidencias
     depends_on:
@@ -64,6 +67,7 @@ services:
     stop_grace_period: 20s
     networks:
       - backend
+      - ia_egress
 
   web:
     build:
@@ -93,3 +97,4 @@ networks:
   frontend:
   backend:
     internal: true
+  ia_egress:

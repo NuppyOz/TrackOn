@@ -51,6 +51,8 @@ vi.mock("../src/features/auth/LoginPage", () => ({
     ),
 }));
 
+vi.mock("../src/features/dashboard/Dashboard", () => ({default: () => <div>Resumen general de demostración</div>}));
+vi.mock("../src/features/field/FieldWorkspace", () => ({default: () => <div>Inicio de campo</div>}));
 vi.mock("../src/features/equipos/EquiposManager", () => ({
     default: ({ puedeGestionar }: { puedeGestionar: boolean }) => (
         <div>
@@ -186,7 +188,7 @@ describe("Aplicación TrackOn", () => {
         render(<App />);
 
         expect(
-            await screen.findByText("Equipos - gestión"),
+            await screen.findByText("Resumen general de demostración"),
         ).toBeTruthy();
 
         expect(
@@ -228,14 +230,14 @@ describe("Aplicación TrackOn", () => {
         );
 
         expect(
-            await screen.findByText("Equipos - gestión"),
+            await screen.findByText("Resumen general de demostración"),
         ).toBeTruthy();
     });
 
     it("permite navegar a Servicios", async () => {
         render(<App />);
 
-        await screen.findByText("Equipos - gestión");
+        await screen.findByText("Resumen general de demostración");
 
         fireEvent.click(
             screen.getByRole("button", { name: "Servicios" }),
@@ -248,7 +250,7 @@ describe("Aplicación TrackOn", () => {
 
     it("puede navegar a Órdenes de trabajo", async () => {
         render(<App />);
-        await screen.findByText("Equipos - gestión");
+        await screen.findByText("Resumen general de demostración");
         fireEvent.click(screen.getByRole("button", { name: "Órdenes" }));
         expect(screen.getByText("Órdenes - gestión")).toBeTruthy();
     });
@@ -256,7 +258,7 @@ describe("Aplicación TrackOn", () => {
     it("permite a ADMIN acceder a Cuadrillas", async () => {
         render(<App />);
 
-        await screen.findByText("Equipos - gestión");
+        await screen.findByText("Resumen general de demostración");
 
         fireEvent.click(
             screen.getByRole("button", { name: "Cuadrillas" }),
@@ -273,7 +275,7 @@ describe("Aplicación TrackOn", () => {
         render(<App />);
 
         expect(
-            await screen.findByText("Equipos - consulta"),
+            await screen.findByText("Inicio de campo"),
         ).toBeTruthy();
 
         fireEvent.click(
@@ -299,7 +301,7 @@ describe("Aplicación TrackOn", () => {
         render(<App />);
 
         expect(
-            await screen.findByText("Equipos - gestión"),
+            await screen.findByText("Resumen general de demostración"),
         ).toBeTruthy();
 
         fireEvent.click(
@@ -314,7 +316,7 @@ describe("Aplicación TrackOn", () => {
     it("cierra sesión correctamente", async () => {
         render(<App />);
 
-        await screen.findByText("Equipos - gestión");
+        await screen.findByText("Resumen general de demostración");
 
         fireEvent.click(
             screen.getByRole("button", { name: "Cerrar sesión" }),
@@ -336,7 +338,7 @@ describe("Aplicación TrackOn", () => {
 
         render(<App />);
 
-        await screen.findByText("Equipos - gestión");
+        await screen.findByText("Resumen general de demostración");
 
         fireEvent.click(
             screen.getByRole("button", { name: "Cerrar sesión" }),
@@ -350,7 +352,7 @@ describe("Aplicación TrackOn", () => {
     it("limpia el usuario cuando expira la sesión", async () => {
         render(<App />);
 
-        await screen.findByText("Equipos - gestión");
+        await screen.findByText("Resumen general de demostración");
 
         window.dispatchEvent(
             new Event("trackon:session-expired"),

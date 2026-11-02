@@ -1,0 +1,9 @@
+export type Pagina<T> = Readonly<{ items: T[]; pagina: number; limite: number; hayMas: boolean }>
+export type CompraResumen = Readonly<{ id: number; proveedor: string; referencia: string; fechaEfectiva: string; registradoEn: string; observacion: string | null }>
+export type CompraLinea = Readonly<{ id: number; articuloId: number; articuloCodigo: string; articuloNombre: string; unidad: string; cantidad: string; costoUnitario: string; prometidaEn: string; recibido: string; cancelado: string; pendiente: string; canceladaEn: string | null; motivoCancelacion: string | null; version: number }>
+export type RecepcionCompra = Readonly<{ id: number; lineaId: number; articuloId: number; articuloCodigo: string; unidad: string; cantidad: string; fechaEfectiva: string; referencia: string; movimientoId: number; observacion: string | null }>
+export type Compra = CompraResumen & Readonly<{ lineas: CompraLinea[]; recepciones: RecepcionCompra[] }>
+export type LineaCompraNueva = Readonly<{ articuloId: number; cantidad: string; costoUnitario: string; prometidaEn: string }>
+export type CompraNueva = Readonly<{ proveedor: string; referencia: string; fechaEfectiva: string; observacion?: string; lineas: LineaCompraNueva[] }>
+export type RecepcionNueva = Readonly<{ version: number; referencia: string; fechaEfectiva: string; cantidad: string; observacion?: string }>
+export type CancelacionNueva = Readonly<{ version: number; fechaEfectiva: string; motivo: string }>

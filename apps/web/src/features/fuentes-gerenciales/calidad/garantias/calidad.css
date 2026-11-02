@@ -1,0 +1,24 @@
+@import '../../../erp-ui/tokens.css';
+.calidad-source { color: var(--erp-color-neutral-900); display: grid; gap: var(--erp-space-4); }
+.calidad-source .erp-ui__module-header { margin: 0; }
+.calidad-panel, .calidad-filters { background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); padding: var(--erp-space-4); }
+.calidad-filters { align-items: end; display: flex; flex-wrap: wrap; gap: var(--erp-space-3); }
+.calidad-form, .calidad-source label { display: grid; gap: var(--erp-space-2); }
+.calidad-form { gap: var(--erp-space-3); grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.calidad-source label { align-content: start; font-weight: 600; }
+.calidad-source input, .calidad-source select, .calidad-source textarea { border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); font: inherit; min-height: 2.5rem; padding: var(--erp-space-2); width: 100%; }
+.calidad-source textarea { min-height: 6rem; resize: vertical; }
+.calidad-wide { grid-column: 1 / -1; }
+.calidad-actions, .calidad-detail-head, .calidad-inline { align-items: center; display: flex; flex-wrap: wrap; gap: var(--erp-space-3); justify-content: space-between; }
+.calidad-inline { justify-content: flex-start; }
+.calidad-inline button { background: transparent; border: 0; color: var(--erp-color-primary-600); cursor: pointer; font: inherit; text-decoration: underline; }
+.calidad-hint, .calidad-source small { color: var(--erp-color-neutral-600); font-size: .9rem; }
+.calidad-error { color: var(--erp-color-error); }
+.calidad-notice { color: var(--erp-color-success); }
+.calidad-link { background: none; border: 0; color: var(--erp-color-primary-600); cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
+.calidad-source button:focus-visible, .calidad-link:focus-visible { outline: 3px solid var(--erp-color-secondary-500); outline-offset: 2px; }
+.calidad-dl { display: grid; gap: var(--erp-space-3); grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.calidad-dl dt { color: var(--erp-color-neutral-600); font-size: .88rem; }
+.calidad-dl dd { margin: .25rem 0 0; overflow-wrap: anywhere; }
+.calidad-detail-head h2 { margin: 0 0 var(--erp-space-2); }
+@media (max-width: 600px) { .calidad-filters { align-items: stretch; flex-direction: column; } .calidad-actions > button { min-height: 2.75rem; } }

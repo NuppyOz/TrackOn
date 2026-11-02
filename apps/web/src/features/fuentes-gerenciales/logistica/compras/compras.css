@@ -1,0 +1,12 @@
+.fuentes-scope.logistica-b2 { --logistica-b2-gap: var(--erp-space-4); }
+.logistica-b2__action-form { display: grid; gap: var(--erp-space-4); padding: var(--erp-space-4); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); background: var(--erp-color-neutral-100); }
+.logistica-b2__action-form fieldset { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,14rem),1fr)); gap: var(--erp-space-4); border: 0; padding: 0; margin: 0; }
+.logistica-b2__action-form label { display: grid; gap: var(--erp-space-1); font-weight: 600; }
+.logistica-b2__action-form input,.logistica-b2__action-form textarea { box-sizing: border-box; width: 100%; min-height: 2.5rem; padding: var(--erp-space-2); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); background: var(--erp-color-neutral-0); color: var(--erp-color-neutral-900); font: inherit; }
+.logistica-b2__action-form textarea { min-height: 5rem; }
+.compra-line { display: grid; grid-template-columns: 1fr repeat(3,minmax(10rem,1fr)) auto; align-items: end; gap: var(--erp-space-3); padding: var(--erp-space-3); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); }
+.compra-line h3 { grid-column: 1/-1; margin: 0; }
+.compra-line label { display: grid; gap: var(--erp-space-1); }
+.compra-line input { box-sizing: border-box; min-height: 2.5rem; padding: var(--erp-space-2); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); font: inherit; }
+@media(max-width:800px){.compra-line{grid-template-columns:1fr 1fr}.compra-line h3{grid-column:1/-1}}
+@media(max-width:500px){.compra-line{grid-template-columns:1fr}}

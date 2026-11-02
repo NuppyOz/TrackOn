@@ -94,6 +94,15 @@ describe('Persistencia de órdenes', () => {
         expect(mocks.findManyOrden).toHaveBeenCalledWith(expect.objectContaining({ skip: 2, take: 3 }));
     });
 
+    it('limita la consulta a las asignaciones vigentes del técnico', async () => {
+        await repository.listar({ pagina: 1, limite: 25 }, 22);
+        expect(mocks.findManyOrden).toHaveBeenCalledWith(expect.objectContaining({
+            where: expect.objectContaining({
+                asignaciones: { some: expect.objectContaining({ fin: null, OR: expect.any(Array) }) },
+            }),
+        }));
+    });
+
     it('consulta una orden por identificador', async () => {
         await repository.buscarPorId(14);
         expect(mocks.findUniqueOrden).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 14 } }));

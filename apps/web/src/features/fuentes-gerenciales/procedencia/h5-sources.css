@@ -1,0 +1,21 @@
+@import '../../erp-ui/tokens.css';
+.h5-source { color: var(--erp-color-neutral-900); display: grid; gap: var(--erp-space-6); }
+.h5-source .erp-ui__module-header { margin-bottom: 0; }
+.h5-source > .erp-ui__table-section, .h5-subsection, .h5-detail { background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); padding: var(--erp-space-4); }
+.h5-subsection h2, .h5-detail h2 { font-size: 1.05rem; margin: 0 0 var(--erp-space-3); }
+.h5-subsection > label, .h5-filters label, .h5-dialog label { display: grid; gap: var(--erp-space-1); font-weight: 600; }
+.h5-subsection select, .h5-filters select, .h5-dialog input, .h5-dialog select, .h5-dialog textarea { border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); font: inherit; min-height: 2.5rem; padding: var(--erp-space-2); width: 100%; }
+.h5-dialog textarea { min-height: 5rem; resize: vertical; }
+.h5-error { color: var(--erp-color-error); }
+.h5-dialog { background: var(--erp-color-neutral-0); border-radius: var(--erp-radius-md); display: grid; gap: var(--erp-space-3); max-height: min(90vh, 52rem); max-width: 38rem; overflow-y: auto; padding: var(--erp-space-6); width: 100%; }
+.h5-dialog h2 { font-size: 1.2rem; margin: 0; }
+.h5-dialog p { color: var(--erp-color-neutral-600); margin: 0; }
+.h5-dialog__actions, .h5-detail-actions, .h5-row-actions { display: flex; flex-wrap: wrap; gap: var(--erp-space-2); justify-content: flex-end; }
+.h5-detail-head { align-items: center; display: flex; flex-wrap: wrap; gap: var(--erp-space-3); justify-content: space-between; }
+.h5-detail dl { display: grid; gap: var(--erp-space-3); grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); margin: var(--erp-space-4) 0; }
+.h5-detail dl > div { min-width: 0; }
+.h5-detail dt { color: var(--erp-color-neutral-600); font-size: .85rem; }
+.h5-detail dd { margin: .25rem 0 0; overflow-wrap: anywhere; }
+.h5-link { background: none; border: 0; color: var(--erp-color-primary-600); cursor: pointer; font: inherit; padding: 0; text-decoration: underline; }
+.h5-link:focus-visible, .h5-dialog button:focus-visible { outline: 3px solid var(--erp-color-secondary-500); outline-offset: 2px; }
+@media (max-width: 600px) { .h5-dialog { padding: var(--erp-space-4); } .h5-row-actions > button { min-height: 2.5rem; } }

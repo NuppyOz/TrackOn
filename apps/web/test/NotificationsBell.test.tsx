@@ -2,8 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import NotificationsBell from '../src/features/notificaciones/NotificationsBell';
 
-const mocks = vi.hoisted(() => ({ contar: vi.fn(), listar: vi.fn(), leer: vi.fn(), navegar: vi.fn() }));
-vi.mock('../src/features/notificaciones/notificaciones.api', () => ({ contarNoLeidas: mocks.contar, listarNotificaciones: mocks.listar, marcarNotificacionLeida: mocks.leer }));
+const mocks = vi.hoisted(() => ({ contar: vi.fn(), listar: vi.fn(), leer: vi.fn(), leerTodas: vi.fn(), navegar: vi.fn() }));
+vi.mock('../src/features/notificaciones/notificaciones.api', () => ({
+    contarNoLeidas: mocks.contar,
+    listarNotificaciones: mocks.listar,
+    marcarNotificacionLeida: mocks.leer,
+    marcarTodasNotificacionesLeidas: mocks.leerTodas,
+}));
 vi.mock('../src/shared/navigation', () => ({ irA: mocks.navegar }));
 
 beforeEach(() => {
@@ -13,6 +18,7 @@ beforeEach(() => {
         { id: 7, ordenId: 12, tipo: 'ORDEN_ASIGNADA', mensaje: 'Tienes una orden asignada', creadaEn: new Date().toISOString(), leidaEn: null },
     ] });
     mocks.leer.mockResolvedValue({ id: 7 });
+    mocks.leerTodas.mockResolvedValue({ actualizadas: 1 });
 });
 afterEach(cleanup);
 
@@ -41,6 +47,26 @@ describe('Bandeja personal de notificaciones', () => {
         fireEvent.click(await screen.findByRole('button', { name: /Tienes una orden asignada/ }));
         expect(await screen.findByRole('alert')).toHaveProperty('textContent', expect.stringContaining('Conexión interrumpida'));
         expect(mocks.navegar).not.toHaveBeenCalled();
+    });
+    it('marca todas las notificaciones como leídas y limpia el contador', async () => {
+        render(<NotificationsBell habilitada />);
+        fireEvent.click(await screen.findByRole('button', { name: 'Notificaciones, 1 sin leer' }));
+        await screen.findByRole('button', { name: /Tienes una orden asignada/ });
+
+        fireEvent.click(screen.getByRole('button', { name: 'Marcar todas como leídas' }));
+
+        await waitFor(() => expect(mocks.leerTodas).toHaveBeenCalledOnce());
+        expect(await screen.findByRole('button', { name: 'Notificaciones' })).toBeTruthy();
+        expect(screen.queryByRole('button', { name: 'Marcar todas como leídas' })).toBeNull();
+        expect(screen.getByText('○')).toBeTruthy();
+    });
+    it('muestra el error si no puede marcar todas como leídas', async () => {
+        mocks.leerTodas.mockRejectedValue(new Error('No hay conexión'));
+        render(<NotificationsBell habilitada />);
+        fireEvent.click(await screen.findByRole('button', { name: 'Notificaciones, 1 sin leer' }));
+        fireEvent.click(await screen.findByRole('button', { name: 'Marcar todas como leídas' }));
+
+        expect(await screen.findByRole('alert')).toHaveProperty('textContent', expect.stringContaining('No hay conexión'));
     });
     it('actualiza el contador al recuperar el foco y elimina el listener al desmontar', async () => {
         const vista = render(<NotificationsBell habilitada />);

@@ -23,6 +23,8 @@ body, #root { min-width: 0; max-width: 100%; }
 .figma-topbar .figma-user-actions { min-width: 0; }
 .figma-topbar .notification-area { position: relative; flex-shrink: 0; }
 .figma-topbar .menu-toggle { flex-shrink: 0; }
+/* Mantener la barra principal visible también en escritorio. */
+.figma-topbar { position: sticky; top: 0; align-self: start; }
 
 /* Tablet Figma: menú desplegable en lugar de sidebar que consuma 232px. */
 @media (max-width: 1199px) {
