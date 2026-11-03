@@ -199,13 +199,26 @@ async function main() {
         });
     }
 
+    const materiales = [
+        { codigo: 'MAT-REF-001', nombre: 'Refrigerante R-410A', unidadMedida: 'kg' },
+        { codigo: 'MAT-TUB-001', nombre: 'Tubería de cobre para refrigeración', unidadMedida: 'metro' },
+        { codigo: 'MAT-ELE-001', nombre: 'Capacitor eléctrico', unidadMedida: 'unidad' },
+    ];
+    for (const material of materiales) {
+        await prisma.material.upsert({
+            where: { codigo: material.codigo },
+            update: { ...material, activo: true },
+            create: material,
+        });
+    }
+
     const carlos = await prepararEmpleado({ codEmpleado: 'TEC-001', firstName: 'Carlos', firstLastName: 'Méndez', telefono: '8888-1001' });
     const ana = await prepararEmpleado({ codEmpleado: 'TEC-002', firstName: 'Ana', firstLastName: 'López', telefono: '8888-1002' });
     const jose = await prepararEmpleado({ codEmpleado: 'TEC-003', firstName: 'José', firstLastName: 'Rivera', telefono: '8888-1003' });
-    await prepararCuadrilla('Cuadrilla Managua', [carlos.id, ana.id], carlos.id);
-    await prepararCuadrilla('Emergencias y guardias', [jose.id], jose.id);
+    await prepararCuadrilla('Equipo Técnico Managua', [carlos.id, ana.id], carlos.id);
+    await prepararCuadrilla('Atención de Emergencias', [jose.id], jose.id);
 
-    console.log('Datos de ejemplo listos: 2 clientes, 3 ubicaciones, 6 equipos, 6 servicios y 2 cuadrillas.');
+    console.log('Datos operativos listos: 2 clientes, 3 ubicaciones, 6 equipos, 6 servicios, 3 materiales y 2 cuadrillas.');
 }
 
 main()

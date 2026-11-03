@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:24-bookworm-slim AS workspace
+FROM node:24.22.1-bookworm-slim AS workspace
 
 ENV PNPM_HOME="/pnpm"
 ENV COREPACK_HOME="/corepack"
@@ -69,7 +69,7 @@ RUN pnpm --filter @trackon/api --prod deploy --legacy /out \
 # Runtime
 # ---------------------------------------------------------
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:24.22.1-bookworm-slim AS runtime
 
 ENV NODE_ENV=production
 

@@ -1,8 +1,23 @@
 import { api } from '../../shared/api';
-import type { CrearEmpleado, EditarEmpleado, EmpleadoDetalle, EmpleadoResumen } from './empleados.types';
+import type { Pagina } from '../../shared/pagination';
+import type { CrearEmpleado, EditarEmpleado, EmpleadoDetalle, EmpleadoResumen, FiltrosEmpleados } from './empleados.types';
 
-export function listarEmpleados() {
-    return api<EmpleadoResumen[]>('/api/empleados');
+export interface PaginaEmpleados extends Pagina<EmpleadoResumen> {
+    total: number;
+    resumen: { total: number; activos: number; tecnicosHabilitados: number };
+}
+
+const filtrosIniciales: FiltrosEmpleados = {
+    buscar: '', estado: 'todos', tecnico: 'todos', pagina: 1, limite: 25,
+};
+
+export function listarEmpleados(filtros: Partial<FiltrosEmpleados> = {}) {
+    const valores = { ...filtrosIniciales, ...filtros };
+    const query = new URLSearchParams({
+        buscar: valores.buscar.trim(), estado: valores.estado, tecnico: valores.tecnico,
+        pagina: String(valores.pagina), limite: String(valores.limite),
+    });
+    return api<PaginaEmpleados>(`/api/empleados?${query}`);
 }
 
 export function obtenerEmpleado(id: number) {

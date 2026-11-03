@@ -1,5 +1,15 @@
 import { z } from 'zod';
 import { createPersonaSchema, updatePersonaSchema } from '../personas/personas.schema.js';
+import { paginacionQueryShape } from '../../shared/pagination.js';
+
+export const listarEmpleadosSchema = z.strictObject({
+    ...paginacionQueryShape,
+    buscar: z.string().trim().max(150).default(''),
+    estado: z.enum(['todos', 'activos', 'inactivos']).default('todos'),
+    tecnico: z.enum(['todos', 'habilitados', 'no-habilitados']).default('todos'),
+});
+
+export type ListarEmpleadosInput = z.infer<typeof listarEmpleadosSchema>;
 
 export const createEmpleadoSchema = z.strictObject({
     codEmpleado: z

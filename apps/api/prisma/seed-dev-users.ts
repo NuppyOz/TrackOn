@@ -38,9 +38,9 @@ interface DevUser {
 const cuentas: DevUser[] = [
     {
         identificador: 'administrador',
-        codEmpleado: 'DEV-ADMIN',
+        codEmpleado: 'ADM-001',
         firstName: 'Administrador',
-        firstLastName: 'Local',
+        firstLastName: 'Sistema',
         rol: {
             cod: 'ADMIN',
             nombre: 'Administrador',
@@ -50,9 +50,9 @@ const cuentas: DevUser[] = [
     },
     {
         identificador: 'tecnico',
-        codEmpleado: 'DEV-TEC',
+        codEmpleado: 'TEC-004',
         firstName: 'Técnico',
-        firstLastName: 'Local',
+        firstLastName: 'Soporte',
         rol: {
             cod: 'TEC',
             nombre: 'Técnico',

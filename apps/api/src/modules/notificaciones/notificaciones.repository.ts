@@ -28,3 +28,12 @@ export async function marcarLeida(usuarioId: number, id: number) {
     if (!notification.leidaEn) await prisma.notificacion.updateMany({ where: { id, usuarioId, leidaEn: null }, data: { leidaEn: new Date() } });
     return { id: notification.id };
 }
+
+export async function marcarTodasLeidas(usuarioId: number) {
+    const leidaEn = new Date();
+    const result = await prisma.notificacion.updateMany({
+        where: { usuarioId, leidaEn: null },
+        data: { leidaEn },
+    });
+    return { actualizadas: result.count, leidaEn };
+}

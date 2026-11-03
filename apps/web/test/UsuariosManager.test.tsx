@@ -17,7 +17,8 @@ const empleado = { id: 11, codEmpleado: 'EMP-11', active: true, habilitadoComoTe
 
 beforeEach(() => {
     vi.resetAllMocks(); mocks.listarUsuarios.mockResolvedValue([usuario]); mocks.listarRolesAcceso.mockResolvedValue([rol]);
-    mocks.listarEmpleados.mockResolvedValue([usuario.empleado, empleado]); mocks.cambiarEstadoAcceso.mockResolvedValue({}); mocks.guardarAcceso.mockResolvedValue({});
+    mocks.listarEmpleados.mockResolvedValue({ items: [usuario.empleado, empleado], pagina: 1, limite: 100, hayMas: false, total: 2,
+        resumen: { total: 2, activos: 2, tecnicosHabilitados: 1 } }); mocks.cambiarEstadoAcceso.mockResolvedValue({}); mocks.guardarAcceso.mockResolvedValue({});
 });
 afterEach(cleanup);
 

@@ -12,6 +12,7 @@ import EditarOrdenForm from './EditarOrdenForm';
 import DesactivarOrdenForm from './DesactivarOrdenForm';
 import OrdenAcciones from './OrdenAcciones';
 import { permiteAccionOrden, type AccionOrden } from './ordenes.acciones';
+import { TablePagination } from '../../shared/ui';
 
 const filtrosIniciales: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 25 };
 const estados: EstadoOrden[] = [
@@ -425,14 +426,9 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                         <label>Programada hasta<input type="date" aria-label="Programada hasta" value={filtros.hasta ?? ''} min={filtros.desde || undefined} onChange={event => filtrar({ ...filtros, hasta: event.target.value })} /></label>
                     </form>
                     <div className="card tk-table-card">
+                        <TablePagination pagina={aplicados.pagina} limite={aplicados.limite} hayMas={pagina.hayMas} cargando={cargando} cantidad={pagina.items.length} etiqueta="órdenes"
+                            onPagina={numero => cargar({ ...aplicados, pagina: numero })} />
                         {contenidoLista()}
-                        <div className="tk-table-pagination">
-                            <button type="button" className="secondary-button" disabled={cargando || aplicados.pagina === 1}
-                                onClick={() => cargar({ ...aplicados, pagina: aplicados.pagina - 1 })}>Anterior</button>
-                            <span>Página {aplicados.pagina}</span>
-                            <button type="button" className="secondary-button" disabled={cargando || !pagina.hayMas}
-                                onClick={() => cargar({ ...aplicados, pagina: aplicados.pagina + 1 })}>Siguiente</button>
-                        </div>
                     </div>
                 </>
             )}

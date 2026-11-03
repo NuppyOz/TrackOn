@@ -1,5 +1,6 @@
 import { prisma } from '../../infrastructure/prisma.js'
-import type { CreateEmpleadoInput, UpdateEmpleadoInput} from './empleados.schema.js'
+import type { CreateEmpleadoInput, ListarEmpleadosInput, UpdateEmpleadoInput} from './empleados.schema.js'
+import { paginaDesde } from '../../shared/pagination.js'
 
 export function crearEmpleado(datos: CreateEmpleadoInput) {
     return prisma.empleado.create({
@@ -41,8 +42,23 @@ export function crearEmpleado(datos: CreateEmpleadoInput) {
     })
 }
 
-export function listarEmpleados () {
-    return prisma.empleado.findMany({
+export async function listarEmpleados (filtros: ListarEmpleadosInput) {
+    const where = {
+        ...(filtros.estado === 'todos' ? {} : { active: filtros.estado === 'activos' }),
+        ...(filtros.tecnico === 'todos' ? {} : { habilitadoComoTecnico: filtros.tecnico === 'habilitados' }),
+        ...(filtros.buscar ? { OR: [
+            { codEmpleado: { contains: filtros.buscar, mode: 'insensitive' as const } },
+            { persona: { is: { OR: [
+                { firstName: { contains: filtros.buscar, mode: 'insensitive' as const } },
+                { secondName: { contains: filtros.buscar, mode: 'insensitive' as const } },
+                { firstLastName: { contains: filtros.buscar, mode: 'insensitive' as const } },
+                { secondLastName: { contains: filtros.buscar, mode: 'insensitive' as const } },
+            ] } } },
+        ] } : {}),
+    };
+    const [items, total, totalEmpleados, activos, tecnicosHabilitados] = await Promise.all([
+        prisma.empleado.findMany({
+        where,
         select: {
             id: true,
             codEmpleado: true,
@@ -62,7 +78,19 @@ export function listarEmpleados () {
         orderBy: {
             codEmpleado: 'asc',
         },
-    })
+        skip: (filtros.pagina - 1) * filtros.limite,
+        take: filtros.limite + 1,
+        }),
+        prisma.empleado.count({ where }),
+        prisma.empleado.count(),
+        prisma.empleado.count({ where: { active: true } }),
+        prisma.empleado.count({ where: { active: true, habilitadoComoTecnico: true } }),
+    ]);
+    return {
+        ...paginaDesde(items, filtros),
+        total,
+        resumen: { total: totalEmpleados, activos, tecnicosHabilitados },
+    };
 }
 
 export function buscarEmpleadoPorId(id: number) {

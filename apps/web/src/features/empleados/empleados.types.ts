@@ -38,6 +38,14 @@ export interface EditarEmpleado {
 export type FiltroEstado = 'todos' | 'activos' | 'inactivos';
 export type FiltroTecnico = 'todos' | 'habilitados' | 'no-habilitados';
 
+export interface FiltrosEmpleados {
+    buscar: string;
+    estado: FiltroEstado;
+    tecnico: FiltroTecnico;
+    pagina: number;
+    limite: number;
+}
+
 export function nombreEmpleado(empleado: Pick<EmpleadoResumen, 'persona'>): string {
     return [empleado.persona.firstName, empleado.persona.secondName,
         empleado.persona.firstLastName, empleado.persona.secondLastName]

@@ -1,10 +1,11 @@
-import { randomUUID, webcrypto } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../infrastructure/prisma.js';
 import { almacenamientoEvidencias } from '../../infrastructure/evidence-storage.js';
 import { AppError } from '../../errors/AppError.js';
 import { bloquearEjecucion, type ActorOrden } from './ordenes.actor.js';
 import { tipoRealArchivo, type EvidenciaInput } from './ordenes.evidencias.schema.js';
+import { sha256InWorker } from '../../infrastructure/cpu-worker-pool.js';
 
 export function serializarEvidencia<T extends { tamanoBytes: bigint }>(datos: T) {
     return { ...datos, tamanoBytes: Number(datos.tamanoBytes) };
@@ -41,12 +42,13 @@ async function obtener(tx: Prisma.TransactionClient, ordenId: number, registroId
 }
 
 export async function cargar(ordenId: number, registroId: number, evidenciaId: number, contenido: Buffer, actor: ActorOrden) {
+    // El hash se calcula fuera de la transacción para no retener bloqueos mientras trabaja la CPU.
+    const hash = await sha256InWorker(contenido);
     const operacion = await prisma.$transaction(async tx => {
         const item = await obtener(tx, ordenId, registroId, evidenciaId);
         if (item.cargadaPorId !== actor.id) throw new AppError(403, 'Solo quien inició la carga puede completarla.');
         if (item.estadoCarga === 'DISPONIBLE') throw new AppError(409, 'La evidencia ya está disponible.');
         await bloquearEjecucion(tx, ordenId, actor);
-        const hash = Buffer.from(await webcrypto.subtle.digest('SHA-256', new Uint8Array(contenido))).toString('hex');
         const valida = BigInt(contenido.length) === item.tamanoBytes && hash === item.hashArchivo && tipoRealArchivo(contenido) === item.tipoArchivo;
         if (!valida) {
             await tx.evidenciaEquipo.update({ where: { id: evidenciaId }, data: { estadoCarga: 'FALLIDA' } });

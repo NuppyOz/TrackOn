@@ -10,7 +10,7 @@ import {
 
 import * as clientesRepository from "./clientes.repository.js";
 
-import type { CreateClienteInput, UpdateClienteInput } from "./clientes.schema.js";
+import type { CreateClienteInput, UpdateClienteInput, ListarClientesInput } from "./clientes.schema.js";
 
 type ClienteEncontrado = NonNullable<Awaited<ReturnType<typeof clientesRepository.buscarClientePorId>>>;
 
@@ -67,8 +67,8 @@ export async function crearCliente(datos: CreateClienteInput) {
     }
 }
 
-export function listarClientes() {
-    return clientesRepository.listarClientes();
+export function listarClientes(filtros: ListarClientesInput) {
+    return clientesRepository.listarClientes(filtros);
 }
 
 export async function obtenerClientePorId(id: number) {

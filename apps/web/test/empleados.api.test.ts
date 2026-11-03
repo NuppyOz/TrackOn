@@ -8,7 +8,11 @@ beforeEach(() => { vi.resetAllMocks(); mocks.api.mockResolvedValue({}); });
 describe('API Empleados', () => {
     it('lista personal', async () => {
         await listarEmpleados();
-        expect(mocks.api).toHaveBeenCalledWith('/api/empleados');
+        expect(mocks.api).toHaveBeenCalledWith('/api/empleados?buscar=&estado=todos&tecnico=todos&pagina=1&limite=25');
+    });
+    it('envía filtros, página y cantidad solicitada', async () => {
+        await listarEmpleados({ buscar: '  ana ', estado: 'activos', tecnico: 'habilitados', pagina: 2, limite: 50 });
+        expect(mocks.api).toHaveBeenCalledWith('/api/empleados?buscar=ana&estado=activos&tecnico=habilitados&pagina=2&limite=50');
     });
     it('consulta detalle por ID', async () => {
         await obtenerEmpleado(17);

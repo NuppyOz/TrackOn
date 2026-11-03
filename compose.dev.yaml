@@ -5,3 +5,9 @@ services:
     networks:
       - backend
       - frontend
+  redis:
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6380}:6379"
+    networks:
+      - backend
+      - frontend

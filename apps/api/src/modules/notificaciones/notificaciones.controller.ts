@@ -53,3 +53,11 @@ export async function marcarLeida(req: Request, res: Response, next: NextFunctio
         next(error);
     }
 }
+
+export async function marcarTodasLeidas(req: Request, res: Response, next: NextFunction) {
+    try {
+        res.json({ data: await service.marcarTodasLeidas(obtenerUsuarioId(req)) });
+    } catch (error) {
+        next(error);
+    }
+}

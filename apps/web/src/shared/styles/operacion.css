@@ -24,6 +24,27 @@
 .tk-work-list { padding-left:20px; font-size:13px; }
 .tk-work-list li { margin-bottom:10px; }
 .tk-form-actions, .pagination { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:16px; }
+
+.shared-pagination { display:flex; align-items:center; gap:16px; width:100%; margin:0 0 14px; padding:10px 12px; background:var(--tk-surface-soft, #f7f8fa); border:1px solid var(--tk-border, #e1e4e8); border-radius:10px; }
+.shared-pagination__summary { display:grid; gap:2px; min-width:130px; }
+.shared-pagination__summary strong { color:var(--tk-text, #20242a); font-size:13px; }
+.shared-pagination__summary span { color:var(--tk-muted, #666b73); font-size:11px; }
+.shared-pagination__size { display:flex; align-items:center; gap:7px; margin-left:auto; color:var(--tk-muted, #5e6470); font-size:12px; font-weight:500; }
+.shared-pagination__size select { min-width:68px; width:auto; min-height:34px; padding:5px 26px 5px 9px; }
+.shared-pagination__actions { display:flex; gap:8px; }
+.shared-pagination__actions .button { min-height:34px; padding:6px 11px; white-space:nowrap; }
+
+@media (max-width: 640px) {
+  .shared-pagination { display:grid; grid-template-columns:1fr auto; gap:10px; padding:10px; }
+  .shared-pagination__size { margin-left:0; justify-self:end; }
+  .shared-pagination__actions { grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr; }
+  .shared-pagination__actions .button { width:100%; }
+}
+
+@media (max-width: 390px) {
+  .shared-pagination { grid-template-columns:1fr; }
+  .shared-pagination__size { justify-self:start; }
+}
 @media(max-width:900px) { .tk-dashboard-body,.tk-dashboard-context { grid-template-columns:1fr; } .tk-dashboard-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:480px) { .tk-dashboard-kpis { grid-template-columns:1fr; } .tk-dashboard-row { flex-wrap:wrap; } }
 .tk-logout-icon { display:none; }
@@ -58,6 +79,8 @@
 .tk-modal .form-card :is(input,select,textarea), .tk-modal .tk-assign-fields :is(input,select,textarea) { font-size:14px; }
 .tk-modal .form-card label, .tk-modal .tk-order-form-layout .form-card label, .tk-modal .tk-assign-fields label { font-size:14px; }
 .tk-modal .tk-form-actions { justify-content:flex-end; }
+.tk-confirm-dialog { width:min(480px,calc(100vw - 32px)); }
+.tk-confirm-dialog .tk-modal-body { padding-top:12px; }
 .tk-order-form { display:grid; gap:16px; }
 .tk-order-context { color:var(--tk-muted); }
 .tk-order-state { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px; }

@@ -39,10 +39,6 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .figma-sidebar .figma-nav-link.selected { background:var(--tk-purple-hover); color:#fff; box-shadow:none; font-weight:700; }
 .figma-nav-icon { display:inline-grid !important; place-items:center; flex:0 0 14px; font-size:13px; width:14px; height:16px; margin:0 !important; color:inherit !important; }
 .figma-sidebar-footer { margin-top:auto; display:flex; flex-direction:column; gap:12px; }
-.figma-help-card { display:grid; gap:5px; text-decoration:none; color:#fff; background:#41345f; border:1px solid #54476e; border-radius:7px; padding:11px 13px; }
-.figma-help-card strong { font-size:11px; color:inherit; }
-.figma-help-card small { font-size:10px; line-height:1.35; color:#d6d0e2; }
-.figma-help-card span { font-size:10px; color:#6cc4f0; font-weight:600; }
 .figma-version { padding:12px 6px 0; font-size:9px; border-top:1px solid #554b6c; color:#b5accd; }
 .workspace { padding:28px 30px 50px; min-width:0; overflow-x:hidden; }
 .section-heading { align-items:flex-start; gap:16px; }

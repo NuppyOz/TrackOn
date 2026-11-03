@@ -8,3 +8,4 @@ export function listarNotificaciones(cursor?: number | null) {
 }
 export function contarNoLeidas() { return api<{ noLeidas: number }>('/api/notificaciones/unread-count') }
 export function marcarNotificacionLeida(id: number) { return api<{ id: number }>(`/api/notificaciones/${id}/leida`, { method: 'PATCH' }) }
+export function marcarTodasNotificacionesLeidas() { return api<{ actualizadas: number; leidaEn: string }>('/api/notificaciones/leidas', { method: 'PATCH' }) }

@@ -5,6 +5,7 @@ import * as asignacionService from './ordenes.asignacion.service.js';
 import { asignarOrdenSchema } from './ordenes.asignacion.schema.js';
 import { obtenerActorOrden } from './ordenes.actor.js';
 import { cambiarEstadoOrdenSchema, crearOrdenSchema, editarOrdenSchema, listarOrdenesSchema, ordenParamsSchema } from './ordenes.schema.js';
+import { cached } from '../../infrastructure/cache.js';
 
 function usuarioActual(req: Request): number {
     if (!req.auth) throw new AppError(401, 'Se requiere autenticación.');
@@ -21,7 +22,8 @@ export async function crear(req: Request, res: Response, next: NextFunction) {
 export async function listar(req: Request, res: Response, next: NextFunction) {
     try {
         usuarioActual(req);
-        res.json({ data: await service.listar(listarOrdenesSchema.parse(req.query)) });
+        const filtros = listarOrdenesSchema.parse(req.query);
+        res.json({ data: await cached('ordenes', { tipo: 'lista', filtros }, 30, () => service.listar(filtros)) });
     } catch (error) { next(error); }
 }
 
@@ -29,7 +31,7 @@ export async function obtener(req: Request, res: Response, next: NextFunction) {
     try {
         usuarioActual(req);
         const { id } = ordenParamsSchema.parse(req.params);
-        res.json({ data: await service.obtener(id) });
+        res.json({ data: await cached('ordenes', { tipo: 'detalle', id }, 30, () => service.obtener(id)) });
     } catch (error) { next(error); }
 }
 

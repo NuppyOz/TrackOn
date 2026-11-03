@@ -54,11 +54,6 @@ export function Sidebar({ seccion, onNavigate, abierto, puedeGestionarCuadrillas
                 {puedeAdministrar && <div className="figma-sidebar-group"><p>ADMINISTRACIÓN</p><nav aria-label="Administración">{enlaces([{ id: 'administracion', etiqueta: 'Usuarios y acceso', icono: '♙' }, { id: 'auditoria', etiqueta: 'Auditoría', icono: '≡' }])}</nav></div>}
             </div>
             <div className="figma-sidebar-footer">
-                <a className="figma-help-card" href="https://github.com/NuppyOz/TrackOn#readme" target="_blank" rel="noreferrer">
-                    <strong>Centro de ayuda</strong>
-                    <small>Consulta la documentación disponible de TrackOn.</small>
-                    <span>Ver documentación ›</span>
-                </a>
                 <div className="figma-version">TrackOn · MULTICAS S.A. · v1.0</div>
             </div>
         </aside>

@@ -9,3 +9,4 @@ export async function marcarLeida(usuarioId: number, id: number) {
     if (!result) throw new AppError(404, 'La notificación no existe.');
     return result;
 }
+export function marcarTodasLeidas(usuarioId: number) { return repository.marcarTodasLeidas(usuarioId); }

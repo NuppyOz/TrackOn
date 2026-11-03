@@ -13,6 +13,10 @@ let versionCredenciales = 0;
 let logoutEnCurso = false;
 let refreshEnCurso: { generacion: number; promesa: Promise<string | null> } | null = null;
 
+export function getAccessToken(): string | null {
+    return accessToken;
+}
+
 export function getVersionSesion(): number {
     return generacionSesion;
 }

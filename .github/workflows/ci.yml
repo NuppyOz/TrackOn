@@ -20,7 +20,8 @@ concurrency:
 jobs:
   validate:
     name: Build and test
-    runs-on: ubuntu-latest
+    # Keep the CI image stable while ubuntu-latest migrates to Ubuntu 26.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     steps:
@@ -28,6 +29,22 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      - name: Check SonarQube credentials
+        id: sonar_config
+        if: >-
+          github.actor != 'dependabot[bot]' &&
+          (github.ref == 'refs/heads/main' ||
+           (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository))
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -z "${SONAR_TOKEN//[[:space:]]/}" ]]; then
+            echo "::error::Falta SONAR_TOKEN. Configura el repository secret en Settings > Secrets and variables > Actions con un token de SonarQube Cloud que tenga permiso Execute Analysis. Consulta docs/sonarqube-quality-gate.md."
+            exit 1
+          fi
 
       - name: Show Docker versions
         run: |
@@ -79,7 +96,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: '24.22.1'
           cache: pnpm
 
       - name: Install project dependencies
@@ -97,8 +114,10 @@ jobs:
           grep '^SF:' apps/web/coverage/lcov.info | head
 
       - name: SonarQube Cloud analysis
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        if: steps.sonar_config.outcome == 'success'
         uses: SonarSource/sonarqube-scan-action@v7
+        with:
+          skipSignatureVerification: false
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 

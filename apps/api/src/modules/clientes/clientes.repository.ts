@@ -1,6 +1,8 @@
 import { prisma } from "../../infrastructure/prisma.js";
 
 import type { CreateClienteInput, UpdateClienteInput } from "./clientes.schema.js";
+import type { ListarClientesInput } from "./clientes.schema.js";
+import { paginaDesde } from "../../shared/pagination.js";
 
 const clienteSelect = {
     id: true,
@@ -155,14 +157,32 @@ export function crearCliente(datos: CreateClienteInput, personaIdExistente?: num
     });
 }
 
-export function listarClientes() {
-    return prisma.cliente.findMany({
-        select: clienteSelect,
-
-        orderBy: {
-            id: "asc",
+export async function listarClientes(filtros: ListarClientesInput) {
+    const items = await prisma.cliente.findMany({
+        where: {
+            ...(filtros.estado === "todos" ? {} : { activo: filtros.estado === "activos" }),
+            ...(filtros.tipo === "NATURAL" ? { personaId: { not: null } } : {}),
+            ...(filtros.tipo === "EMPRESA" ? { organizacionId: { not: null } } : {}),
+            ...(filtros.buscar ? { OR: [
+                { codigo: { contains: filtros.buscar, mode: "insensitive" } },
+                { persona: { is: { OR: [
+                    { firstName: { contains: filtros.buscar, mode: "insensitive" } },
+                    { firstLastName: { contains: filtros.buscar, mode: "insensitive" } },
+                    { numberDocument: { contains: filtros.buscar, mode: "insensitive" } },
+                ] } } },
+                { organizacion: { is: { OR: [
+                    { razonSocial: { contains: filtros.buscar, mode: "insensitive" } },
+                    { nombreComercial: { contains: filtros.buscar, mode: "insensitive" } },
+                    { identificacionTributaria: { contains: filtros.buscar, mode: "insensitive" } },
+                ] } } },
+            ] } : {}),
         },
+        select: clienteSelect,
+        orderBy: { codigo: "asc" },
+        skip: (filtros.pagina - 1) * filtros.limite,
+        take: filtros.limite + 1,
     });
+    return paginaDesde(items, filtros);
 }
 
 export function buscarClientePorId(id: number) {

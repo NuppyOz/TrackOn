@@ -6,6 +6,7 @@
 - `api`: Express/Node.js, sin publicar el puerto al host.
 - `migrate`: contenedor de una sola ejecución que aplica `prisma migrate deploy` antes de la API.
 - `db`: PostgreSQL 17 con volumen persistente y healthcheck.
+- `redis`: caché desechable con límite de 128 MB, política LRU y healthcheck.
 
 La API escucha internamente en `0.0.0.0:3000`. Solo la web se publica en el host y, por defecto, queda enlazada a `127.0.0.1:8080`. PostgreSQL y la API no quedan expuestos directamente al host. No se configura almacenamiento S3/MinIO porque aún no hay un cliente o módulo de archivos que lo use en el código.
 
@@ -35,7 +36,7 @@ docker compose logs -f api
 
 Abre `http://localhost:8080`. Para seguir todos los servicios: `docker compose logs -f`. La API no es publicada al host; desde el equipo Docker, su healthcheck y la interfaz permiten verificarla. Dentro de la red Compose está disponible como `http://api:3000`.
 
-Compose espera a que PostgreSQL esté saludable, ejecuta migraciones y luego inicia la API. Las migraciones son requisito de arranque; si fallan, API/web quedan sin iniciar y el error aparece en `docker compose logs migrate`.
+Compose espera a que PostgreSQL y Redis estén saludables, ejecuta migraciones y luego inicia la API. Las migraciones son requisito de arranque; si fallan, API/web quedan sin iniciar y el error aparece en `docker compose logs migrate`.
 
 ## Operación
 
@@ -44,7 +45,7 @@ Compose espera a que PostgreSQL esté saludable, ejecuta migraciones y luego ini
 docker compose ps
 
 # Logs puntuales
-docker compose logs --tail=100 db migrate api web
+docker compose logs --tail=100 db redis migrate api web
 
 # Aplicar migraciones tras incorporar una migración nueva
 docker compose run --rm migrate
@@ -56,7 +57,7 @@ docker compose run --rm --entrypoint pnpm migrate exec prisma db seed
 docker compose down
 ```
 
-Los datos viven en el volumen `postgres_data`; `docker compose down` los conserva. No uses `docker compose down -v` salvo que realmente quieras borrar la base local de forma irreversible.
+Los datos viven en el volumen `postgres_data`; `docker compose down` los conserva. Redis es una caché sin volumen y se reconstruye desde PostgreSQL. No uses `docker compose down -v` salvo que realmente quieras borrar la base local de forma irreversible.
 
 Para cambiar el puerto local de la interfaz, ajusta `WEB_PORT` en `.env`. El puerto de PostgreSQL no está publicado; para inspección puedes abrir `docker compose exec db sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'` dentro del contenedor, o añadir una exposición local controlada solo en desarrollo.
 

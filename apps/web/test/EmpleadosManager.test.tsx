@@ -38,9 +38,21 @@ const segundo = {
     persona: { firstName: "Juan", secondName: null, firstLastName: "Pérez", secondLastName: null },
 };
 
+function paginaEmpleados(filtros: { buscar?: string; estado?: string; tecnico?: string; pagina?: number; limite?: number } = {}) {
+    let items = [empleado, segundo];
+    const buscar = filtros.buscar?.toLocaleLowerCase('es').trim();
+    if (buscar) items = items.filter(item => `${item.codEmpleado} ${item.persona.firstName} ${item.persona.firstLastName}`.toLocaleLowerCase('es').includes(buscar));
+    if (filtros.estado === 'activos') items = items.filter(item => item.active);
+    if (filtros.estado === 'inactivos') items = items.filter(item => !item.active);
+    if (filtros.tecnico === 'habilitados') items = items.filter(item => item.habilitadoComoTecnico);
+    if (filtros.tecnico === 'no-habilitados') items = items.filter(item => !item.habilitadoComoTecnico);
+    return { items, pagina: filtros.pagina ?? 1, limite: filtros.limite ?? 25, hayMas: false, total: items.length,
+        resumen: { total: 2, activos: 1, tecnicosHabilitados: 0 } };
+}
+
 beforeEach(() => {
     vi.resetAllMocks();
-    mocks.listarEmpleados.mockResolvedValue([empleado, segundo]);
+    mocks.listarEmpleados.mockImplementation(async filtros => paginaEmpleados(filtros));
     mocks.obtenerEmpleado.mockResolvedValue(empleado);
     mocks.crearEmpleado.mockResolvedValue(empleado);
     mocks.editarEmpleado.mockResolvedValue(empleado);
@@ -70,23 +82,23 @@ describe("EmpleadosManager", () => {
         render(<EmpleadosManager />);
         await screen.findByText("TEC-007");
         fireEvent.change(screen.getByPlaceholderText("Código o nombre del empleado"), { target: { value: "juan" } });
+        await waitFor(() => expect(screen.queryByText("TEC-007")).toBe(null));
         expect(screen.getByText("ADM-009")).toBeTruthy();
-        expect(screen.queryByText("TEC-007")).toBe(null);
     });
     it("filtra empleados por estado", async () => {
         render(<EmpleadosManager />);
         await screen.findByText("TEC-007");
         fireEvent.change(screen.getByLabelText("Estado"), { target: { value: "inactivos" } });
+        await waitFor(() => expect(screen.queryByText("TEC-007")).toBe(null));
         expect(screen.getByText("ADM-009")).toBeTruthy();
-        expect(screen.queryByText("TEC-007")).toBe(null);
     });
     it("limpia filtros y devuelve resultados", async () => {
         render(<EmpleadosManager />);
         await screen.findByText("TEC-007");
         fireEvent.change(screen.getByPlaceholderText("Código o nombre del empleado"), { target: { value: "nada" } });
-        expect(screen.getByText("No hay empleados con estos filtros.")).toBeTruthy();
+        expect(await screen.findByText("No hay empleados con estos filtros.")).toBeTruthy();
         fireEvent.click(screen.getByRole("button", { name: "Limpiar filtros" }));
-        expect(screen.getByText("TEC-007")).toBeTruthy();
+        expect(await screen.findByText("TEC-007")).toBeTruthy();
     });
     it("abre ficha con datos completos de la API", async () => {
         render(<EmpleadosManager />);

@@ -4,7 +4,8 @@ import {
     empleadoParamsSchema, 
     updateEmpleadoSchema,
     updateEstadoEmpleadoSchema,
-    updateHabilitacionTecnicaSchema
+    updateHabilitacionTecnicaSchema,
+    listarEmpleadosSchema,
  } from "./empleados.schema.js";
 import * as empleadosService from './empleados.service.js';
 
@@ -29,12 +30,13 @@ export async function crearEmpleado(
 }
 
 export async function listarEmpleado(
-    _req: Request,
+    req: Request,
     res: Response,
     next: NextFunction,
 ) {
     try{
-        const empleados = await empleadosService.listarEmpleados();
+        const filtros = listarEmpleadosSchema.parse(req.query);
+        const empleados = await empleadosService.listarEmpleados(filtros);
 
         res.status(200).json ({
             data: empleados,

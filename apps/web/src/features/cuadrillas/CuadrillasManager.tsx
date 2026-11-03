@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { agregarMiembro, cambiarEstadoCuadrilla, crearCuadrilla, definirLider, editarCuadrilla, listarCuadrillas, listarEmpleadosElegibles, retirarMiembro } from './cuadrillas.api'
 import type { Cuadrilla, CuadrillaFiltros, EmpleadoCuadrilla } from './cuadrillas.types'
 import { useFiltrosListado } from '../../shared/useFiltrosListado'
+import { TablePagination } from '../../shared/ui'
 
 const filtrosIniciales: CuadrillaFiltros = { estado: 'activas', nombre: '' }
 const nombreEmpleado = (empleado: EmpleadoCuadrilla) => `${empleado.persona.firstName} ${empleado.persona.firstLastName}`
@@ -20,6 +21,8 @@ export default function CuadrillasManager() {
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState<{ tipo: 'error' | 'exito'; texto: string } | null>(null)
   const [formularioVisible, setFormularioVisible] = useState(false)
+  const [pagina, setPagina] = useState(1)
+  const [hayMas, setHayMas] = useState(false)
 
   const cuadrilla = useMemo(() => cuadrillas.find((item) => item.id === seleccionada) ?? null, [cuadrillas, seleccionada])
   const miembrosVigentes = cuadrilla?.miembros.filter((miembro) => !miembro.fin) ?? []
@@ -41,19 +44,20 @@ export default function CuadrillasManager() {
 
   useEffect(() => {
     let vigente = true
-    void listarCuadrillas(aplicados)
+    void (pagina === 1 ? listarCuadrillas(aplicados) : listarCuadrillas(aplicados, pagina))
       .then(respuesta => {
         if (!vigente) return
         setCuadrillas(respuesta.items)
+        setHayMas(respuesta.hayMas)
         setSeleccionada(actual => respuesta.items.some(item => item.id === actual) ? actual : respuesta.items[0]?.id ?? null)
       })
       .catch(error => { if (vigente) { setCuadrillas([]); setSeleccionada(null); setMensaje({ tipo: 'error', texto: error instanceof Error ? error.message : 'No se pudieron cargar las cuadrillas.' }) } })
       .finally(() => { if (vigente) setCargando(false) })
     return () => { vigente = false }
-  }, [aplicados])
+  }, [aplicados, pagina])
 
   function filtrar(nuevos: CuadrillaFiltros, esperar = false) {
-    setMensaje(null); setCargando(true); cambiarFiltros(nuevos, esperar)
+    setMensaje(null); setCargando(true); setPagina(1); cambiarFiltros(nuevos, esperar)
   }
 
   function cancelarEdicion() { setEditando(null); setNombre(''); setFormularioVisible(false) }
@@ -126,6 +130,7 @@ export default function CuadrillasManager() {
     <div className="panel-grid cuadrillas-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
       {formularioVisible && <form className="card form-card" onSubmit={guardar}><div className="card-title"><h3>Datos de la cuadrilla</h3><button type="button" className="text-button" onClick={cancelarEdicion}>← Cuadrillas</button></div><label>Nombre<input required maxLength={100} value={nombre} onChange={(event) => setNombre(event.target.value)} placeholder="Ej. Cuadrilla Norte" /></label><button type="submit" className="primary-button" disabled={guardando}>{textoGuardar}</button><p className="form-hint">Al crearla podrás incorporar integrantes y definir su líder.</p></form>}
       {!formularioVisible && <div className="card list-card"><form className="filters crew-filters" onSubmit={(event) => { event.preventDefault(); setMensaje(null); setCargando(true); aplicarFiltros() }}><input aria-label="Buscar por nombre" placeholder="Buscar cuadrilla" maxLength={100} value={filtros.nombre} onChange={(event) => filtrar({ ...filtros, nombre: event.target.value }, true)} /><select aria-label="Filtrar por estado" value={filtros.estado} onChange={(event) => filtrar({ ...filtros, estado: event.target.value as CuadrillaFiltros['estado'] })}><option value="activas">Activas</option><option value="inactivas">Inactivas</option><option value="todos">Todas</option></select><button type="submit" className="secondary-button">Buscar</button><button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button></form>
+      <TablePagination pagina={pagina} hayMas={hayMas} cargando={cargando} cantidad={cuadrillas.length} etiqueta="cuadrillas" onPagina={setPagina} />
       {contenidoLista()}</div>}
     </div>
     {cuadrilla && <div className="card members-card"><div className="card-title"><div><h3>{cuadrilla.nombre}</h3><p>Integrantes vigentes e historial de pertenencia.</p></div></div>{cuadrilla.activa && <div className="member-add"><select value={empleadoId} onChange={(event) => setEmpleadoId(event.target.value)}><option value="">Seleccionar empleado activo</option>{empleadosDisponibles.map((empleado) => <option key={empleado.id} value={empleado.id}>{empleado.codEmpleado} · {nombreEmpleado(empleado)}{empleado.usuario?.rol.cod === 'TEC' && !empleado.habilitadoComoTecnico ? ' (sin habilitación técnica)' : ''}</option>)}</select><button type="button" className="secondary-button" disabled={!empleadoId || guardando} onClick={() => void agregar()}>Agregar integrante</button></div>}

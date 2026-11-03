@@ -5,4 +5,5 @@ export const notificacionesRouter = Router();
 notificacionesRouter.use(authenticate);
 notificacionesRouter.get('/unread-count', controller.contarNoLeidas);
 notificacionesRouter.get('/', controller.listar);
+notificacionesRouter.patch('/leidas', controller.marcarTodasLeidas);
 notificacionesRouter.patch('/:id/leida', controller.marcarLeida);

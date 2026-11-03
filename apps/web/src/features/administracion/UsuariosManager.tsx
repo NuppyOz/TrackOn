@@ -4,7 +4,18 @@ import { listarEmpleados } from '../empleados/empleados.api';
 import type { EmpleadoResumen } from '../empleados/empleados.types';
 import type { Rol } from '../roles/roles.types';
 import AccesoForm from './AccesoForm';
-import { Button, StatePanel, StatusBadge } from '../../shared/ui';
+import { Button, DataTable, StatePanel, StatusBadge } from '../../shared/ui';
+
+async function listarEmpleadosActivos() {
+    const empleados: EmpleadoResumen[] = [];
+    let pagina = 1;
+    for (;;) {
+        const resultado = await listarEmpleados({ estado: 'activos', pagina, limite: 100 });
+        empleados.push(...resultado.items);
+        if (!resultado.hayMas) return empleados;
+        pagina++;
+    }
+}
 
 export default function UsuariosManager() {
     const [usuarios, setUsuarios] = useState<UsuarioAcceso[]>([]);
@@ -21,7 +32,7 @@ export default function UsuariosManager() {
     const [guardando, setGuardando] = useState(false);
     useEffect(() => {
         let vigente = true;
-        void Promise.all([listarUsuarios(), listarRolesAcceso(), listarEmpleados()])
+        void Promise.all([listarUsuarios(), listarRolesAcceso(), listarEmpleadosActivos()])
             .then(([usuarios, roles, empleados]) => { if (vigente) { setUsuarios(usuarios); setRoles(roles); setEmpleados(empleados); setError(null); } })
             .catch(error => { if (vigente) setError(error instanceof Error ? error.message : 'No se pudieron cargar los accesos.'); })
             .finally(() => { if (vigente) setCargando(false); });
@@ -41,7 +52,7 @@ export default function UsuariosManager() {
         {cargando && <StatePanel type="loading" title="Cargando usuarios…" />}
         {formulario ? <AccesoForm usuario={editando} roles={roles} empleados={disponibles} onCancel={() => setFormulario(false)} onSaved={() => { setFormulario(false); setRecarga(valor => valor + 1); }} /> : <>
             <div className="filters"><input aria-label="Buscar usuario" placeholder="Usuario, identificador o empleado" value={buscar} onChange={event => setBuscar(event.target.value)} /><select aria-label="Filtrar rol de usuario" value={rol} onChange={event => setRol(event.target.value)}><option value="">Todos los roles</option>{roles.map(item => <option key={item.id} value={item.cod}>{item.nombre}</option>)}</select><Button onClick={() => { setBuscar(''); setRol(''); }}>Limpiar</Button></div>
-            <div className="tk-dashboard-body"><div className="card list-card"><div className="table-wrap"><table><thead><tr><th>Usuario</th><th>Empleado</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{visibles.map(item => <tr key={item.id}><td data-label="Usuario">{item.identificador}</td><td data-label="Empleado">{item.empleado.persona?.firstName} {item.empleado.persona?.firstLastName}<small>{item.empleado.codEmpleado}</small></td><td data-label="Rol">{item.rol.nombre}</td><td data-label="Estado"><StatusBadge active={item.activo} /></td><td data-label="Acciones" className="actions"><Button onClick={() => { setEditando(item); setFormulario(true); }}>Editar acceso</Button><Button onClick={() => setConfirmacion(item)}>{item.activo ? 'Desactivar' : 'Activar'}</Button></td></tr>)}</tbody></table></div>
+            <div className="tk-dashboard-body"><div className="card list-card"><DataTable label="Usuarios"><thead><tr><th>Usuario</th><th>Empleado</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{visibles.map(item => <tr key={item.id}><td data-label="Usuario">{item.identificador}</td><td data-label="Empleado">{item.empleado.persona?.firstName} {item.empleado.persona?.firstLastName}<small>{item.empleado.codEmpleado}</small></td><td data-label="Rol">{item.rol.nombre}</td><td data-label="Estado"><StatusBadge active={item.activo} /></td><td data-label="Acciones" className="actions"><Button onClick={() => { setEditando(item); setFormulario(true); }}>Editar acceso</Button><Button onClick={() => setConfirmacion(item)}>{item.activo ? 'Desactivar' : 'Activar'}</Button></td></tr>)}</tbody></DataTable>
                 {!cargando && visibles.length === 0 && <StatePanel type="empty" title="Sin usuarios para estos filtros" />}</div><aside className="card tk-dashboard-list"><h3>Roles de acceso</h3>{roles.map(item => <div key={item.id}><strong>{item.nombre}</strong><p>{item.descripcion ?? item.cod}</p></div>)}</aside></div>
         </>}
         {confirmacion && <div className="card form-card" role="dialog" aria-labelledby="confirmar-acceso"><h3 id="confirmar-acceso">{confirmacion.activo ? 'Desactivar' : 'Activar'} {confirmacion.identificador}</h3><p>El cambio actualizará el acceso de esta cuenta al sistema.</p><Button disabled={guardando} onClick={() => setConfirmacion(null)}>Cancelar</Button><Button variant="primary" loading={guardando} onClick={() => void cambiarEstado()}>Confirmar</Button></div>}
