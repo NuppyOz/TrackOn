@@ -1,5 +1,6 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useState } from "react";
 import {
     cleanup,
     fireEvent,
@@ -92,29 +93,42 @@ vi.mock("../src/shared/layout/MainLayout", () => ({
         onNavigate: (seccion: "equipos" | "servicios" | "ordenes" | "cuadrillas") => void;
         onLogout: () => void;
         children: React.ReactNode;
-    }) => (
-        <div>
-            <header>{usuarioNombre}</header>
-            <nav>
-                <button type="button" onClick={() => onNavigate("equipos")}>
-                    Equipos
+    }) => {
+        const [menuCuenta, setMenuCuenta] = useState(false);
+        return (
+            <div>
+                <header>{usuarioNombre}</header>
+                <nav>
+                    <button type="button" onClick={() => onNavigate("equipos")}>
+                        Equipos
+                    </button>
+                    <button type="button" onClick={() => onNavigate("servicios")}>
+                        Servicios
+                    </button>
+                    <button type="button" onClick={() => onNavigate("ordenes")}>
+                        Órdenes
+                    </button>
+                    <button type="button" onClick={() => onNavigate("cuadrillas")}>
+                        Cuadrillas
+                    </button>
+                </nav>
+                <button
+                    type="button"
+                    aria-label={`Menú de cuenta de ${usuarioNombre}`}
+                    aria-expanded={menuCuenta}
+                    onClick={() => setMenuCuenta(valor => !valor)}
+                >
+                    Cuenta
                 </button>
-                <button type="button" onClick={() => onNavigate("servicios")}>
-                    Servicios
-                </button>
-                <button type="button" onClick={() => onNavigate("ordenes")}>
-                    Órdenes
-                </button>
-                <button type="button" onClick={() => onNavigate("cuadrillas")}>
-                    Cuadrillas
-                </button>
-                <button type="button" onClick={onLogout}>
-                    Cerrar sesión
-                </button>
-            </nav>
-            <main>{children}</main>
-        </div>
-    ),
+                {menuCuenta && (
+                    <button type="button" role="menuitem" onClick={() => { setMenuCuenta(false); onLogout(); }}>
+                        Cerrar sesión
+                    </button>
+                )}
+                <main>{children}</main>
+            </div>
+        );
+    },
 }));
 
 const admin: UsuarioSesion = {
@@ -317,10 +331,11 @@ describe("Aplicación TrackOn", () => {
         await screen.findByText("Equipos - gestión");
 
         fireEvent.click(
-            screen.getByRole("button", { name: "Cerrar sesión" }),
+            screen.getByRole("button", { name: /Menú de cuenta/ }),
         );
-        expect(screen.getByRole('dialog', { name: 'Cerrar sesión' })).toBeTruthy();
-        fireEvent.click(screen.getByRole('button', { name: 'Sí, cerrar sesión' }));
+        fireEvent.click(screen.getByRole("menuitem", { name: "Cerrar sesión" }));
+        expect(screen.getByRole('dialog', { name: '¿Quieres cerrar sesión?' })).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
 
         await waitFor(() => {
             expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
@@ -334,11 +349,17 @@ describe("Aplicación TrackOn", () => {
     it("conserva la sesión cuando se cancela la confirmación", async () => {
         render(<App />);
         await screen.findByText("Equipos - gestión");
-        fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+        const cuenta = screen.getByRole("button", { name: /Menú de cuenta/ });
+        fireEvent.click(cuenta);
+        cuenta.focus();
+        fireEvent.click(screen.getByRole("menuitem", { name: "Cerrar sesión" }));
         fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
         expect(mocks.cerrarSesion).not.toHaveBeenCalled();
         expect(screen.getByText("Equipos - gestión")).toBeTruthy();
-        expect(screen.queryByRole('dialog', { name: 'Cerrar sesión' })).toBeNull();
+        expect(screen.queryByRole('dialog', { name: '¿Quieres cerrar sesión?' })).toBeNull();
+        await waitFor(() => {
+            expect(document.activeElement).toBe(cuenta);
+        });
     });
 
     it("cierra la interfaz aunque falle el logout del servidor", async () => {
@@ -351,9 +372,10 @@ describe("Aplicación TrackOn", () => {
         await screen.findByText("Equipos - gestión");
 
         fireEvent.click(
-            screen.getByRole("button", { name: "Cerrar sesión" }),
+            screen.getByRole("button", { name: /Menú de cuenta/ }),
         );
-        fireEvent.click(screen.getByRole('button', { name: 'Sí, cerrar sesión' }));
+        fireEvent.click(screen.getByRole("menuitem", { name: "Cerrar sesión" }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
 
         expect(
             await screen.findByText("Página de login"),

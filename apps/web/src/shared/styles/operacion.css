@@ -47,7 +47,6 @@
 }
 @media(max-width:900px) { .tk-dashboard-body,.tk-dashboard-context { grid-template-columns:1fr; } .tk-dashboard-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:480px) { .tk-dashboard-kpis { grid-template-columns:1fr; } .tk-dashboard-row { flex-wrap:wrap; } }
-.tk-logout-icon { display:none; }
 .tk-admin .tk-dashboard-list { padding:16px; }
 .tk-admin .tk-dashboard-list h3 { font-size:15px; margin-bottom:12px; color:var(--tk-purple); }
 .tk-admin .tk-dashboard-list p { font-size:13px; color:var(--tk-muted); margin:6px 0 16px; }
@@ -116,8 +115,4 @@
 .tk-work-form input:not([type="file"]),
 .tk-work-form textarea { width:100%; font:inherit; color:var(--tk-text); border:1px solid var(--tk-border); border-radius:6px; padding:10px 12px; background:white; }
 .tk-orders .tk-state-form textarea { min-height:80px; max-height:none; }
-@media (max-width:767px) {
-  .figma-user-actions .figma-logout { display:inline-flex; align-items:center; justify-content:center; padding:6px; min-width:44px; min-height:44px; }
-  .figma-logout span { display:none; }
-  .tk-logout-icon { display:block; }
-}
+

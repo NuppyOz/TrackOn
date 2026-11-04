@@ -188,9 +188,9 @@ export default function App() {
                 onOrden={id => { navegar("ordenes"); setOrdenInicial(id); if (id) irA(`/ordenes/${id}`); }} onCuadrillas={() => navegar("cuadrillas")} />
         </MainLayout>
         {confirmandoSalida && <ConfirmDialog
-            titulo="Cerrar sesión"
-            descripcion="Tu sesión actual se cerrará y volverás a la pantalla de acceso."
-            etiquetaConfirmar="Sí, cerrar sesión"
+            titulo="¿Quieres cerrar sesión?"
+            descripcion="Volverás a la pantalla de acceso."
+            etiquetaConfirmar="Cerrar sesión"
             variante="danger"
             procesando={cerrando}
             onCancel={() => setConfirmandoSalida(false)}

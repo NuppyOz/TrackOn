@@ -21,10 +21,24 @@ describe("Layout responsive de TrackOn", () => {
         expect(screen.getByText("Administrador")).toBeTruthy();
         expect(screen.getByText("Acción especial")).toBeTruthy();
         expect(screen.getByRole("img", { name: "MULTICAS" })).toBeTruthy();
+        expect(screen.getByRole("button", { name: "Abrir navegación" }).getAttribute("aria-controls")).toBe("navegacion-principal");
         fireEvent.click(screen.getByRole("button", { name: "Abrir navegación" }));
-        fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
         expect(onOpenMenu).toHaveBeenCalledTimes(1);
+    });
+
+    it("no deja un botón de salida suelto: la sesión se cierra desde el menú de la cuenta", () => {
+        const onLogout = vi.fn();
+        render(<Header
+            usuarioNombre="Usuario de prueba · Administrador"
+            onOpenMenu={vi.fn()}
+            onLogout={onLogout}
+        />);
+        expect(screen.queryByRole("button", { name: "Cerrar sesión" })).toBeNull();
+        expect(screen.queryByRole("menuitem")).toBeNull();
+        fireEvent.click(screen.getByRole("button", { name: /Menú de cuenta de Usuario de prueba/ }));
+        fireEvent.click(screen.getByRole("menuitem", { name: "Cerrar sesión" }));
         expect(onLogout).toHaveBeenCalledTimes(1);
+        expect(screen.queryByRole("menu")).toBeNull();
     });
 
     it("marca la sección seleccionada y permite navegar a los catálogos", () => {
@@ -89,5 +103,61 @@ describe("Layout responsive de TrackOn", () => {
         fireEvent.click(screen.getByRole("button", { name: /Servicios/ }));
         expect(onNavigate).toHaveBeenCalledWith("servicios");
         expect(screen.getByRole("button", { name: /Cuadrillas/ }).classList.contains("selected")).toBe(true);
+    });
+
+    it("mantiene el menú desplazable con la barra oculta", () => {
+        render(<Sidebar
+            seccion="ordenes"
+            abierto
+            puedeGestionarCuadrillas
+            onNavigate={vi.fn()}
+        />);
+        const navegacion = screen.getByRole("complementary");
+        const desplazable = navegacion.querySelector(".sidebar-scroll");
+        expect(navegacion.id).toBe("navegacion-principal");
+        expect(desplazable).not.toBeNull();
+        expect(desplazable?.classList.contains("figma-sidebar-groups")).toBe(true);
+        expect(navegacion.querySelector(".figma-sidebar-footer")).not.toBeNull();
+    });
+
+    it("marca el botón del menú como expandido y lo cierra con Escape", () => {
+        const onCloseMenu = vi.fn();
+        render(<MainLayout
+            usuarioNombre="Gerente · Administrador"
+            seccion="equipos"
+            menuAbierto
+            puedeGestionarCuadrillas
+            onNavigate={vi.fn()}
+            onOpenMenu={vi.fn()}
+            onCloseMenu={onCloseMenu}
+            onLogout={vi.fn()}
+        ><p>Contenido</p></MainLayout>);
+
+        const disparador = screen.getByRole("button", { name: "Abrir navegación" });
+        expect(disparador.getAttribute("aria-expanded")).toBe("true");
+
+        fireEvent.keyDown(document, { key: "Escape" });
+
+        expect(onCloseMenu).toHaveBeenCalledTimes(1);
+        expect(document.activeElement).toBe(disparador);
+    });
+
+    it("no intercepta otras teclas cuando el menú lateral está cerrado", () => {
+        const onCloseMenu = vi.fn();
+        render(<MainLayout
+            usuarioNombre="Gerente · Administrador"
+            seccion="equipos"
+            menuAbierto={false}
+            puedeGestionarCuadrillas
+            onNavigate={vi.fn()}
+            onOpenMenu={vi.fn()}
+            onCloseMenu={onCloseMenu}
+            onLogout={vi.fn()}
+        ><p>Contenido</p></MainLayout>);
+
+        expect(screen.getByRole("button", { name: "Abrir navegación" }).getAttribute("aria-expanded")).toBe("false");
+        fireEvent.keyDown(document, { key: "Escape" });
+        fireEvent.keyDown(document, { key: "Tab" });
+        expect(onCloseMenu).not.toHaveBeenCalled();
     });
 });
