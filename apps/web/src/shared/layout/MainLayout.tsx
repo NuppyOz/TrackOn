@@ -78,6 +78,7 @@ export function MainLayout({
                 puedeAdministrar={puedeAdministrar}
             />
             <main className="workspace">
+                <h1 className="sr-only">{etiquetas[seccion]}</h1>
                 {seccion !== "ordenes" && seccion !== "dashboard" && (
                     <div className="tk-context-breadcrumb">
                         {seccion === 'agenda' ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>

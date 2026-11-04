@@ -21,7 +21,7 @@ export default function EmpleadosListado({ datos, filtros, cargando, onFiltros, 
     const limpiar = () => onFiltros({ buscar: '', estado: 'todos', tecnico: 'todos', pagina: 1, limite: filtros.limite });
 
     return <>
-        <div className="tk-employee-stats" aria-label="Resumen de personal">
+        <div className="tk-employee-stats" role="group" aria-label="Resumen de personal">
             <div><span>Total de empleados</span><strong>{resumen.total}</strong></div>
             <div><span>Empleados activos</span><strong>{resumen.activos}</strong></div>
             <div><span>Técnicos habilitados</span><strong>{resumen.tecnicosHabilitados}</strong></div>

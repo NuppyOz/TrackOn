@@ -43,9 +43,9 @@ function DashboardContenido({ datos, onOrden, onCuadrillas }: Readonly<{ datos: 
             <section className="card tk-dashboard-list"><h3>Próximas atenciones</h3>{datos.proximas.length === 0 && <p>No hay más atenciones programadas para hoy.</p>}
                 {datos.proximas.map(item => <div className="tk-dashboard-row" key={item.id}><div><strong>{item.fechaProgramada && new Intl.DateTimeFormat('es-NI', { timeStyle: 'short', timeZone: datos.zonaHoraria }).format(new Date(item.fechaProgramada))} · {item.clienteNombreRegistrado}</strong><small>OT-{item.numero}</small></div><Button onClick={() => onOrden(item.id)}>Consultar</Button></div>)}
             </section>
-        </div><aside><section className="card tk-dashboard-list"><h3>Carga de cuadrillas</h3>{datos.cuadrillas.length === 0 && <p>No hay cuadrillas activas.</p>}
+        </div><div className="tk-dashboard-aside"><section className="card tk-dashboard-list"><h3>Carga de cuadrillas</h3>{datos.cuadrillas.length === 0 && <p>No hay cuadrillas activas.</p>}
             {datos.cuadrillas.map(item => <div className="tk-dashboard-row" key={item.id}><strong>{item.nombre}</strong><span>{item.ordenesActivas} órdenes</span></div>)}<Button onClick={onCuadrillas}>Ver cuadrillas</Button></section>
             <section className="card tk-dashboard-list tk-dashboard-soft"><h3>Acciones frecuentes</h3><p>Consulta las órdenes para registrar una solicitud o dar seguimiento al trabajo.</p><Button variant="primary" onClick={() => onOrden()}>Ver órdenes</Button></section>
-        </aside></div>
+        </div></div>
     </>;
 }

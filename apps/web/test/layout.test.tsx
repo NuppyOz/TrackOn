@@ -142,6 +142,23 @@ describe("Layout responsive de TrackOn", () => {
         expect(document.activeElement).toBe(disparador);
     });
 
+    it("expone el título de la sección como encabezado de nivel uno accesible", () => {
+        render(<MainLayout
+            usuarioNombre="Gerente · Administrador"
+            seccion="ordenes"
+            menuAbierto={false}
+            puedeGestionarCuadrillas
+            onNavigate={vi.fn()}
+            onOpenMenu={vi.fn()}
+            onCloseMenu={vi.fn()}
+            onLogout={vi.fn()}
+        ><p>Contenido</p></MainLayout>);
+
+        const encabezado = screen.getByRole("heading", { level: 1, name: "Órdenes de trabajo" });
+        expect(encabezado.className).toBe("sr-only");
+        expect(screen.getByRole("main")).toBeTruthy();
+    });
+
     it("no intercepta otras teclas cuando el menú lateral está cerrado", () => {
         const onCloseMenu = vi.fn();
         render(<MainLayout

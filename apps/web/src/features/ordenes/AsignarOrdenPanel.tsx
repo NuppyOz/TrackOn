@@ -101,13 +101,13 @@ export default function AsignarOrdenPanel({ orden, onCancel, onAssigned, compact
                     </button>
                 </div>
             </form>
-            {!compacto && <aside className="card tk-summary-panel" aria-label="Resumen de la orden">
+            {!compacto && <section className="card tk-summary-panel" aria-label="Resumen de la orden">
                 <h4>Resumen de OT-{orden.numero}</h4>
                 <p><strong>Cliente:</strong> {orden.clienteNombreRegistrado}</p>
                 <p><strong>Ubicación:</strong> {orden.ubicacionNombreRegistrado}</p>
                 <p><strong>Prioridad:</strong> {orden.prioridad}</p>
                 <p>La asignación cambiará la orden a estado ASIGNADA y conservará su historial.</p>
-            </aside>}
+            </section>}
         </section>
     );
 }
