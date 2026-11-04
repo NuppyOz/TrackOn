@@ -33,7 +33,7 @@ export default function EmpleadosListado({ empleados, onVer, onCrear }: Readonly
     function limpiar() { setBusqueda(''); setEstado('todos'); setTecnico('todos'); setPagina(1); }
 
     return <>
-        <div className="tk-employee-stats" aria-label="Resumen de personal">
+        <div className="tk-employee-stats" role="group" aria-label="Resumen de personal">
             <div><span>Total de empleados</span><strong>{empleados.length}</strong></div>
             <div><span>Empleados activos</span><strong>{activos}</strong></div>
             <div><span>Técnicos habilitados</span><strong>{habilitados}</strong></div>

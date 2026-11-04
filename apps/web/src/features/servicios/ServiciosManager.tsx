@@ -121,7 +121,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                             <th>Servicio</th>
                             <th>Descripción</th>
                             <th>Estado</th>
-                            <th aria-label="Acciones"></th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>

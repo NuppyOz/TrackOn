@@ -6,6 +6,7 @@ import {
     render,
     screen,
     waitFor,
+    within,
 } from "@testing-library/react";
 
 import App from "../src/App";
@@ -322,6 +323,10 @@ describe("Aplicación TrackOn", () => {
             screen.getByRole("button", { name: "Cerrar sesión" }),
         );
 
+        const dialogo = await screen.findByRole("dialog", { name: "¿Quieres cerrar sesión?" });
+        expect(mocks.cerrarSesion).not.toHaveBeenCalled();
+        fireEvent.click(within(dialogo).getByRole("button", { name: "Cerrar sesión" }));
+
         await waitFor(() => {
             expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
         });
@@ -329,6 +334,22 @@ describe("Aplicación TrackOn", () => {
         expect(
             await screen.findByText("Página de login"),
         ).toBeTruthy();
+    });
+
+    it("no cierra la sesión si se cancela la confirmación", async () => {
+        render(<App />);
+
+        await screen.findByText("Resumen general de demostración");
+
+        fireEvent.click(
+            screen.getByRole("button", { name: "Cerrar sesión" }),
+        );
+
+        const dialogo = await screen.findByRole("dialog", { name: "¿Quieres cerrar sesión?" });
+        fireEvent.click(within(dialogo).getByRole("button", { name: "Cancelar" }));
+
+        expect(screen.queryByRole("dialog", { name: "¿Quieres cerrar sesión?" })).toBeNull();
+        expect(mocks.cerrarSesion).not.toHaveBeenCalled();
     });
 
     it("cierra la interfaz aunque falle el logout del servidor", async () => {
@@ -343,6 +364,8 @@ describe("Aplicación TrackOn", () => {
         fireEvent.click(
             screen.getByRole("button", { name: "Cerrar sesión" }),
         );
+        const dialogo = await screen.findByRole("dialog", { name: "¿Quieres cerrar sesión?" });
+        fireEvent.click(within(dialogo).getByRole("button", { name: "Cerrar sesión" }));
 
         expect(
             await screen.findByText("Página de login"),

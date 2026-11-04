@@ -1,10 +1,13 @@
-import { useState, type ReactNode } from 'react';
-import { MagnifyingGlassIcon, ListIcon, SignOutIcon, CaretDownIcon } from '@phosphor-icons/react';
+import { useState, type ReactNode, type Ref } from 'react';
+import { MagnifyingGlassIcon, ListIcon, CaretDownIcon } from '@phosphor-icons/react';
 import { irA } from '../navigation';
+import { AccountMenu } from './AccountMenu';
 interface HeaderProps {
     usuarioNombre: string;
     onLogout: () => void;
     onOpenMenu: () => void;
+    menuAbierto?: boolean;
+    toggleRef?: Ref<HTMLButtonElement>;
     acciones?: ReactNode;
 }
 const destinos = [
@@ -22,12 +25,19 @@ const destinos = [
     { nombre: 'Indicadores logísticos', ruta: '/inteligencia/logistico' },
     { nombre: 'Indicadores de calidad', ruta: '/inteligencia/calidad' },
 ];
-export function Header({ usuarioNombre, onLogout, onOpenMenu, acciones }: Readonly<HeaderProps>) {
+export function Header({ usuarioNombre, onLogout, onOpenMenu, menuAbierto = false, toggleRef, acciones }: Readonly<HeaderProps>) {
     const [busqueda, setBusqueda] = useState('');
-    const [nombre, rol = 'Usuario'] = usuarioNombre.split(' · ');
     return (
         <header className="topbar figma-topbar">
-            <button type="button" className="menu-toggle" aria-label="Abrir navegación" onClick={onOpenMenu}>
+            <button
+                ref={toggleRef}
+                type="button"
+                className="menu-toggle"
+                aria-label="Abrir navegación"
+                aria-expanded={menuAbierto}
+                aria-controls="navegacion-principal"
+                onClick={onOpenMenu}
+            >
                 <ListIcon size={24} />
             </button>
             <div className="erp-location">
@@ -72,26 +82,7 @@ export function Header({ usuarioNombre, onLogout, onOpenMenu, acciones }: Readon
                     )}
                 </div>
                 {acciones}
-                <span className="figma-user-info">
-                    <strong>{nombre}</strong>
-                    <small>{rol}</small>
-                </span>
-                <span className="figma-user-avatar" title={usuarioNombre}>
-                    {nombre
-                        .split(' ')
-                        .map((p) => p[0])
-                        .slice(0, 2)
-                        .join('')}
-                </span>
-                <button
-                    type="button"
-                    className="figma-logout"
-                    aria-label="Cerrar sesión"
-                    title="Cerrar sesión"
-                    onClick={onLogout}
-                >
-                    <SignOutIcon size={21} />
-                </button>
+                <AccountMenu usuarioNombre={usuarioNombre} onLogout={onLogout} />
             </div>
         </header>
     );
