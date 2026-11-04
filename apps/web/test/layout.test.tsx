@@ -20,10 +20,50 @@ describe("Layout responsive de TrackOn", () => {
         expect(screen.getByText("Usuario de prueba")).toBeTruthy();
         expect(screen.getByText("Administrador")).toBeTruthy();
         expect(screen.getByText("Acción especial")).toBeTruthy();
+        expect(screen.queryByRole("button", { name: "Cerrar sesión" })).toBeNull();
         fireEvent.click(screen.getByRole("button", { name: "Abrir navegación" }));
-        fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+        fireEvent.click(screen.getByRole("button", { name: /Menú de cuenta de Usuario de prueba/ }));
+        fireEvent.click(screen.getByRole("menuitem", { name: "Cerrar sesión" }));
         expect(onOpenMenu).toHaveBeenCalledTimes(1);
         expect(onLogout).toHaveBeenCalledTimes(1);
+        expect(screen.queryByRole("menu")).toBeNull();
+    });
+
+    it("expone el título de la sección como encabezado de nivel uno accesible", () => {
+        render(<MainLayout
+            usuarioNombre="Usuario de prueba · Administrador"
+            seccion="ordenes"
+            menuAbierto={false}
+            puedeGestionarCuadrillas
+            onNavigate={vi.fn()}
+            onOpenMenu={vi.fn()}
+            onCloseMenu={vi.fn()}
+            onLogout={vi.fn()}
+        ><p>Contenido</p></MainLayout>);
+
+        const encabezado = screen.getByRole("heading", { level: 1, name: "Órdenes de trabajo" });
+        expect(encabezado.className).toBe("sr-only");
+        expect(screen.getByRole("main")).toBeTruthy();
+    });
+
+    it("cierra el menú lateral con Escape y devuelve el foco al botón", () => {
+        const onCloseMenu = vi.fn();
+        render(<MainLayout
+            usuarioNombre="Usuario de prueba · Administrador"
+            seccion="equipos"
+            menuAbierto
+            puedeGestionarCuadrillas
+            onNavigate={vi.fn()}
+            onOpenMenu={vi.fn()}
+            onCloseMenu={onCloseMenu}
+            onLogout={vi.fn()}
+        ><p>Contenido</p></MainLayout>);
+
+        const disparador = screen.getByRole("button", { name: "Abrir navegación" });
+        expect(disparador.getAttribute("aria-expanded")).toBe("true");
+        fireEvent.keyDown(document, { key: "Escape" });
+        expect(onCloseMenu).toHaveBeenCalledTimes(1);
+        expect(document.activeElement).toBe(disparador);
     });
 
     it("presenta Resumen general e Inteligencia como último subsistema del administrador", () => {

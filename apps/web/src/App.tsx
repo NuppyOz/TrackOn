@@ -25,6 +25,7 @@ import { irA, leerRuta } from './shared/navigation';
 import Agenda from './features/agenda/Agenda';
 import AdministracionWorkspace from './features/administracion/AdministracionWorkspace';
 import AuditoriaManager from './features/administracion/AuditoriaManager';
+import ConfirmDialog from './shared/ConfirmDialog';
 const ComercialWorkspace = lazy(() => import('./features/comercial/ComercialWorkspace').then(module => ({ default: module.ComercialWorkspace })));
 const InteligenciaWorkspace = lazy(() => import('./features/inteligencia/InteligenciaWorkspace').then(module => ({ default: module.InteligenciaWorkspace })));
 const OperacionesWorkspace = lazy(() => import('./features/operaciones/OperacionesWorkspace'));
@@ -82,6 +83,7 @@ function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadr
 export default function App() {
     const [seccion, setSeccion] = useState<Seccion>(() => leerRuta().seccion);
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const [confirmandoSalida, setConfirmandoSalida] = useState(false);
     const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
     const [verificando, setVerificando] = useState(true);
     const [cerrando, setCerrando] = useState(false);
@@ -160,6 +162,7 @@ export default function App() {
             setSeccion("equipos");
             irA('/equipos');
             setMenuAbierto(false);
+            setConfirmandoSalida(false);
             setCerrando(false);
         }
     }
@@ -184,6 +187,7 @@ export default function App() {
         : usuario.identificador;
 
     return (
+        <>
         <MainLayout
             usuarioNombre={`${nombreUsuario} · ${usuario.rol.nombre}`}
             seccion={seccion}
@@ -193,7 +197,7 @@ export default function App() {
             onNavigate={navegar}
             onOpenMenu={() => setMenuAbierto(true)}
             onCloseMenu={() => setMenuAbierto(false)}
-            onLogout={() => void salir()}
+            onLogout={() => setConfirmandoSalida(true)}
             accionesHeader={<NotificationsBell habilitada />}
         >
             <ModuleContent seccion={seccion} puedeGestionar={puedeGestionar} ordenInicial={ordenInicial}
@@ -201,5 +205,15 @@ export default function App() {
                 puedeAdministrar={puedeAdministrar}
                 onOrden={id => { navegar("ordenes"); setOrdenInicial(id); if (id) irA(`/ordenes/${id}`); }} onCuadrillas={() => navegar("cuadrillas")} />
         </MainLayout>
+        {confirmandoSalida && <ConfirmDialog
+            titulo="¿Quieres cerrar sesión?"
+            descripcion="Volverás a la pantalla de acceso."
+            etiquetaConfirmar="Cerrar sesión"
+            variante="danger"
+            procesando={cerrando}
+            onCancel={() => setConfirmandoSalida(false)}
+            onConfirm={() => void salir()}
+        />}
+        </>
     );
 }

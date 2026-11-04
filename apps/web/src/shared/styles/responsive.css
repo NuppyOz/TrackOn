@@ -157,8 +157,7 @@ body, #root { min-width: 0; max-width: 100%; }
   .figma-brand-tagline { display: none; }
   .figma-brand-product { font-size: 21px; color: var(--tk-purple); }
   .figma-brand-lockup .brand-logo { width: 30px; height: 30px; }
-  .figma-topbar .figma-user-info,
-  .figma-topbar .figma-logout { display: none; }
+  .figma-topbar .figma-user-info { display: none; }
   .figma-topbar .figma-user-avatar { display: grid; width: 36px; height: 36px; flex-basis: 36px; }
   .figma-topbar .figma-user-actions { gap: 8px; flex-shrink: 0; }
   .figma-topbar .notification-area { margin: 0; }

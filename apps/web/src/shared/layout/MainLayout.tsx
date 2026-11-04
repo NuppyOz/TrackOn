@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Header } from "./Header";
 import { Sidebar, type Seccion } from "./Sidebar";
 
@@ -45,12 +45,29 @@ export function MainLayout({
     onLogout,
     accionesHeader,
 }: Readonly<MainLayoutProps>) {
+    const botonMenu = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        if (!menuAbierto) return;
+
+        function alTeclear(evento: KeyboardEvent) {
+            if (evento.key !== "Escape") return;
+            onCloseMenu();
+            botonMenu.current?.focus();
+        }
+
+        document.addEventListener("keydown", alTeclear);
+        return () => document.removeEventListener("keydown", alTeclear);
+    }, [menuAbierto, onCloseMenu]);
+
     return (
         <div className="app-shell">
             <Header
                 usuarioNombre={usuarioNombre}
                 onLogout={onLogout}
                 onOpenMenu={onOpenMenu}
+                menuAbierto={menuAbierto}
+                toggleRef={botonMenu}
                 acciones={accionesHeader}
             />
             {menuAbierto && (
@@ -66,6 +83,7 @@ export function MainLayout({
                 puedeAdministrar={puedeAdministrar}
             />
             <main className="workspace">
+                <h1 className="sr-only">{etiquetas[seccion]}</h1>
                 {seccion !== "ordenes" && seccion !== "dashboard" && (
                     <div className="tk-context-breadcrumb">
                         {['agenda', 'operaciones', 'field'].includes(seccion) ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : ['comercial', 'inteligencia'].includes(seccion) ? 'TrackOn' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>

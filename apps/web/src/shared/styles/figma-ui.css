@@ -28,8 +28,11 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .figma-user-info strong { font-size:12px; font-weight:600; }
 .figma-user-info small { color:var(--tk-muted); font-size:10px; }
 .figma-user-avatar { display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:var(--tk-purple); color:#fff; font-size:11px; font-weight:700; }
-.figma-logout { border:none; background:transparent; color:var(--tk-blue-dark); font-size:11px; font-weight:600; padding:7px 3px; }
-.figma-logout:hover { text-decoration:underline; }
+.account-menu { position:relative; display:flex; align-items:center; }
+.account-menu__trigger { display:flex; align-items:center; gap:10px; padding:0; border:0; background:transparent; color:inherit; font:inherit; text-align:inherit; cursor:pointer; }
+.account-menu__panel { position:absolute; right:0; top:calc(100% + 8px); z-index:30; min-width:200px; padding:6px; background:#fff; border:1px solid var(--tk-border); border-radius:8px; box-shadow:0 8px 24px rgb(47 37 77 / 12%); }
+.account-menu__item { display:flex; align-items:center; gap:8px; width:100%; min-height:36px; padding:0 10px; border:0; border-radius:6px; background:transparent; color:var(--tk-text); font:inherit; font-size:12px; font-weight:600; text-align:left; }
+.account-menu__item:hover, .account-menu__item:focus-visible { background:var(--tk-soft-purple); color:var(--tk-purple); }
 .figma-sidebar { display:flex; flex-direction:column; padding:22px 11px 16px; gap:0; background:var(--tk-purple); color:#d6d0e2; min-height:0; }
 .figma-sidebar-groups { display:flex; flex-direction:column; gap:24px; }
 .figma-sidebar-group > p { font-size:9px; font-weight:600; letter-spacing:.07em; color:#b5accd; margin:0 10px 10px; }
@@ -146,7 +149,7 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
     .figma-brand-lockup .brand-logo { width:26px; height:26px; }
     .figma-brand-identity, .figma-brand-divider, .figma-brand-tagline { display:none; }
     .figma-brand-product { font-size:16px; }
-    .figma-user-info, .figma-logout { display:none; }
+    .figma-user-info { display:none; }
     .figma-user-avatar { width:29px; height:29px; font-size:10px; }
     .figma-user-actions { gap:5px; }
     .figma-sidebar { position:fixed; left:0; top:66px; bottom:0; width:min(290px,82vw); z-index:24; transform:translateX(-100%); transition:transform .2s ease; overflow-y:auto; display:flex; flex-direction:column; }
