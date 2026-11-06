@@ -137,7 +137,7 @@ export default function EquiposOrdenPanel({ orden, puedeGestionar }: Readonly<Pr
                         </form>
                     )}
                     {puedeDiagnosticar && (provisional ? <EquipoProvisionalForm ordenId={orden.id} onCancel={() => setProvisional(false)} onSaved={registro => { setRegistros(actual => [...actual, registro]); setProvisional(false); }} /> :
-                        <button type="button" className="secondary-button" onClick={() => setProvisional(true)}>+ Identificar equipo provisional</button>)}
+                        <button type="button" className="secondary-button" onClick={() => setProvisional(true)}>Identificar equipo provisional</button>)}
                     {registros.length === 0 ? (
                         <p className="tk-equipo-vacio">Todavía no hay equipos vinculados a esta orden.</p>
                     ) : (

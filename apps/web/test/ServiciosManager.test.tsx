@@ -32,7 +32,7 @@ const servicio: Servicio = {
 const pagina = (items: Servicio[] = [servicio]) => ({
     items,
     pagina: 1,
-    limite: 25,
+    limite: 10,
     hayMas: false,
 });
 
@@ -42,7 +42,7 @@ async function cargarListado() {
 
 function abrirFormulario() {
     fireEvent.click(
-        screen.getByRole("button", { name: /\+ Crear servicio/ }),
+        screen.getByRole("button", { name: /Crear servicio/ }),
     );
 }
 
@@ -154,7 +154,7 @@ describe("Gestión de Servicios", () => {
         expect(screen.getByText("Datos del servicio")).toBeTruthy();
 
         fireEvent.click(
-            screen.getByRole("button", { name: /Servicios/ }),
+            screen.getByRole("button", { name: /Volver a servicios/i }),
         );
 
         expect(
@@ -216,7 +216,7 @@ describe("Gestión de Servicios", () => {
         await cargarListado();
 
         fireEvent.click(
-            screen.getByRole("button", { name: "Ver / editar" }),
+            screen.getByRole("button", { name: "Editar" }),
         );
 
         fireEvent.change(
@@ -276,6 +276,7 @@ describe("Gestión de Servicios", () => {
         fireEvent.click(
             screen.getByRole("button", { name: "Desactivar" }),
         );
+        fireEvent.click(screen.getByRole("button", { name: "Sí, desactivar" }));
 
         await waitFor(() => {
             expect(mocks.cambiarEstadoServicio).toHaveBeenCalledWith(
@@ -323,6 +324,7 @@ describe("Gestión de Servicios", () => {
         fireEvent.click(
             screen.getByRole("button", { name: "Desactivar" }),
         );
+        fireEvent.click(screen.getByRole("button", { name: "Sí, desactivar" }));
 
         expect(await screen.findByRole("alert")).toHaveProperty(
             "textContent",
@@ -338,11 +340,11 @@ describe("Gestión de Servicios", () => {
         expect(screen.getByText("SRV-001")).toBeTruthy();
 
         expect(
-            screen.queryByRole("button", { name: /\+ Crear servicio/ }),
+            screen.queryByRole("button", { name: /Crear servicio/ }),
         ).toBeNull();
 
         expect(
-            screen.queryByRole("button", { name: "Ver / editar" }),
+            screen.queryByRole("button", { name: "Editar" }),
         ).toBeNull();
 
         expect(

@@ -7,12 +7,13 @@ import EmpleadoFormulario from './EmpleadoFormulario';
 import EmpleadoDetallePanel from './EmpleadoDetallePanel';
 import ConfirmarAccionEmpleado from './ConfirmarAccionEmpleado';
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
+import { DEFAULT_PAGE_SIZE } from '../../shared/pagination';
 
 type Vista = 'listado' | 'crear' | 'detalle' | 'editar';
 type Accion = 'estado' | 'tecnico';
 
 const errorTexto = (error: unknown) => error instanceof Error ? error.message : 'No se pudo completar la operación.';
-const filtrosIniciales: FiltrosEmpleados = { buscar: '', estado: 'todos', tecnico: 'todos', pagina: 1, limite: 25 };
+const filtrosIniciales: FiltrosEmpleados = { buscar: '', estado: 'todos', tecnico: 'todos', pagina: 1, limite: DEFAULT_PAGE_SIZE };
 
 export default function EmpleadosManager() {
     const [vista, setVista] = useState<Vista>('listado');
@@ -44,12 +45,12 @@ export default function EmpleadosManager() {
         cambiarFiltros(nuevos, esperar);
     }
 
-    async function abrirDetalle(id: number) {
+    async function abrirEmpleado(id: number, destino: 'detalle' | 'editar') {
         setCargando(true);
         setAviso(null);
         try {
             setSeleccionado(await obtenerEmpleado(id));
-            setVista('detalle');
+            setVista(destino);
         } catch (error) { setAviso({ tipo: 'error', texto: errorTexto(error) }); }
         finally { setCargando(false); }
     }
@@ -62,7 +63,7 @@ export default function EmpleadosManager() {
                 ? await editarEmpleado(seleccionado.id, datos)
                 : await crearEmpleado(datos as CrearEmpleado);
             await actualizarListado();
-            await abrirDetalle(resultado.id);
+            await abrirEmpleado(resultado.id, 'detalle');
             setAviso({ tipo: 'exito', texto: vista === 'editar' ? 'Empleado actualizado correctamente.' : 'Empleado registrado correctamente.' });
         } catch (error) { setAviso({ tipo: 'error', texto: errorTexto(error) }); }
         finally { setOcupada(false); }
@@ -100,8 +101,8 @@ export default function EmpleadosManager() {
                 <h2 id="tk-employees-title">{titulo}</h2>
                 <p>Gestión de personal interno de MULTICAS y habilitación técnica.</p>
             </div>
-            {vista === 'listado' ? <button type="button" className="tk-employee-primary" onClick={() => { setAviso(null); setSeleccionado(null); setVista('crear'); }}>+ Registrar empleado</button>
-                : <button type="button" className="tk-employee-secondary" onClick={volver}>← Volver al listado</button>}
+            {vista === 'listado' ? <button type="button" className="tk-employee-primary" onClick={() => { setAviso(null); setSeleccionado(null); setVista('crear'); }}>Registrar empleado</button>
+                : <button type="button" className="tk-employee-secondary" onClick={volver}>Volver al listado</button>}
         </header>
         {aviso && <div role="alert" className={`tk-employee-notice ${aviso.tipo}`}>{aviso.texto}</div>}
         {cargando && !datos ? <div className="tk-employee-panel tk-employee-loading" role="status">Cargando información de empleados…</div> : <>
@@ -109,7 +110,8 @@ export default function EmpleadosManager() {
                 onFiltros={actualizarFiltros}
                 onPagina={pagina => actualizarFiltros({ ...aplicados, pagina })}
                 onLimite={limite => actualizarFiltros({ ...aplicados, pagina: 1, limite })}
-                onVer={id => void abrirDetalle(id)} onCrear={() => setVista('crear')} />}
+                onVer={id => void abrirEmpleado(id, 'detalle')} onEditar={id => void abrirEmpleado(id, 'editar')}
+                onCrear={() => setVista('crear')} />}
             {(vista === 'crear' || vista === 'editar') && <EmpleadoFormulario key={`${vista}-${seleccionado?.id ?? 'nuevo'}`}
                 empleado={vista === 'editar' ? seleccionado : null} guardando={ocupada}
                 onCancelar={volver} onGuardar={guardar} />}

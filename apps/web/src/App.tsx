@@ -3,9 +3,10 @@ import "./shared/styles/ordenes-equipos.css";
 import "./shared/styles/clientes.css";
 import "./shared/styles/empleados.css";
 import "./shared/styles/figma-ui.css";
-import "./shared/styles/responsive.css";
 import "./shared/styles/asignaciones.css";
 import "./shared/styles/operacion.css";
+// Debe permanecer al final: contiene los overrides responsive transversales.
+import "./shared/styles/responsive.css";
 import { useEffect, useState } from "react";
 import EquiposManager from "./features/equipos/EquiposManager";
 import ClientesManager from "./features/clientes/ClientesManager";
@@ -188,9 +189,9 @@ export default function App() {
                 onOrden={id => { navegar("ordenes"); setOrdenInicial(id); if (id) irA(`/ordenes/${id}`); }} onCuadrillas={() => navegar("cuadrillas")} />
         </MainLayout>
         {confirmandoSalida && <ConfirmDialog
-            titulo="Cerrar sesión"
-            descripcion="Tu sesión actual se cerrará y volverás a la pantalla de acceso."
-            etiquetaConfirmar="Sí, cerrar sesión"
+            titulo="¿Quieres cerrar sesión?"
+            descripcion="Volverás a la pantalla de acceso."
+            etiquetaConfirmar="Cerrar sesión"
             variante="danger"
             procesando={cerrando}
             onCancel={() => setConfirmandoSalida(false)}

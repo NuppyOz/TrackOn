@@ -110,7 +110,7 @@ describe("EmpleadosManager", () => {
     it("registra un empleado real con el contrato esperado", async () => {
         render(<EmpleadosManager />);
         await screen.findByText("TEC-007");
-        fireEvent.click(screen.getByRole("button", { name: "+ Registrar empleado" }));
+        fireEvent.click(screen.getByRole("button", { name: "Registrar empleado" }));
         fireEvent.change(screen.getByLabelText("Código de empleado *"), { target: { value: "tec-010" } });
         fireEvent.change(screen.getByLabelText("Primer nombre *"), { target: { value: "Ana" } });
         fireEvent.change(screen.getByLabelText("Primer apellido *"), { target: { value: "Torres" } });
@@ -127,7 +127,7 @@ describe("EmpleadosManager", () => {
     it("no permite registrar un documento incompleto", async () => {
         render(<EmpleadosManager />);
         await screen.findByText("TEC-007");
-        fireEvent.click(screen.getByRole("button", { name: "+ Registrar empleado" }));
+        fireEvent.click(screen.getByRole("button", { name: "Registrar empleado" }));
         fireEvent.change(screen.getByLabelText("Código de empleado *"), { target: { value: "TEC-010" } });
         fireEvent.change(screen.getByLabelText("Primer nombre *"), { target: { value: "Ana" } });
         fireEvent.change(screen.getByLabelText("Primer apellido *"), { target: { value: "Torres" } });
@@ -181,7 +181,7 @@ describe("EmpleadosManager", () => {
         mocks.crearEmpleado.mockRejectedValue(new Error("El código de empleado ya existe."));
         render(<EmpleadosManager />);
         await screen.findByText("TEC-007");
-        fireEvent.click(screen.getByRole("button", { name: "+ Registrar empleado" }));
+        fireEvent.click(screen.getByRole("button", { name: "Registrar empleado" }));
         fireEvent.change(screen.getByLabelText("Código de empleado *"), { target: { value: "TEC-007" } });
         fireEvent.change(screen.getByLabelText("Primer nombre *"), { target: { value: "Ana" } });
         fireEvent.change(screen.getByLabelText("Primer apellido *"), { target: { value: "López" } });

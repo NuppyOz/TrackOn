@@ -39,7 +39,7 @@ const equipo: Equipo = {
 }
 
 function pagina(items: Equipo[] = [equipo], hayMas = false) {
-  return { items, pagina: 1, limite: 25, hayMas }
+  return { items, pagina: 1, limite: 10, hayMas }
 }
 
 async function esperarListado() {
@@ -80,7 +80,7 @@ describe('Gestión de Equipos — TK-03', () => {
     await esperarListado()
     expect(within(screen.getByRole('table')).getByText('CLI-007 · Ana López')).toBeTruthy()
     expect(screen.getByText('SER-100')).toBeTruthy()
-    expect(mocks.listarEquipos).toHaveBeenCalledWith(expect.objectContaining({ estado: 'activos', pagina: 1, limite: 25 }))
+    expect(mocks.listarEquipos).toHaveBeenCalledWith(expect.objectContaining({ estado: 'activos', pagina: 1, limite: 10 }))
   })
 
   it('muestra el estado vacío cuando no hay registros', async () => {
@@ -192,6 +192,7 @@ describe('Gestión de Equipos — TK-03', () => {
     render(<EquiposManager />)
     await esperarListado()
     fireEvent.click(screen.getByRole('button', { name: 'Desactivar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, desactivar' }))
     await waitFor(() => expect(mocks.cambiarEstadoEquipo).toHaveBeenCalledWith(42, false))
     expect(await screen.findByText('Equipo desactivado.')).toBeTruthy()
   })
@@ -209,6 +210,7 @@ describe('Gestión de Equipos — TK-03', () => {
     render(<EquiposManager />)
     await esperarListado()
     fireEvent.click(screen.getByRole('button', { name: 'Desactivar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, desactivar' }))
     expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Sin permiso')
   })
 })

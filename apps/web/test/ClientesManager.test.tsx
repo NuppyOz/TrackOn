@@ -27,7 +27,7 @@ const ubicacion: UbicacionCliente = {
     referencia: null, contactoNombre: null, contactoTelefono: null, activa: true,
 };
 const pagina = (items: UbicacionCliente[] = [ubicacion], hayMas = false) => ({
-    items, pagina: 1, limite: 25, hayMas,
+    items, pagina: 1, limite: 10, hayMas,
 });
 
 beforeEach(() => {
@@ -184,6 +184,7 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         render(<ClientesManager puedeGestionar />);
         await abrirDetalle();
         fireEvent.click(screen.getByRole("button", { name: "Desactivar cliente" }));
+        fireEvent.click(screen.getByRole("button", { name: "Sí, desactivar" }));
         await waitFor(() => expect(mocks.cambiarEstadoCliente).toHaveBeenCalledWith(8, false));
         expect(await screen.findByText("Cliente desactivado.")).toBeTruthy();
     });
@@ -192,6 +193,7 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         render(<ClientesManager puedeGestionar />);
         await abrirDetalle();
         fireEvent.click(screen.getByRole("button", { name: "Desactivar" }));
+        fireEvent.click(screen.getByRole("button", { name: "Sí, desactivar" }));
         await waitFor(() => expect(mocks.cambiarEstadoUbicacion).toHaveBeenCalledWith(15, false));
     });
 

@@ -41,7 +41,7 @@ const ubicaciones = [
 async function abrirAlta() {
     render(<OrdenesManager />);
     await screen.findByText('No hay órdenes para estos filtros.');
-    fireEvent.click(screen.getByRole('button', { name: '+ Nueva orden' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva orden' }));
 }
 
 beforeEach(() => {

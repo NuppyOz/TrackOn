@@ -22,9 +22,20 @@ describe("Layout responsive de TrackOn", () => {
         expect(screen.getByText("Acción especial")).toBeTruthy();
         expect(screen.getByRole("img", { name: "MULTICAS" })).toBeTruthy();
         fireEvent.click(screen.getByRole("button", { name: "Abrir navegación" }));
-        fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+        fireEvent.click(screen.getByRole("button", { name: "Abrir menú de cuenta de Usuario de prueba" }));
+        fireEvent.click(screen.getByRole("menuitem", { name: "Cerrar sesión" }));
         expect(onOpenMenu).toHaveBeenCalledTimes(1);
         expect(onLogout).toHaveBeenCalledTimes(1);
+    });
+
+    it("cierra el menú de cuenta con Escape y devuelve el foco al avatar", () => {
+        render(<Header usuarioNombre="Luisa Téllez · Administradora" onOpenMenu={vi.fn()} onLogout={vi.fn()} />);
+        const cuenta = screen.getByRole("button", { name: "Abrir menú de cuenta de Luisa Téllez" });
+        fireEvent.click(cuenta);
+        expect(screen.getByRole("menu")).toBeTruthy();
+        fireEvent.keyDown(document, { key: "Escape" });
+        expect(screen.queryByRole("menu")).toBeNull();
+        expect(document.activeElement).toBe(cuenta);
     });
 
     it("marca la sección seleccionada y permite navegar a los catálogos", () => {

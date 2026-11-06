@@ -2,7 +2,7 @@ import { useState, type SyntheticEvent } from 'react';
 import { guardarAcceso, type UsuarioAcceso } from './administracion.api';
 import type { Rol } from '../roles/roles.types';
 import type { EmpleadoResumen } from '../empleados/empleados.types';
-import { Button } from '../../shared/ui';
+import { Button, ButtonGroup, FormField } from '../../shared/ui';
 
 export default function AccesoForm({ usuario, roles, empleados, onSaved, onCancel }: Readonly<{ usuario: UsuarioAcceso | null; roles: Rol[]; empleados: EmpleadoResumen[]; onSaved: () => void; onCancel: () => void }>) {
     const [identificador, setIdentificador] = useState(usuario?.identificador ?? '');
@@ -22,11 +22,11 @@ export default function AccesoForm({ usuario, roles, empleados, onSaved, onCance
     }
     return <form className="card form-card" onSubmit={event => void guardar(event)}><h3>{usuario ? 'Editar acceso' : 'Crear usuario'}</h3>
         {error && <p className="notice error" role="alert">{error}</p>}
-        {!usuario && <label>Empleado *<select required value={empleadoId} onChange={event => setEmpleadoId(event.target.value)}><option value="">Selecciona un empleado activo sin cuenta</option>{empleados.map(item => <option key={item.id} value={item.id}>{item.codEmpleado} · {item.persona.firstName} {item.persona.firstLastName}</option>)}</select></label>}
+        {!usuario && <FormField label="Empleado" required><select required value={empleadoId} onChange={event => setEmpleadoId(event.target.value)}><option value="">Selecciona un empleado activo sin cuenta</option>{empleados.map(item => <option key={item.id} value={item.id}>{item.codEmpleado} · {item.persona.firstName} {item.persona.firstLastName}</option>)}</select></FormField>}
         {usuario && <p>{usuario.empleado.persona?.firstName} {usuario.empleado.persona?.firstLastName} · {usuario.empleado.codEmpleado}</p>}
-        <label>Identificador *<input required minLength={3} maxLength={100} autoComplete="off" value={identificador} onChange={event => setIdentificador(event.target.value)} /></label>
-        <label>Rol *<select required value={rolId} onChange={event => setRolId(event.target.value)}><option value="">Selecciona un rol</option>{roles.map(rol => <option key={rol.id} value={rol.id}>{rol.nombre} ({rol.cod})</option>)}</select></label>
-        {!usuario && <label>Contraseña inicial *<input type="password" autoComplete="new-password" required minLength={12} maxLength={128} value={password} onChange={event => setPassword(event.target.value)} /><small>Mínimo 12 caracteres. Entrega la contraseña al usuario por el medio acordado.</small></label>}
-        <div className="tk-form-actions"><Button type="button" disabled={guardando} onClick={onCancel}>Cancelar</Button><Button type="submit" loading={guardando} variant="primary">Guardar acceso</Button></div>
+        <FormField label="Identificador" required><input required minLength={3} maxLength={100} autoComplete="off" value={identificador} onChange={event => setIdentificador(event.target.value)} /></FormField>
+        <FormField label="Rol" required><select required value={rolId} onChange={event => setRolId(event.target.value)}><option value="">Selecciona un rol</option>{roles.map(rol => <option key={rol.id} value={rol.id}>{rol.nombre} ({rol.cod})</option>)}</select></FormField>
+        {!usuario && <FormField label="Contraseña inicial" required hint="Mínimo 12 caracteres. Entrega la contraseña al usuario por el medio acordado."><input type="password" autoComplete="new-password" required minLength={12} maxLength={128} value={password} onChange={event => setPassword(event.target.value)} /></FormField>}
+        <ButtonGroup className="tk-form-actions"><Button type="button" disabled={guardando} onClick={onCancel}>Cancelar</Button><Button type="submit" loading={guardando} variant="primary">Guardar acceso</Button></ButtonGroup>
     </form>;
 }

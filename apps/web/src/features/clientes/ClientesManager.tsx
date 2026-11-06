@@ -6,6 +6,8 @@ import {
 import { nombreCliente, type Cliente, type ClienteNuevo, type TipoCliente,
     type TipoDocumento, type UbicacionCliente, type UbicacionNueva } from "./clientes.types";
 import { DataTable, TablePagination } from "../../shared/ui";
+import { DEFAULT_PAGE_SIZE } from "../../shared/pagination";
+import ConfirmDialog from "../../shared/ConfirmDialog";
 
 interface Props { puedeGestionar: boolean }
 type Vista = "listado" | "crear" | "detalle";
@@ -78,7 +80,7 @@ function etiquetaTipo(cliente: Cliente) {
 export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
     const [clientes, setClientes] = useState<Cliente[]>([]);
     const [paginaClientes, setPaginaClientes] = useState(1);
-    const [limiteClientes, setLimiteClientes] = useState(25);
+    const [limiteClientes, setLimiteClientes] = useState(DEFAULT_PAGE_SIZE);
     const [hayMasClientes, setHayMasClientes] = useState(false);
     const [vista, setVista] = useState<Vista>("listado");
     const [clienteId, setClienteId] = useState<number | null>(null);
@@ -98,10 +100,10 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
     const [errorUbicaciones, setErrorUbicaciones] = useState<string | null>(null);
     const [registrandoUbicacion, setRegistrandoUbicacion] = useState(false);
     const [formUbicacion, setFormUbicacion] = useState<FormUbicacion>(ubicacionVacia);
+    const [confirmacionEstado, setConfirmacionEstado] = useState<{ tipo: 'cliente'; item: Cliente } | { tipo: 'ubicacion'; item: UbicacionCliente } | null>(null);
 
     useEffect(() => {
         let vigente = true;
-        setCargando(true);
         void listarClientes({ buscar: busqueda, tipo: filtroTipo, estado: filtroEstado, pagina: paginaClientes, limite: limiteClientes }).then(resultado => {
             if (vigente) {
                 const paginaResultado = Array.isArray(resultado) ? { items: resultado, hayMas: false } : resultado;
@@ -196,6 +198,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
         setGuardando(true); setError(null); setMensaje(null);
         try {
             const actualizado = await cambiarEstadoCliente(cliente.id, !cliente.activo);
+            setConfirmacionEstado(null);
             setClientes(actual => actual.map(c => c.id === cliente.id ? actualizado : c));
             setMensaje(actualizado.activo ? "Cliente activado." : "Cliente desactivado.");
         } catch (e) {
@@ -208,6 +211,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
         setGuardando(true); setError(null); setMensaje(null);
         try {
             await cambiarEstadoUbicacion(ubicacion.id, !ubicacion.activa);
+            setConfirmacionEstado(null);
             setCargandoUbicaciones(true); setVersionUbicaciones(v => v + 1);
             setMensaje(ubicacion.activa ? "Ubicación desactivada." : "Ubicación activada.");
         } catch (e) { setError((e as Error).message); }
@@ -216,7 +220,6 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
 
     return (
         <section className="tk-clientes" aria-labelledby="tk-clientes-title">
-            <div className="tk-clientes-breadcrumb">Gestión comercial › <strong>Clientes</strong></div>
             <div className="section-heading tk-clientes-heading">
                 <div>
                     <h2 id="tk-clientes-title">{vista === "crear" ? "Registrar cliente" :
@@ -230,9 +233,9 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                 </div>
                 {vista === "listado" && puedeGestionar && <button className="primary-button" type="button"
                     onClick={() => { setFormulario(formularioVacio); setError(null); setMensaje(null); setVista("crear"); }}>
-                    + Registrar cliente
+                    Registrar cliente
                 </button>}
-                {vista !== "listado" && <button className="secondary-button" type="button" onClick={volver}>← Clientes</button>}
+                {vista !== "listado" && <button className="secondary-button" type="button" onClick={volver}>Volver a clientes</button>}
             </div>
             {error && <p className="notice error" role="alert">{error}</p>}
             {mensaje && <output className="notice exito">{mensaje}</output>}
@@ -240,42 +243,42 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
             {vista === "listado" && <>
                 <div className="card tk-clientes-filtros">
                     <label>Buscar
-                        <input aria-label="Buscar cliente" value={busqueda} onChange={e => { setBusqueda(e.target.value); setPaginaClientes(1); }}
+                        <input aria-label="Buscar cliente" value={busqueda} onChange={e => { setCargando(true); setBusqueda(e.target.value); setPaginaClientes(1); }}
                             placeholder="Código, nombre o identificación" />
                     </label>
                     <label>Tipo de cliente
-                        <select aria-label="Filtrar tipo de cliente" value={filtroTipo} onChange={e => { setFiltroTipo(e.target.value); setPaginaClientes(1); }}>
+                        <select aria-label="Filtrar tipo de cliente" value={filtroTipo} onChange={e => { setCargando(true); setFiltroTipo(e.target.value); setPaginaClientes(1); }}>
                             <option value="todos">Todos</option><option value="NATURAL">Persona natural</option>
                             <option value="EMPRESA">Persona jurídica</option>
                         </select>
                     </label>
                     <label>Estado
                         <select aria-label="Filtrar estado de cliente" value={filtroEstado}
-                            onChange={e => { setFiltroEstado(e.target.value); setPaginaClientes(1); }}>
+                            onChange={e => { setCargando(true); setFiltroEstado(e.target.value); setPaginaClientes(1); }}>
                             <option value="todos">Todos</option><option value="activos">Activos</option>
                             <option value="inactivos">Inactivos</option>
                         </select>
                     </label>
-                    <button type="button" className="text-button" onClick={() => { setBusqueda(''); setFiltroTipo('todos'); setFiltroEstado('todos'); setPaginaClientes(1); }}>Limpiar</button>
+                    <button type="button" className="text-button" onClick={() => { setCargando(true); setBusqueda(''); setFiltroTipo('todos'); setFiltroEstado('todos'); setPaginaClientes(1); }}>Limpiar</button>
                 </div>
                 <div className="card list-card">
-                    <TablePagination pagina={paginaClientes} limite={limiteClientes} hayMas={hayMasClientes} cargando={cargando} cantidad={filtrados.length} etiqueta="clientes"
-                        onPagina={setPaginaClientes} onLimite={valor => { setLimiteClientes(valor); setPaginaClientes(1); }} />
                     {cargando ? <p className="empty">Cargando clientes…</p> : filtrados.length === 0 ?
                         <p className="empty">No hay clientes que coincidan con los filtros.</p> :
                         <DataTable className="tk-clientes-tabla" label="Clientes">
-                            <thead><tr><th>Código</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr></thead>
+                            <thead><tr><th>Código</th><th>Cliente</th><th>Tipo</th><th data-align="center">Estado</th><th data-align="actions">Acción</th></tr></thead>
                             <tbody>{filtrados.map(cliente => <tr key={cliente.id}>
                                 <td data-label="Código"><strong>{cliente.codigo}</strong></td>
                                 <td data-label="Cliente"><strong>{nombreCliente(cliente)}</strong>
                                     <span>{cliente.correoComercial || cliente.telefonoComercial || "Sin contacto comercial"}</span></td>
                                 <td data-label="Tipo">{etiquetaTipo(cliente)}</td>
-                                <td data-label="Estado"><span className={`status ${cliente.activo ? "active" : "inactive"}`}>
+                                <td data-label="Estado" data-align="center"><span className={`status ${cliente.activo ? "active" : "inactive"}`}>
                                     {cliente.activo ? "Activo" : "Inactivo"}</span></td>
-                                <td data-label="Acción"><button type="button" className="secondary-button"
+                                <td data-label="Acción" data-align="actions" className="actions"><button type="button" className="secondary-button"
                                     onClick={() => abrirCliente(cliente.id)}>Ver detalle</button></td>
                             </tr>)}</tbody>
                         </DataTable>}
+                    <TablePagination pagina={paginaClientes} limite={limiteClientes} hayMas={hayMasClientes} cargando={cargando} cantidad={filtrados.length} etiqueta="clientes"
+                        onPagina={valor => { setCargando(true); setPaginaClientes(valor); }} onLimite={valor => { setCargando(true); setLimiteClientes(valor); setPaginaClientes(1); }} />
                 </div>
             </>}
 
@@ -345,7 +348,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                         <span className={`status ${seleccionado.activo ? "active" : "inactive"}`}>
                             {seleccionado.activo ? "Activo" : "Inactivo"}</span></div>
                     {puedeGestionar && <button className="secondary-button" type="button" disabled={guardando}
-                        onClick={() => void alternarCliente(seleccionado)}>
+                        onClick={() => seleccionado.activo ? setConfirmacionEstado({ tipo: 'cliente', item: seleccionado }) : void alternarCliente(seleccionado)}>
                         {seleccionado.activo ? "Desactivar cliente" : "Activar cliente"}</button>}
                 </div>
                 <div className="card tk-clientes-ubicaciones">
@@ -354,7 +357,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                         {puedeGestionar && seleccionado.activo && !registrandoUbicacion &&
                             <button type="button" className="primary-button" onClick={() => {
                                 setRegistrandoUbicacion(true); setError(null);
-                            }}>+ Registrar ubicación</button>}
+                            }}>Registrar ubicación</button>}
                     </div>
                     {registrandoUbicacion && <form className="tk-clientes-ubicacion-form form-card" onSubmit={e => void guardarUbicacion(e)}>
                         <div className="card-title"><h3>Nueva ubicación</h3>
@@ -375,8 +378,6 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                             {guardando ? "Guardando…" : "Guardar ubicación"}</button>
                     </form>}
                     {errorUbicaciones && <p role="alert" className="notice error">{errorUbicaciones}</p>}
-                    <TablePagination pagina={pagina} hayMas={hayMas} cargando={cargandoUbicaciones} cantidad={ubicaciones.length} etiqueta="ubicaciones"
-                        onPagina={valor => { setCargandoUbicaciones(true); setPagina(valor); }} />
                     {cargandoUbicaciones ? <p className="empty">Cargando ubicaciones…</p> : ubicaciones.length === 0 ?
                         <p className="empty">Este cliente todavía no tiene ubicaciones registradas.</p> :
                         <div className="tk-clientes-ubicaciones-list">
@@ -386,12 +387,20 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                                 <div className="tk-clientes-item-actions"><span className={`status ${ubicacion.activa ? "active" : "inactive"}`}>
                                     {ubicacion.activa ? "Activa" : "Inactiva"}</span>
                                     {puedeGestionar && <button className="secondary-button" disabled={guardando}
-                                        type="button" onClick={() => void alternarUbicacion(ubicacion)}>
+                                        type="button" onClick={() => ubicacion.activa ? setConfirmacionEstado({ tipo: 'ubicacion', item: ubicacion }) : void alternarUbicacion(ubicacion)}>
                                         {ubicacion.activa ? "Desactivar" : "Activar"}</button>}</div>
                             </article>)}
                         </div>}
+                    <TablePagination pagina={pagina} hayMas={hayMas} cargando={cargandoUbicaciones} cantidad={ubicaciones.length} etiqueta="ubicaciones"
+                        onPagina={valor => { setCargandoUbicaciones(true); setPagina(valor); }} />
                 </div>
             </>}
+            {confirmacionEstado && <ConfirmDialog
+                titulo={confirmacionEstado.tipo === 'cliente' ? `Desactivar ${nombreCliente(confirmacionEstado.item)}` : `Desactivar ${confirmacionEstado.item.nombre}`}
+                descripcion={confirmacionEstado.tipo === 'cliente' ? 'El cliente dejará de estar disponible para nuevas operaciones, pero conservará su historial.' : 'La ubicación dejará de estar disponible para nuevas operaciones, pero conservará su historial.'}
+                etiquetaConfirmar="Sí, desactivar" variante="danger" procesando={guardando}
+                onCancel={() => setConfirmacionEstado(null)}
+                onConfirm={() => confirmacionEstado.tipo === 'cliente' ? void alternarCliente(confirmacionEstado.item) : void alternarUbicacion(confirmacionEstado.item)} />}
         </section>
     );
 }

@@ -24,7 +24,7 @@ beforeEach(() => {
 describe("API de Servicios", () => {
     it("solicita todos los servicios sin búsqueda vacía en la URL", async () => {
         await listarServicios("todos", "");
-        expect(mocks.api).toHaveBeenCalledWith("/api/servicios?estado=todos");
+        expect(mocks.api).toHaveBeenCalledWith("/api/servicios?estado=todos&limite=10");
     });
 
     it("codifica la búsqueda y el estado mediante URLSearchParams", async () => {

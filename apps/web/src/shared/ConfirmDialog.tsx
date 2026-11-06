@@ -1,5 +1,5 @@
 import Modal from './Modal';
-import { Button } from './ui';
+import { Button, ButtonGroup } from './ui';
 
 interface ConfirmDialogProps {
     titulo: string;
@@ -21,11 +21,11 @@ export default function ConfirmDialog({
     onConfirm,
 }: Readonly<ConfirmDialogProps>) {
     return <Modal titulo={titulo} descripcion={descripcion} ocupado={procesando} className="tk-confirm-dialog" onClose={onCancel}>
-        <div className="tk-form-actions">
+        <ButtonGroup className="tk-form-actions">
             <Button type="button" disabled={procesando} onClick={onCancel}>Cancelar</Button>
             <Button type="button" variant={variante} disabled={procesando} onClick={onConfirm}>
                 {procesando ? 'Procesando…' : etiquetaConfirmar}
             </Button>
-        </div>
+        </ButtonGroup>
     </Modal>;
 }

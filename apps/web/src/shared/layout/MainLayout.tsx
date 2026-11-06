@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Header } from "./Header";
 import { Sidebar, type Seccion } from "./Sidebar";
 
@@ -16,18 +16,6 @@ interface MainLayoutProps {
     accionesHeader?: ReactNode;
 }
 
-const etiquetas: Record<Seccion, string> = {
-    agenda: "Agenda", administracion: "Usuarios y acceso", auditoria: "Auditoría",
-    dashboard: "Dashboard",
-    materiales: "Materiales",
-    clientes: "Clientes",
-    empleados: "Empleados",
-    ordenes: "Órdenes de trabajo",
-    equipos: "Equipos",
-    servicios: "Servicios",
-    cuadrillas: "Cuadrillas",
-};
-
 export function MainLayout({
     children,
     usuarioNombre,
@@ -41,12 +29,29 @@ export function MainLayout({
     onLogout,
     accionesHeader,
 }: Readonly<MainLayoutProps>) {
+    useEffect(() => {
+        if (!menuAbierto) return;
+
+        const overflowAnterior = document.body.style.overflow;
+        const cerrarConEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") onCloseMenu();
+        };
+
+        document.body.style.overflow = "hidden";
+        document.addEventListener("keydown", cerrarConEscape);
+        return () => {
+            document.body.style.overflow = overflowAnterior;
+            document.removeEventListener("keydown", cerrarConEscape);
+        };
+    }, [menuAbierto, onCloseMenu]);
+
     return (
         <div className="app-shell">
             <Header
                 usuarioNombre={usuarioNombre}
                 onLogout={onLogout}
                 onOpenMenu={onOpenMenu}
+                menuAbierto={menuAbierto}
                 acciones={accionesHeader}
             />
             {menuAbierto && (
@@ -61,11 +66,6 @@ export function MainLayout({
                 puedeAdministrar={puedeAdministrar}
             />
             <main className="workspace">
-                {seccion !== "ordenes" && seccion !== "dashboard" && (
-                    <div className="tk-context-breadcrumb">
-                        {seccion === 'agenda' ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
-                    </div>
-                )}
                 {children}
             </main>
         </div>

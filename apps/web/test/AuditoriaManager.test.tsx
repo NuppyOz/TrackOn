@@ -10,7 +10,7 @@ const items = [
     { id: 2, entidad: 'USUARIO', entidadId: '4', accion: 'CREAR', fecha: '2026-10-14T17:00:00Z', usuario: null },
 ];
 
-beforeEach(() => { vi.resetAllMocks(); mocks.api.mockResolvedValue({ items, hayMas: true, pagina: 1, limite: 25 }); });
+beforeEach(() => { vi.resetAllMocks(); mocks.api.mockResolvedValue({ items, hayMas: true, pagina: 1, limite: 10 }); });
 afterEach(cleanup);
 
 describe('Auditoría', () => {
@@ -23,15 +23,15 @@ describe('Auditoría', () => {
     it('pagina y actualiza los resultados', async () => {
         render(<AuditoriaManager />); await screen.findByText('ana.admin');
         fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
-        await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith('/api/auditoria?pagina=2&limite=25'));
+        await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith('/api/auditoria?pagina=2&limite=10'));
         fireEvent.click(screen.getByRole('button', { name: 'Anterior' }));
-        await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith('/api/auditoria?pagina=1&limite=25'));
+        await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith('/api/auditoria?pagina=1&limite=10'));
         fireEvent.click(screen.getByRole('button', { name: 'Actualizar' }));
         await waitFor(() => expect(mocks.api.mock.calls.length).toBeGreaterThan(2));
     });
 
     it('muestra resultados vacíos y errores de consulta', async () => {
-        mocks.api.mockResolvedValueOnce({ items: [], hayMas: false, pagina: 1, limite: 25 });
+        mocks.api.mockResolvedValueOnce({ items: [], hayMas: false, pagina: 1, limite: 10 });
         const vista = render(<AuditoriaManager />);
         expect(await screen.findByText('Sin operaciones registradas')).toBeTruthy();
         expect(screen.getByRole('button', { name: 'Anterior' })).toHaveProperty('disabled', true);

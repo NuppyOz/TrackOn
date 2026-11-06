@@ -36,7 +36,7 @@ describe('Administración de accesos', () => {
 
     it('crea una cuenta para un empleado disponible', async () => {
         render(<UsuariosManager />); await screen.findByText('ana.admin');
-        fireEvent.click(screen.getByRole('button', { name: '+ Crear usuario' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Crear usuario' }));
         fireEvent.change(screen.getByLabelText('Empleado *'), { target: { value: '11' } });
         fireEvent.change(screen.getByLabelText('Identificador *'), { target: { value: 'luis.tecnico' } });
         fireEvent.change(screen.getByLabelText('Rol *'), { target: { value: '1' } });
@@ -61,7 +61,7 @@ describe('Administración de accesos', () => {
 
     it('cancela formularios y confirmaciones', async () => {
         render(<UsuariosManager />); await screen.findByText('ana.admin');
-        fireEvent.click(screen.getByRole('button', { name: '+ Crear usuario' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Crear usuario' }));
         fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
         fireEvent.click(screen.getByRole('button', { name: 'Desactivar' }));
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }));

@@ -33,6 +33,7 @@ function props(items = [empleado, inactivo]) {
         onPagina: vi.fn(),
         onLimite: vi.fn(),
         onVer: vi.fn(),
+        onEditar: vi.fn(),
         onCrear: vi.fn(),
     };
 }
@@ -56,6 +57,13 @@ describe("Listado y detalle de empleados", () => {
         render(<EmpleadosListado {...propiedades} />);
         fireEvent.click(screen.getByRole("button", { name: "Ver detalle" }));
         expect(propiedades.onVer).toHaveBeenCalledWith(1);
+    });
+    it("abre la edición directamente desde la fila", () => {
+        const propiedades = props([empleado]);
+        render(<EmpleadosListado {...propiedades} />);
+        fireEvent.click(screen.getByRole("button", { name: "Editar" }));
+        expect(propiedades.onEditar).toHaveBeenCalledWith(1);
+        expect(propiedades.onVer).not.toHaveBeenCalled();
     });
     it("presenta estado vacío con opción de registro", () => {
         const propiedades = props([]);

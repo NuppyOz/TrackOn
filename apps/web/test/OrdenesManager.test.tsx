@@ -43,7 +43,7 @@ const detalle: OrdenDetalle = {
 };
 
 function pagina(items: OrdenResumen[] = [orden], hayMas = false) {
-    return { items, hayMas, pagina: 1, limite: 25 };
+    return { items, hayMas, pagina: 1, limite: 10 };
 }
 
 beforeEach(() => {
@@ -66,7 +66,7 @@ async function esperarListado() {
 }
 
 function abrirAlta() {
-    fireEvent.click(screen.getByRole('button', { name: '+ Nueva orden' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva orden' }));
 }
 
 describe('Gestión web de órdenes de trabajo', () => {
@@ -142,7 +142,7 @@ describe('Gestión web de órdenes de trabajo', () => {
         fireEvent.change(screen.getByLabelText('Programada hasta'), { target: { value: '2026-10-31' } });
         await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenLastCalledWith(expect.objectContaining({ prioridad: 'URGENTE', clienteId: '2', desde: '2026-10-01', hasta: '2026-10-31', pagina: 1 })));
         fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }));
-        await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenLastCalledWith({ estado: '', buscar: '', pagina: 1, limite: 25 }));
+        await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenLastCalledWith({ estado: '', buscar: '', pagina: 1, limite: 10 }));
         expect((screen.getByLabelText('Programada desde') as HTMLInputElement).value).toBe('');
     });
     it('ignora respuestas anteriores al último filtro de órdenes', async () => {
@@ -183,7 +183,7 @@ describe('Gestión web de órdenes de trabajo', () => {
         fireEvent.change(screen.getByRole('combobox', { name: 'Filtrar estado de orden' }), { target: { value: 'PENDIENTE' } });
         fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
         await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenCalledWith({
-            estado: 'PENDIENTE', buscar: 'motor', pagina: 1, limite: 25,
+            estado: 'PENDIENTE', buscar: 'motor', pagina: 1, limite: 10,
         }));
     });
 
@@ -273,7 +273,7 @@ describe('Gestión web de órdenes de trabajo', () => {
     it('respeta permisos de solo consulta para técnicos', async () => {
         render(<OrdenesManager puedeGestionar={false} />);
         await esperarListado();
-        expect(screen.queryByRole('button', { name: '+ Nueva orden' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Nueva orden' })).toBeNull();
         fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
         await screen.findByText('Historial de estados');
         expect(screen.queryByRole('button', { name: 'Iniciar trabajo' })).toBeNull();
