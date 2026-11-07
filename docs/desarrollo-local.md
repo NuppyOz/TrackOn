@@ -51,7 +51,7 @@ Para cargar clientes, ubicaciones, equipos, servicios, empleados y cuadrillas de
 ejemplo, ejecuta en esa misma terminal:
 
 ```bash
-pnpm --filter @trackon/api seed:dev-data
+TRACKON_ALLOW_SEED_DATA=true pnpm seed:datos
 ```
 
 El comando es idempotente: puede repetirse sin duplicar los registros de ejemplo.

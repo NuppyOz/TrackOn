@@ -10,9 +10,9 @@
         "lint": "pnpm --dir apps/web lint",
         "test:web": "pnpm --dir apps/web test",
         "test:api": "pnpm --dir apps/api test",
-        "seed:demo": "pnpm --dir apps/api exec tsx prisma/seed-demo.ts",
         "sonar": "node scripts/sonar.mjs",
-        "seed:demo:completo": "pnpm --dir apps/api exec tsx prisma/seed-demo-completo.ts"
+        "seed:datos": "pnpm --dir apps/api exec tsx prisma/seed-nicaragua.ts",
+        "seed:base": "pnpm --dir apps/api exec tsx prisma/seed.ts"
     },
     "engines": {
         "node": "24.x"

@@ -30,9 +30,9 @@
         "build": "tsc",
         "start": "node dist/server.js",
         "seed:dev-users": "tsx prisma/seed-dev-users.ts",
-        "seed:dev-data": "tsx prisma/seed-dev-data.ts",
         "test": "vitest run",
         "test:watch": "vitest",
-        "test:coverage": "vitest run --coverage"
+        "test:coverage": "vitest run --coverage",
+        "seed:datos": "tsx prisma/seed-nicaragua.ts"
     }
 }
