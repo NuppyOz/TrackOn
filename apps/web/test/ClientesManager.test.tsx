@@ -59,6 +59,44 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         expect(mocks.listarClientes).toHaveBeenCalledTimes(1);
     });
 
+    it("Limpiar sobre filtros iniciales no bloquea el listado ni consulta de nuevo", async () => {
+        render(<ClientesManager puedeGestionar />);
+        await screen.findByText("Clínica Santa María S.A.");
+        fireEvent.click(screen.getByRole("button", { name: "Limpiar", exact: true }));
+        expect(screen.queryByText("Cargando clientes…")).toBeNull();
+        expect(screen.getByText("Clínica Santa María S.A.")).toBeTruthy();
+        expect(mocks.listarClientes).toHaveBeenCalledTimes(1);
+    });
+
+    it("Limpiar repetido con filtros iniciales mantiene el listado", async () => {
+        render(<ClientesManager puedeGestionar />);
+        await screen.findByText("Clínica Santa María S.A.");
+        const limpiar = screen.getByRole("button", { name: "Limpiar", exact: true });
+        fireEvent.click(limpiar);
+        fireEvent.click(limpiar);
+        expect(screen.queryByText("Cargando clientes…")).toBeNull();
+        expect(mocks.listarClientes).toHaveBeenCalledTimes(1);
+    });
+
+    it("Limpiar después de filtrar restaura resultados sin carga permanente", async () => {
+        render(<ClientesManager puedeGestionar />);
+        await screen.findByText("Ana López");
+        fireEvent.change(screen.getByRole("textbox", { name: "Buscar cliente" }), { target: { value: "Clínica" } });
+        await waitFor(() => expect(screen.queryByText("Ana López")).toBeNull());
+        fireEvent.click(screen.getByRole("button", { name: "Limpiar", exact: true }));
+        await screen.findByText("Ana López");
+        expect(screen.queryByText("Cargando clientes…")).toBeNull();
+    });
+
+    it("Limpiar neutral no dispara consultas tras un error inicial", async () => {
+        mocks.listarClientes.mockRejectedValueOnce(new Error("Consulta ficticia fallida"));
+        render(<ClientesManager puedeGestionar />);
+        await screen.findByRole("alert");
+        fireEvent.click(screen.getByRole("button", { name: "Limpiar", exact: true }));
+        expect(screen.queryByText("Cargando clientes…")).toBeNull();
+        expect(mocks.listarClientes).toHaveBeenCalledTimes(1);
+    });
+
     it("filtra por nombre de cliente", async () => {
         render(<ClientesManager puedeGestionar />);
         await screen.findByText("Ana López");
