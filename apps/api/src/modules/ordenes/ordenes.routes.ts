@@ -19,8 +19,9 @@ ordenesRouter.get('/', authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE, ROLE_CODE
 // Restringir todas las rutas anidadas de una OT a técnicos con asignación vigente.
 async function autorizarConsultaOrden(req: Request, _res: Response, next: NextFunction) {
     try {
-        const actor = obtenerActorOrden(req);
-        if (actor.rol === 'TEC') {
+        if (!req.auth) throw new AppError(401, 'Se requiere autenticación.');
+        if (req.auth.usuario.rol.cod === 'TEC') {
+            const actor = obtenerActorOrden(req);
             const id = Number(req.params.id);
             if (!Number.isSafeInteger(id) || id <= 0) throw new AppError(400, 'ID de orden inválido.');
             const visible = await prisma.ordenTrabajo.findFirst({
