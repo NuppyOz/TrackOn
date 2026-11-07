@@ -15,6 +15,7 @@ export default function UsuariosManager() {
     const [recarga, setRecarga] = useState(0);
     const [buscar, setBuscar] = useState('');
     const [rol, setRol] = useState('');
+    const [pagina, setPagina] = useState(1);
     const [formulario, setFormulario] = useState(false);
     const [editando, setEditando] = useState<UsuarioAcceso | null>(null);
     const [confirmacion, setConfirmacion] = useState<UsuarioAcceso | null>(null);
@@ -29,6 +30,11 @@ export default function UsuariosManager() {
     }, [recarga]);
     const disponibles = empleados.filter(item => item.active && !usuarios.some(usuario => usuario.empleado.id === item.id));
     const visibles = usuarios.filter(item => (!rol || item.rol.cod === rol) && `${item.identificador} ${item.empleado.codEmpleado} ${item.empleado.persona?.firstName} ${item.empleado.persona?.firstLastName}`.toLocaleLowerCase('es').includes(buscar.trim().toLocaleLowerCase('es')));
+    // Sin tope, el listado crece sin fin (con 102 cuentas medía 39 072 px en móvil).
+    const LIMITE = 10;
+    const totalPaginas = Math.max(1, Math.ceil(visibles.length / LIMITE));
+    const paginaActual = Math.min(pagina, totalPaginas);
+    const visiblesPagina = visibles.slice((paginaActual - 1) * LIMITE, paginaActual * LIMITE);
     async function cambiarEstado() {
         if (!confirmacion || guardando) return;
         setGuardando(true); setError(null);
@@ -40,9 +46,10 @@ export default function UsuariosManager() {
         {error && <StatePanel type="error" title={error} action={<Button onClick={() => setRecarga(valor => valor + 1)}>Reintentar</Button>} />}
         {cargando && <StatePanel type="loading" title="Cargando usuarios…" />}
         {formulario ? <AccesoForm usuario={editando} roles={roles} empleados={disponibles} onCancel={() => setFormulario(false)} onSaved={() => { setFormulario(false); setRecarga(valor => valor + 1); }} /> : <>
-            <div className="filters"><input aria-label="Buscar usuario" placeholder="Usuario, identificador o empleado" value={buscar} onChange={event => setBuscar(event.target.value)} /><select aria-label="Filtrar rol de usuario" value={rol} onChange={event => setRol(event.target.value)}><option value="">Todos los roles</option>{roles.map(item => <option key={item.id} value={item.cod}>{item.nombre}</option>)}</select><Button onClick={() => { setBuscar(''); setRol(''); }}>Limpiar</Button></div>
-            <div className="tk-dashboard-body"><div className="card list-card"><div className="table-wrap"><table><thead><tr><th>Usuario</th><th>Empleado</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{visibles.map(item => <tr key={item.id}><td data-label="Usuario">{item.identificador}</td><td data-label="Empleado">{item.empleado.persona?.firstName} {item.empleado.persona?.firstLastName}<small>{item.empleado.codEmpleado}</small></td><td data-label="Rol">{item.rol.nombre}</td><td data-label="Estado"><StatusBadge active={item.activo} /></td><td data-label="Acciones" className="actions"><Button onClick={() => { setEditando(item); setFormulario(true); }}>Editar acceso</Button><Button onClick={() => setConfirmacion(item)}>{item.activo ? 'Desactivar' : 'Activar'}</Button></td></tr>)}</tbody></table></div>
-                {!cargando && visibles.length === 0 && <StatePanel type="empty" title="Sin usuarios para estos filtros" />}</div><div className="card tk-dashboard-list"><h3>Roles de acceso</h3>{roles.map(item => <div key={item.id}><strong>{item.nombre}</strong><p>{item.descripcion ?? item.cod}</p></div>)}</div></div>
+            <div className="filters"><input aria-label="Buscar usuario" placeholder="Usuario, identificador o empleado" value={buscar} onChange={event => { setBuscar(event.target.value); setPagina(1); }} /><select aria-label="Filtrar rol de usuario" value={rol} onChange={event => { setRol(event.target.value); setPagina(1); }}><option value="">Todos los roles</option>{roles.map(item => <option key={item.id} value={item.cod}>{item.nombre}</option>)}</select><Button onClick={() => { setBuscar(''); setRol(''); setPagina(1); }}>Limpiar</Button></div>
+            <div className="tk-dashboard-body"><div className="card list-card"><div className="table-wrap"><table><thead><tr><th>Usuario</th><th>Empleado</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{visiblesPagina.map(item => <tr key={item.id}><td data-label="Usuario">{item.identificador}</td><td data-label="Empleado">{item.empleado.persona?.firstName} {item.empleado.persona?.firstLastName}<small>{item.empleado.codEmpleado}</small></td><td data-label="Rol">{item.rol.nombre}</td><td data-label="Estado"><StatusBadge active={item.activo} /></td><td data-label="Acciones" className="actions"><Button onClick={() => { setEditando(item); setFormulario(true); }}>Editar acceso</Button><Button onClick={() => setConfirmacion(item)}>{item.activo ? 'Desactivar' : 'Activar'}</Button></td></tr>)}</tbody></table></div>
+                {!cargando && visibles.length === 0 && <StatePanel type="empty" title="Sin usuarios para estos filtros" />}
+                {visibles.length > LIMITE && <nav className="pagination" aria-label="Paginación de usuarios"><Button disabled={paginaActual === 1} onClick={() => setPagina(paginaActual - 1)}>Anterior</Button><span aria-live="polite">Página {paginaActual} de {totalPaginas} · {visibles.length} cuentas</span><Button disabled={paginaActual === totalPaginas} onClick={() => setPagina(paginaActual + 1)}>Siguiente</Button></nav>}</div><div className="card tk-dashboard-list"><h3>Roles de acceso</h3>{roles.map(item => <div key={item.id}><strong>{item.nombre}</strong><p>{item.descripcion ?? item.cod}</p></div>)}</div></div>
         </>}
         {confirmacion && <div className="card form-card" role="dialog" aria-labelledby="confirmar-acceso"><h3 id="confirmar-acceso">{confirmacion.activo ? 'Desactivar' : 'Activar'} {confirmacion.identificador}</h3><p>El cambio actualizará el acceso de esta cuenta al sistema.</p><Button disabled={guardando} onClick={() => setConfirmacion(null)}>Cancelar</Button><Button variant="primary" loading={guardando} onClick={() => void cambiarEstado()}>Confirmar</Button></div>}
     </section>;

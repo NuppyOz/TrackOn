@@ -208,7 +208,7 @@ export function Sidebar({
                         },
                         {
                             id: 'inteligencia',
-                            etiqueta: 'IA y negocio',
+                            etiqueta: 'Operación del día',
                             ruta: '/inteligencia/operacion/resumen',
                         },
                     ])}

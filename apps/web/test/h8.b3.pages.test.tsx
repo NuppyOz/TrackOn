@@ -50,7 +50,9 @@ describe('H8 B3 dashboard', () => {
     apiMock.mockResolvedValue(board)
     render(<IndicadoresCalidadPage />)
     await screen.findByRole('heading', { name: 'Indicadores del período' })
-    const first = new URL(String(apiMock.mock.calls[0]?.[0]), 'http://localhost')
+    // La primera llamada es el directorio de clientes; el tablero es la que trae el rango.
+    const boardCall = apiMock.mock.calls.map(llamada => new URL(String(llamada[0]), 'http://localhost')).find(url => url.searchParams.has('desde'))
+    const first = boardCall ?? new URL(String(apiMock.mock.calls[0]?.[0]), 'http://localhost')
     for (const field of ['desde', 'hasta']) expect(first.searchParams.get(field)).toMatch(/T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
     fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-10-01T09:10:11' } })
     fireEvent.change(screen.getByLabelText('Hasta'), { target: { value: '2026-10-20T10:11:12' } })

@@ -14,7 +14,16 @@ const vistas: ReadonlyArray<{ id: Vista; nombre: string }> = [
     { id: 'indicadores', nombre: 'Indicadores' },
 ];
 const estados: EstadoOrden[] = ['BORRADOR', 'PENDIENTE', 'ASIGNADA', 'EN_EJECUCION', 'EN_REVISION', 'CERRADA', 'CANCELADA'];
-const nombreEstado = (estado: string) => estado.replaceAll('_', ' ').toLocaleLowerCase('es').replace(/^./, letra => letra.toUpperCase());
+const nombresEstado: Record<string, string> = {
+    BORRADOR: 'Borrador',
+    PENDIENTE: 'Pendiente',
+    ASIGNADA: 'Asignada',
+    EN_EJECUCION: 'En ejecución',
+    EN_REVISION: 'En revisión',
+    CERRADA: 'Cerrada',
+    CANCELADA: 'Cancelada',
+};
+const nombreEstado = (estado: string) => nombresEstado[estado] ?? estado.replaceAll('_', ' ').toLocaleLowerCase('es');
 const fecha = (valor: string | null) => valor ? new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Managua' }).format(new Date(valor)) : 'Sin programar';
 
 export default function OperacionInteligentePage({ ruta, onOrden }: Readonly<{ ruta: string; onOrden: (id: number) => void }>) {

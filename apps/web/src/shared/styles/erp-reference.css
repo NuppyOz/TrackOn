@@ -187,11 +187,25 @@
     height: 36px;
     flex-shrink: 0;
     background: #dbeef7;
-    color: #53758a;
+    /* 5,84:1 sobre el fondo; con #53758a quedaba en 4,11:1 */
+    color: #3f5d70;
     border-radius: 50%;
     font-size: 11px;
     font-weight: 700;
 }
+/* WCAG 2.2 (2.5.8): un enlace de 17 px de alto no es un objetivo válido.
+   El área de clic crece dentro de la celda sin mover la fila. */
+.erp-ui__table td a,
+.erp-ui__table td button,
+.tk-employee-table td a,
+.tk-employee-table td button,
+.table-wrap td a,
+.table-wrap td button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+}
+
 .erp-location {
     display: flex;
     align-items: center;

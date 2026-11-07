@@ -6,14 +6,31 @@ import { ROLE_CODES } from '../../security/roles.js';
 import { prisma } from '../../infrastructure/prisma.js';
 import { paginacionQueryShape, paginaDesde } from '../../shared/pagination.js';
 
-const filtrosSchema = z.strictObject({ entidad: z.string().trim().max(80).optional(), ...paginacionQueryShape });
+const fechaQuery = z.preprocess(
+    (valor) => (valor === undefined || valor === '' ? undefined : new Date(String(valor))),
+    z.date({ error: 'La fecha del filtro no es válida.' }).optional(),
+);
+const filtrosSchema = z.strictObject({
+    entidad: z.string().trim().max(80).optional(),
+    accion: z.string().trim().max(80).optional(),
+    desde: fechaQuery,
+    hasta: fechaQuery,
+    ...paginacionQueryShape,
+});
 export const auditoriaRouter = Router();
 auditoriaRouter.use(authenticate, authorize(ROLE_CODES.ADMIN));
 auditoriaRouter.get('/', async (req, res, next) => {
     try {
         const filtros = filtrosSchema.parse(req.query);
+        const rango = filtros.desde || filtros.hasta
+            ? { fecha: { ...(filtros.desde ? { gte: filtros.desde } : {}), ...(filtros.hasta ? { lte: filtros.hasta } : {}) } }
+            : {};
         const items = await prisma.auditoria.findMany({
-            where: filtros.entidad ? { entidad: filtros.entidad } : {},
+            where: {
+                ...(filtros.entidad ? { entidad: filtros.entidad } : {}),
+                ...(filtros.accion ? { accion: filtros.accion } : {}),
+                ...rango,
+            },
             skip: (filtros.pagina - 1) * filtros.limite, take: filtros.limite + 1,
             orderBy: [{ fecha: 'desc' }, { id: 'desc' }],
             select: { id: true, entidad: true, entidadId: true, accion: true, fecha: true, tipoActor: true,

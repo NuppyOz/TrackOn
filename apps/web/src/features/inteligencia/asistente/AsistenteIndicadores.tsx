@@ -69,13 +69,16 @@ export function AsistenteIndicadores({ area, desde, hasta }: Readonly<AsistenteI
     if (current) { current.controller.abort(); if (current.request === requestRef.current) requestRef.current++ }
   }, [key])
 
+  // Sin asistente configurado no se dibuja la tarjeta: prometer IA y dejar un
+  // botón apagado ocupa media pantalla y le resta credibilidad al tablero.
+  if (available?.disponible === false) return null
+
   return <section className="asistente-indicadores" aria-label={`Interpretación de indicadores ${areaNames[area]}`}>
     <div className="asistente-heading"><div><h2>Interpretación de indicadores</h2><p>Solicita una lectura breve de los datos agregados de este período.</p></div>
       <Button type="button" variant="secondary" onClick={explain} disabled={!available?.disponible || Boolean(currentState?.loading) || Boolean(availabilityError)} loading={Boolean(currentState?.loading)}>Explicar indicadores</Button>
     </div>
     {availability.loading && availability.key === key && <p role="status">Comprobando disponibilidad…</p>}
     {availabilityError && <p className="asistente-error" role="alert">{availabilityError} <Button type="button" variant="secondary" onClick={() => setAvailabilityRevision(value => value + 1)}>Reintentar</Button></p>}
-    {available?.disponible === false && <p className="asistente-note" role="status">El asistente no está configurado.</p>}
     {currentState?.loading && <p role="status">Preparando interpretación…</p>}
     {currentState?.error && <p className="asistente-error" role="alert">{currentState.error} <Button type="button" variant="secondary" onClick={explain} disabled={!available?.disponible}>Reintentar</Button></p>}
     {result && <Interpretation result={result} area={area} />}

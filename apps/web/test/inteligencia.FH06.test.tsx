@@ -25,7 +25,7 @@ describe('Indicadores financieros FH06', () => {
     render(<IndicadoresFinancierosPage />)
     await waitFor(() => expect(screen.getByText('FAC-042')).toBeTruthy())
     for (const label of ['Facturación', 'Cobros', 'Cuentas por cobrar', 'Cuentas vencidas', 'Costos', 'Resultado registrado', 'Margen']) expect(screen.getByRole('row', { name: new RegExp(label) })).toBeTruthy()
-    expect(screen.getByText(/Base: resultado C\$ 10\.00 ÷ facturación C\$ 80\.00/)).toBeTruthy()
+    expect(screen.getByText(/Base: resultado C\$10\.00 ÷ facturación C\$80\.00/)).toBeTruthy()
     expect(screen.getByText(/2\.000 hora pendientes/)).toBeTruthy()
     const link = screen.getByRole('link', { name: 'FAC-042' })
     expect(link.getAttribute('href')).toBe('/inteligencia/origen/finanzas?comprobanteId=42')

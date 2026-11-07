@@ -1,12 +1,13 @@
 import { AsistenteIndicadores } from '../asistente'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../shared/ui'
+import { formatearMoneda } from '../../../shared/formato'
 import { DataTable, MetricSummary, ModuleHeader, SemanticBadge, type DataTableColumn } from '../../erp-ui/components'
 import { consultarTableroFinanciero } from './financiero.api'
 import type { DesgloseFinanciero, MetricaFinanciera, TableroFinanciero } from './financiero.types'
 import './financiero.css'
 
-const money = (value: string | null | undefined) => value == null ? '—' : `C$ ${value}`
+const money = (value: string | null | undefined) => formatearMoneda(value)
 const fmtDate = (value: string | null | undefined) => value ? new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(new Date(value)) : '—'
 const fmtDateTime = (value: string | null | undefined) => value ? new Intl.DateTimeFormat('es-NI', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Managua' }).format(new Date(value)) : '—'
 const metricDefs = [

@@ -27,7 +27,7 @@ const etiquetas: Record<Seccion, string> = {
     servicios: "Servicios",
     cuadrillas: "Cuadrillas",
     comercial: "Comercial",
-    inteligencia: "IA y negocio",
+    inteligencia: "Inteligencia",
     operaciones: "Operaciones de servicio",
     field: "TrackOn Field",
 };

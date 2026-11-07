@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActionMenu, Button } from '../../../../shared/ui'
+import { formatearMoneda } from '../../../../shared/formato'
 import { createIdempotencyKey } from '../../../../shared/idempotency'
 import { listarClientes } from '../../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../../clientes/clientes.types'
@@ -17,7 +18,7 @@ const LIMIT = 25
 const localDate = (value: string) => new Date(new Date(value).getTime() - 6 * 60 * 60 * 1000).toISOString().slice(0, 16)
 const isoDate = (value: string) => new Date(`${value}:00-06:00`).toISOString()
 const date = (value: string) => new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(new Date(value))
-const money = (value: string) => `C$ ${value}`
+const money = (value: string) => formatearMoneda(value)
 const errorText = (error: unknown) => error instanceof Error ? error.message : 'No se pudo completar la operación.'
 const randomKey = createIdempotencyKey
 const cents = (value: string) => { const [whole, fraction = ''] = value.split('.'); return BigInt(whole || '0') * 100n + BigInt(fraction.padEnd(2, '0')) }
@@ -95,7 +96,8 @@ export function ComprobantesPage({ onBusyChange }: ComprobantesPageProps = {}) {
     { key: 'clienteNombre', header: 'Cliente', render: row => row.clienteNombre },
     { key: 'emisor', header: 'Emisor', render: row => row.emisor },
     { key: 'emitidaEn', header: 'Emisión', render: row => date(row.emitidaEn) },
-    { key: 'saldo', header: 'Saldo', render: row => money(row.saldo) },
+    { key: 'importeFinal', header: 'Importe', render: row => money(row.importeFinal), align: 'end' },
+    { key: 'saldo', header: 'Saldo', render: row => money(row.saldo), align: 'end' },
     { key: 'estado', header: 'Estado', render: row => <SemanticBadge label={row.anuladaEn ? 'Anulado' : 'Vigente'} variant={row.anuladaEn ? 'neutral' : 'success'} /> },
     { key: 'acciones', header: 'Acciones', render: row => <ActionMenu label={`Acciones de ${row.referencia}`}><button type="button" onClick={() => void view(row.id)}>Ver detalle</button></ActionMenu> },
   ]

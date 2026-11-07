@@ -37,11 +37,12 @@ describe('asistente de indicadores', () => {
     expect(article.textContent).toContain('abcdef123456')
   })
 
-  it('muestra configuración ausente sin pedir interpretación', async () => {
+  it('no dibuja la tarjeta cuando el asistente no está configurado', async () => {
     availabilityMock.mockResolvedValue({ disponible: false })
-    render(<AsistenteIndicadores {...props} />)
-    expect(await screen.findByText('El asistente no está configurado.')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Explicar indicadores' }).hasAttribute('disabled')).toBe(true)
+    const { container } = render(<AsistenteIndicadores {...props} />)
+    await waitFor(() => expect(availabilityMock).toHaveBeenCalled())
+    expect(container.querySelector('.asistente-indicadores')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Explicar indicadores' })).toBeNull()
     expect(explainMock).not.toHaveBeenCalled()
   })
 

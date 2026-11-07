@@ -1,6 +1,8 @@
 import { AsistenteIndicadores } from '../asistente'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../shared/ui'
+import { listarClientes } from '../../clientes/clientes.api'
+import { nombreCliente } from '../../clientes/clientes.types'
 import { DataTable, MetricSummary, ModuleHeader, SemanticBadge, type DataTableColumn } from '../../erp-ui/components'
 import { consultarTableroCalidad } from './calidad.api'
 import { fechaHora, initialRange, isoManagua, managuaLocal } from './fechas'
@@ -43,12 +45,12 @@ function badgeEstado(value: string) {
   const variant = value === 'VIGENTE' || value === 'CERRADO' || value === 'RESUELTO' ? 'success' : value === 'FUTURA' || value === 'EN_ATENCION' ? 'info' : value === 'VENCIDA' || value === 'ABIERTO' ? 'warning' : 'neutral'
   return <SemanticBadge label={value.replace('_', ' ')} variant={variant} />
 }
-function sourceLinks(row: DesgloseCalidad) {
+function sourceLinks(row: DesgloseCalidad, nombres: Map<number, string>) {
   if (row.tipo === 'GARANTIA') return <a href={`/inteligencia/origen/calidad?garantiaId=${row.id}`}>{row.referencia}</a>
   if (row.tipo === 'CASO') return <a href={`/inteligencia/origen/calidad?casoId=${row.id}`}>{row.referencia}</a>
   if (row.tipo === 'CORRECTIVA') return <a href={`/inteligencia/origen/calidad?correctivaId=${row.id}`}>{row.descripcion}</a>
   if (row.tipo === 'RETRABAJO') return <a href={`/inteligencia/origen/calidad?casoId=${row.casoId}`}>{row.referenciaTrabajo} · {row.casoReferencia}</a>
-  return <span>{row.clienteId} · {row.activoReferencia} · {row.codigoFalla}</span>
+  return <span>{nombreDeCliente(row.clienteId, nombres)} · {row.activoReferencia} · {row.codigoFalla}</span>
 }
 function searchText(row: DesgloseCalidad): string {
   if (row.tipo === 'GARANTIA') return `${row.referencia} ${row.clienteNombre} ${row.clienteId} ${row.activoReferencia}`
@@ -79,6 +81,9 @@ function breakdownState(row: DesgloseCalidad) {
   if (row.tipo === 'FALLA_REPETIDA') return <span>{row.cantidad} casos agrupados por cliente, activo y falla</span>
   return row.ordenId ? `Orden #${row.ordenId}` : 'Sin orden asociada'
 }
+function nombreDeCliente(id: number, nombres: Map<number, string>) {
+  return nombres.get(id) ?? `Cliente #${id}`
+}
 function rowKey(row: DesgloseCalidad) { return 'clave' in row ? `${row.tipo}-${row.clave}` : `${row.tipo}-${row.id}` }
 
 export function IndicadoresCalidadPage() {
@@ -90,6 +95,7 @@ export function IndicadoresCalidadPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [kind, setKind] = useState<TipoDesgloseCalidad>('TODOS')
+  const [nombresClientes, setNombresClientes] = useState<Map<number, string>>(new Map())
   const [asset, setAsset] = useState('')
   const [failure, setFailure] = useState('')
   const [query, setQuery] = useState('')
@@ -103,6 +109,13 @@ export function IndicadoresCalidadPage() {
     return () => { if (request === requestId.current) requestId.current++ }
   }, [])
   useEffect(() => { let active = true; let cancel = () => {}; queueMicrotask(() => { if (active) cancel = load(range.desde, range.hasta) }); return () => { active = false; cancel() } }, [load, range])
+  useEffect(() => {
+    let vivo = true
+    void listarClientes()
+      .then(clientes => { if (vivo && Array.isArray(clientes)) setNombresClientes(new Map(clientes.map(cliente => [cliente.id, nombreCliente(cliente)]))) })
+      .catch(() => undefined)
+    return () => { vivo = false }
+  }, [])
 
   const fromIso = isoManagua(draftFrom); const untilIso = isoManagua(draftUntil)
   const fromTime = fromIso ? new Date(fromIso).getTime() : Number.NaN; const untilTime = untilIso ? new Date(untilIso).getTime() : Number.NaN
@@ -118,8 +131,8 @@ export function IndicadoresCalidadPage() {
   const pageRows = filtered.slice((page - 1) * PAGE, page * PAGE)
   const columns: DataTableColumn<DesgloseCalidad>[] = [
     { key: 'tipo', header: 'Fuente', render: (row) => <SemanticBadge label={typeLabels[row.tipo]} variant={row.tipo === 'GARANTIA' ? 'success' : row.tipo === 'FALLA_REPETIDA' ? 'warning' : row.tipo === 'CORRECTIVA' ? 'info' : 'neutral'} icon={typeIcon[row.tipo]} /> },
-    { key: 'registro', header: 'Registro', render: (row) => sourceLinks(row) },
-    { key: 'cliente', header: 'Cliente', render: (row) => 'clienteNombre' in row ? `${row.clienteNombre} · #${row.clienteId}` : row.tipo === 'FALLA_REPETIDA' ? `Cliente #${row.clienteId}` : row.casoReferencia },
+    { key: 'registro', header: 'Registro', render: (row) => sourceLinks(row, nombresClientes) },
+    { key: 'cliente', header: 'Cliente', render: (row) => 'clienteNombre' in row ? `${row.clienteNombre} · #${row.clienteId}` : row.tipo === 'FALLA_REPETIDA' ? nombreDeCliente(row.clienteId, nombresClientes) : row.casoReferencia },
     { key: 'activo', header: 'Activo / falla', render: (row) => 'activoReferencia' in row ? `${row.activoReferencia}${row.tipo === 'CASO' ? ` · ${row.codigoFalla}` : row.tipo === 'FALLA_REPETIDA' ? ` · ${row.codigoFalla}` : ''}` : '—' },
     { key: 'fecha', header: 'Fecha', render: breakdownDate },
     { key: 'estado', header: 'Estado al corte', render: breakdownState },

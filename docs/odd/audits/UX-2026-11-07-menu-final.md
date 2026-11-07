@@ -6,6 +6,8 @@
 **Método:** app real levantada en `laptoptrabajo` (API `:3000` + `vite preview` `:5173`), datos de prueba con clientes reales de Nicaragua, capturas a 1440×900 y 390×844, `axe-core 4.10.2`, medición de DOM (`getBoundingClientRect`, `getComputedStyle`, `scrollHeight`) y contraste calculado sobre la página renderizada.
 **Veredicto:** la sección se puede mostrar a un cliente, pero **no se puede entregar como producto terminado**. Hay un problema de confianza (permisos que la pantalla promete y el servidor no aplica), un problema de contraste que afecta a todos los botones primarios y un problema de navegación que obliga a cinco niveles para llegar a un comprobante.
 
+> **Actualización (misma fecha):** se aplicaron las tandas A y C. El estado de cada hallazgo está en la sección 9; P1-2 (cinco niveles de navegación) y P2-9 (densidad) siguen abiertos a propósito, porque mueven la estructura y necesitan tu aprobación.
+
 ---
 
 ## 1. Resumen en cinco puntos
@@ -106,7 +108,7 @@ Con los ocho grupos abiertos, `.erp-sidebar-scroll` mide 1546 px de contenido en
 
 | # | Hallazgo | Evidencia |
 | --- | --- | --- |
-| P2-1 | Fechas ambiguas en filtros: los `datetime-local` se ven `07/10/2026, 09:23 p.m.` y `06/11/2026, 09:23 p.m.` (mm/dd). En una pantalla financiera en español no se sabe si es 7 de octubre o 10 de julio. | captura `int-comercial` |
+| P2-1 | ~~Fechas ambiguas en filtros~~ **Corregido en la revisión:** el campo se ve `07/10/2026, 09:23 p.m.` y ese valor **es** 7 de octubre en `dd/mm`, que es lo correcto para `es-NI`; el rango de 30 días lo confirma. Queda un detalle real: la hora se muestra en formato de 12 h con `p. m.` y el formato del campo lo decide el idioma del sistema operativo del usuario, no la app (con un equipo en inglés vería `mm/dd`). | captura `int-comercial` + lectura del `input.value` |
 | P2-2 | "IA y negocio" promete un asistente que no existe: tarjeta completa con "El asistente no está configurado" y botón deshabilitado en los cuatro tableros. | `int-comercial`, `int-financiero`, `int-logistico`, `int-calidad` |
 | P2-3 | Auditoría sin filtros (ni fecha, ni actor, ni acción) y con datos crudos: entidad `ORDEN_TRABAJO`, registro `12`. | `AuditoriaManager.tsx:21` |
 | P2-4 | El botón "Limpiar" se estira a toda la fila de filtros: 895 px en Usuarios, 785 px y en segunda línea en Cuadrillas. Parece acción primaria sin serlo. | `UsuariosManager.tsx:43`, `CuadrillasManager.tsx:128` |
@@ -168,3 +170,34 @@ Implementar `authorize` por permiso o retirar la pantalla · paginación de usua
 `evidencia/` contiene el JSON de medición (`informe.json`, `medidas.json`, `dashboard.json`) y las capturas:
 
 `00-sidebar.png`, `02-menu-ultimos-4.png`, `01-dashboard.png`, `rh-empleados.png`, `rh-cuadrillas.png`, `adm-usuarios.png`, `adm-auditoria.png`, `int-comercial.png`, `int-financiero.png`, `int-logistico.png`, `int-calidad.png`, `int-operacion.png`, `fin-registros.png`, y las versiones `-viewport.png` y las cuatro móviles (`movil-*.png`).
+
+---
+
+## 9. Estado de las correcciones
+
+**Tanda A — confianza y legibilidad (aplicada).**
+
+| Hallazgo | Qué se hizo | Evidencia |
+| --- | --- | --- |
+| P1-1 contraste del primario (2,99:1) | Token nuevo `--tk-blue-cta: #0b7ab0` sólo para fondos con texto blanco (hover `#08658f`). El azul de marca `#129fdc` sigue igual en bordes, focos e iconos. | medido de nuevo: **4,75:1** |
+| P2-8 avatar 4,11:1 y enlaces 4,21:1 | Avatar a `#3f5d70` (5,84:1); `--erp-color-primary-600` a `#066A9C` (5,47:1 sobre `#f5f6f8`). | medición en la app |
+| P1-4 dos formatos de importe | `shared/formato.ts` con `Intl.NumberFormat('es-NI', { currency: 'NIO' })`; comercial, financiero y comprobantes lo usan. Formato único: `C$131,000.00`. | `shared/formato.ts`, 4 pantallas |
+| P1-3 `Cliente #N` | Los tableros comercial y de calidad resuelven el nombre con el directorio de clientes y caen al id sólo si el cliente no existe. | capturas nuevas |
+| P1-5 comprobantes sin importe | Columna **Importe** antes de **Saldo**, alineada a la derecha. | `ComprobantesPage.tsx` |
+| P2-6 `select` sin etiqueta (axe critical) | Etiqueta visible "Agregar integrante" + `aria-label` en el selector de Cuadrillas. | axe sin `select-name` |
+| P2-7 objetivos < 24 px | Enlaces y botones dentro de celdas con `min-height: 24px` e `inline-flex`; la fila no se mueve. | regla en `erp-reference.css` |
+| P2-4 botón "Limpiar" estirado | `.filters > button` con ancho intrínseco y `justify-self: start`. Ya no ocupa 895 px. | captura de Usuarios |
+| P3 "1 integrantes", "En revision" | Plural correcto y mapa de estados con tildes (`En ejecución`, `En revisión`). | `CuadrillasManager`, `OperacionInteligentePage` |
+
+**Tanda C — permisos, paginación y auditoría (aplicada).**
+
+| Hallazgo | Qué se hizo |
+| --- | --- |
+| P0-1 permisos que el servidor no aplica | La pantalla dejó de mostrar un mapa escrito a mano y la frase falsa. Ahora lista los perfiles reales, las cuentas de cada perfil y **los permisos registrados por usuario** que devuelve la API, y dice con todas las letras que el servidor autoriza por perfil y que los permisos por usuario todavía no restringen el acceso. **Sigue pendiente la decisión de producto:** implementar `requirePermission` o retirar la sección. |
+| P2-12 usuarios sin paginación | 10 cuentas por página con "Página X de Y · N cuentas" y `aria-live`. |
+| P2-3 auditoría sin filtros | Filtros de entidad, acción y rango de fechas (parámetros nuevos en `GET /api/auditoria`: `accion`, `desde`, `hasta`), entidades y acciones traducidas a lenguaje de negocio, y el registro con `#`. |
+| P2-2 "IA y negocio" sin asistente | La tarjeta del asistente no se dibuja si el proveedor no está configurado. El ítem del menú pasa a **Operación del día** y la sección se llama **Inteligencia** en la migaja y en el encabezado oculto. |
+
+**Sigue abierto (necesita decisión, no código):** P1-2 y la duplicación de pestañas de Inteligencia · P2-9 densidad de los tableros · P2-10 denominador de la conversión · P0-1 en su parte de backend · P2-1 en su parte de formato de hora.
+
+**Límite de esta tanda:** los cambios se verificaron con `tsc` (api y web), la suite de pruebas web y axe en las rutas tocadas. La API de auditoría se probó con `curl` contra el servicio recompilado, no con pruebas automatizadas de integración (este equipo no tiene Docker para levantar la base de pruebas).

@@ -72,10 +72,10 @@ describe("Layout responsive de TrackOn", () => {
         const sidebar = document.querySelector('aside')!;
         const opciones = within(sidebar).getAllByRole('button', { hidden: true });
         expect(opciones[0].textContent).toContain('Resumen general');
-        expect(within(sidebar).getByRole('navigation', {name: 'Inteligencia y control', hidden: true}).textContent).toContain('IA y negocio');
+        expect(within(sidebar).getByRole('navigation', {name: 'Inteligencia y control', hidden: true}).textContent).toContain('Operación del día');
         expect(within(sidebar).getByRole('navigation', { name: 'Gestión comercial y clientes', hidden: true })).toBeTruthy();
         expect(within(sidebar).getByRole('navigation', { name: 'Inteligencia y control', hidden: true })).toBeTruthy();
-        fireEvent.click(within(sidebar).getByRole('button', { name: 'IA y negocio', hidden: true }));
+        fireEvent.click(within(sidebar).getByRole('button', { name: 'Operación del día', hidden: true }));
         expect(onNavigate).toHaveBeenCalledWith('inteligencia');
     });
 
