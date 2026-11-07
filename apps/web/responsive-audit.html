@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="dist/assets/index-I6BMFssw.css" />
+  <title>TrackOn responsive audit</title>
+</head>
+<body>
+  <div id="root">
+    <div class="app-shell">
+      <header class="topbar figma-topbar">
+        <button class="menu-toggle" aria-label="Abrir navegación">☰</button>
+        <div class="figma-brand-lockup"><span class="figma-brand-product">TrackOn</span><span class="figma-brand-tagline">Gestión operativa</span></div>
+        <div class="topbar-context figma-user-actions"><div class="figma-user-info"><strong>María López</strong><small>Administración</small></div><span class="figma-user-avatar">ML</span></div>
+      </header>
+      <aside class="sidebar figma-sidebar"><div class="figma-sidebar-groups"><div class="figma-sidebar-group"><p>GESTIÓN OPERATIVA</p><nav><button class="figma-nav-link selected">Centro operativo</button><button class="figma-nav-link">Órdenes</button><button class="figma-nav-link">Agenda</button></nav></div></div></aside>
+      <main class="workspace">
+        <section>
+          <div class="section-heading"><div><h2>Equipos</h2><p>Inventario técnico y ubicaciones registradas.</p></div><button class="primary-button">Registrar equipo</button></div>
+          <div class="card list-card">
+            <form class="filters"><input placeholder="Buscar equipo" /><select><option>Todos los estados</option></select><button class="secondary-button">Buscar</button><button class="text-button">Limpiar</button></form>
+            <div class="table-wrap" tabindex="0">
+              <table><thead><tr><th>Equipo</th><th>Cliente / ubicación</th><th>Serie</th><th data-align="center">Estado</th><th data-align="actions">Acciones</th></tr></thead>
+              <tbody>
+                <tr><td><strong>EQ-001</strong><small>Minisplit Inverter</small></td><td>Clínica Central<small>Sala de espera principal</small></td><td>SN-20394821</td><td data-align="center"><span class="status active">Activo</span></td><td class="actions" data-align="actions"><button>Editar</button><button>Desactivar</button></td></tr>
+                <tr><td><strong>EQ-002</strong><small>Unidad central</small></td><td>Edificio Norte<small>Segundo piso</small></td><td>SN-88712003</td><td data-align="center"><span class="status active">Activo</span></td><td class="actions" data-align="actions"><button>Editar</button><button>Desactivar</button></td></tr>
+              </tbody></table>
+            </div>
+            <nav class="shared-pagination" aria-label="Paginación">
+              <div class="shared-pagination__summary"><strong>1–10 de 84 equipos</strong></div>
+              <div class="shared-pagination__actions"><button class="button button--secondary"><span class="shared-pagination__nav-label">Anterior</span></button><span class="shared-pagination__pages"><span class="shared-pagination__current">1</span><button class="shared-pagination__page">2</button><button class="shared-pagination__page">3</button><span class="shared-pagination__ellipsis">…</span><button class="shared-pagination__page">9</button></span><button class="button button--secondary"><span class="shared-pagination__nav-label">Siguiente</span></button></div>
+              <label class="shared-pagination__size">Mostrar<select><option>10</option></select><span>por página</span></label>
+            </nav>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

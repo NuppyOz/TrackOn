@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
 import { cambiarEstadoEquipo, crearEquipo, editarEquipo, listarEquipos, listarUbicaciones } from "./equipos.api";
 import type { Equipo, EquipoFiltros, EquipoInput, Ubicacion } from "./equipos.types";
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
-import { TablePagination } from '../../shared/ui';
+import { DataTable, RowActions, TablePagination } from '../../shared/ui';
+import TableActionButton from '../../shared/TableActionButton';
+import { DEFAULT_PAGE_SIZE } from '../../shared/pagination';
+import ConfirmDialog from '../../shared/ConfirmDialog';
 
-const LIMITE = 25;
+const LIMITE = DEFAULT_PAGE_SIZE;
 const filtrosIniciales: EquipoFiltros = {
     clienteId: "",
     ubicacionId: "",
@@ -65,6 +68,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
     const cargando = consultando || pendiente;
     const [guardando, setGuardando] = useState(false);
     const [cambiandoEstadoId, setCambiandoEstadoId] = useState<number | null>(null);
+    const [confirmacionEstado, setConfirmacionEstado] = useState<Equipo | null>(null);
     const [mensaje, setMensaje] = useState<Mensaje | null>(null);
 
     const clientes = useMemo(() => {
@@ -260,6 +264,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
         setMensaje(null);
         try {
             await cambiarEstadoEquipo(equipo.id, !equipo.activo);
+            setConfirmacionEstado(null);
             setMensaje({ tipo: "exito", texto: equipo.activo ? "Equipo desactivado." : "Equipo reactivado." });
             actualizarListado();
         } catch (error) {
@@ -294,7 +299,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                 </div>
                 {puedeGestionar && !formularioVisible && (
                     <button className="primary-button" type="button" onClick={comenzarRegistro}>
-                        + Registrar equipo
+                        Registrar equipo
                     </button>
                 )}
             </div>
@@ -317,7 +322,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                 onClick={cerrarFormulario}
                                 disabled={guardando}
                             >
-                                ← Equipos
+                                Volver a equipos
                             </button>
                         </div>
                         <label>
@@ -466,71 +471,65 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                             </button>
                         </form>
 
-                        <TablePagination pagina={pagina} limite={LIMITE} hayMas={hayMas} cargando={cargando} cantidad={equipos.length} etiqueta="equipos"
-                            onPagina={valor => { setCargando(true); setPagina(valor); }} />
                         {cargando && <output className="empty">Cargando inventario…</output>}
                         {!cargando && equipos.length === 0 && (
                             <p className="empty">No hay equipos que coincidan con los filtros.</p>
                         )}
                         {!cargando && equipos.length > 0 && (
-                            <div className="table-wrap">
-                                <table>
+                            <DataTable label="Equipos">
                                     <thead>
                                         <tr>
                                             <th>Equipo</th>
                                             <th>Cliente / ubicación</th>
                                             <th>Serie</th>
-                                            <th>Estado</th>
-                                            <th>Acciones</th>
+                                            <th data-align="center">Estado</th>
+                                            <th data-align="actions">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {equipos.map(equipo => (
                                             <tr key={equipo.id}>
-                                                <td>
+                                                <td data-label="Equipo">
                                                     <strong>{equipo.codigo}</strong>
                                                     <span>{`${equipo.tipo} · ${[equipo.marca, equipo.modelo].filter(Boolean).join(" ") || "Sin marca/modelo"}`}</span>
                                                 </td>
-                                                <td>
+                                                <td data-label="Cliente / ubicación">
                                                     <strong>{nombreCliente(equipo.ubicacion)}</strong>
                                                     <span>{equipo.ubicacion.nombre}</span>
                                                 </td>
-                                                <td>{equipo.numeroSerie ?? "—"}</td>
-                                                <td>
+                                                <td data-label="Serie">{equipo.numeroSerie ?? "—"}</td>
+                                                <td data-label="Estado" data-align="center">
                                                     <span className={`status ${equipo.activo ? "active" : "inactive"}`}>
                                                         {equipo.activo ? "Activo" : "Inactivo"}
                                                     </span>
                                                 </td>
-                                                <td className="actions">
+                                                <td data-label="Acciones" data-align="actions" className="tk-shared-actions-cell">
                                                     {puedeGestionar && (
-                                                        <>
-                                                            <button
-                                                                type="button"
+                                                        <RowActions className="tk-table-actions" label={`Acciones de equipo ${equipo.codigo}`}>
+                                                            <TableActionButton action="edit" disabled={cambiandoEstadoId !== null}
+                                                                onClick={() => comenzarEdicion(equipo)}>Editar</TableActionButton>
+                                                            <TableActionButton action={equipo.activo ? 'deactivate' : 'activate'}
                                                                 disabled={cambiandoEstadoId !== null}
-                                                                onClick={() => comenzarEdicion(equipo)}
-                                                            >
-                                                                Editar
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                disabled={cambiandoEstadoId !== null}
-                                                                onClick={() => void cambiarEstado(equipo)}
-                                                            >
+                                                                onClick={() => equipo.activo ? setConfirmacionEstado(equipo) : void cambiarEstado(equipo)}>
                                                                 {textoAccionEstado(equipo, cambiandoEstadoId)}
-                                                            </button>
-                                                        </>
+                                                            </TableActionButton>
+                                                        </RowActions>
                                                     )}
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
-                                </table>
-                            </div>
+                            </DataTable>
                         )}
+                        <TablePagination pagina={pagina} limite={LIMITE} hayMas={hayMas} cargando={cargando} cantidad={equipos.length} etiqueta="equipos"
+                            onPagina={valor => { setCargando(true); setPagina(valor); }} />
                     </div>
                 )}
             </div>
+            {confirmacionEstado && <ConfirmDialog titulo={`Desactivar ${confirmacionEstado.codigo}`}
+                descripcion="El equipo dejará de estar disponible para nuevas operaciones, sin eliminar su historial."
+                etiquetaConfirmar="Sí, desactivar" variante="danger" procesando={cambiandoEstadoId === confirmacionEstado.id}
+                onCancel={() => setConfirmacionEstado(null)} onConfirm={() => void cambiarEstado(confirmacionEstado)} />}
         </section>
     );
 }

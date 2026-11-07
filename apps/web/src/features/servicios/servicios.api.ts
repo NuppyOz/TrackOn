@@ -1,12 +1,12 @@
 import { api } from '../../shared/api'
 import type { EstadoServicio, Servicio, ServicioInput } from './servicios.types'
-import type { Pagina } from '../../shared/pagination'
+import { DEFAULT_PAGE_SIZE, type Pagina } from '../../shared/pagination'
 
-export function listarServicios(estado: EstadoServicio, buscar: string, pagina = 1, limite = 25) {
+export function listarServicios(estado: EstadoServicio, buscar: string, pagina = 1, limite = DEFAULT_PAGE_SIZE) {
   const query = new URLSearchParams({ estado })
   if (buscar) query.set('buscar', buscar)
   if (pagina !== 1) query.set('pagina', String(pagina))
-  if (limite !== 25) query.set('limite', String(limite))
+  query.set('limite', String(limite))
   return api<Pagina<Servicio>>(`/api/servicios?${query}`)
 }
 export function crearServicio(datos: ServicioInput) { return api<Servicio>('/api/servicios', { method: 'POST', body: JSON.stringify(datos) }) }

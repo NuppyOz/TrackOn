@@ -2,7 +2,9 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import { cambiarEstadoServicio, crearServicio, editarServicio, listarServicios } from "./servicios.api";
 import type { EstadoServicio, Servicio, ServicioInput } from "./servicios.types";
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
-import { DataTable, TablePagination } from '../../shared/ui';
+import { DataTable, RowActions, TablePagination } from '../../shared/ui';
+import TableActionButton from '../../shared/TableActionButton';
+import ConfirmDialog from '../../shared/ConfirmDialog';
 
 const vacio = { codigo: "", nombre: "", descripcion: "" };
 const filtrosIniciales = { estado: 'todos' as EstadoServicio, buscar: '' };
@@ -23,6 +25,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
     const [formularioVisible, setFormularioVisible] = useState(false);
     const [pagina, setPagina] = useState(1);
     const [hayMas, setHayMas] = useState(false);
+    const [confirmacion, setConfirmacion] = useState<Servicio | null>(null);
 
     function cargar() {
         setCargando(true);
@@ -88,10 +91,12 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
         }
     }
     async function cambiarEstado(servicio: Servicio) {
-        if (!puedeGestionar) return;
+        if (!puedeGestionar || guardando) return;
+        setGuardando(true);
         setMensaje(null);
         try {
             await cambiarEstadoServicio(servicio.id, !servicio.activo);
+            setConfirmacion(null);
             setMensaje({ tipo: "exito", texto: `Servicio ${servicio.activo ? "desactivado" : "reactivado"}.` });
             await cargar();
         } catch (error) {
@@ -99,7 +104,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                 tipo: "error",
                 texto: error instanceof Error ? error.message : "No se pudo cambiar el estado.",
             });
-        }
+        } finally { setGuardando(false); }
     }
 
     let titulo = "Catálogo de servicios";
@@ -122,8 +127,8 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                         <tr>
                             <th>Servicio</th>
                             <th>Descripción</th>
-                            <th>Estado</th>
-                            <th aria-label="Acciones"></th>
+                            <th data-align="center">Estado</th>
+                            <th data-align="actions" aria-label="Acciones"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -134,22 +139,20 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                                     <span>{servicio.codigo}</span>
                                 </td>
                                 <td data-label="Descripción">{servicio.descripcion ?? "Sin descripción"}</td>
-                                <td data-label="Estado">
+                                <td data-label="Estado" data-align="center">
                                     <span className={`status ${servicio.activo ? "active" : "inactive"}`}>
                                         {servicio.activo ? "Activo" : "Inactivo"}
                                     </span>
                                 </td>
-                                <td className="actions">
+                                <td data-label="Acciones" data-align="actions" className="tk-shared-actions-cell">
                                     {puedeGestionar && (
-                                        <>
-                                            <button type="button" onClick={() => editar(servicio)}>
-                                                Ver / editar
-                                            </button>
-
-                                            <button type="button" onClick={() => void cambiarEstado(servicio)}>
+                                        <RowActions className="tk-table-actions" label={`Acciones de servicio ${servicio.codigo}`}>
+                                            <TableActionButton action="edit" onClick={() => editar(servicio)}>Editar</TableActionButton>
+                                            <TableActionButton action={servicio.activo ? 'deactivate' : 'activate'}
+                                                onClick={() => servicio.activo ? setConfirmacion(servicio) : void cambiarEstado(servicio)}>
                                                 {servicio.activo ? "Desactivar" : "Activar"}
-                                            </button>
-                                        </>
+                                            </TableActionButton>
+                                        </RowActions>
                                     )}
                                 </td>
                             </tr>
@@ -176,7 +179,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                             setFormularioVisible(true);
                         }}
                     >
-                        + Crear servicio
+                        Crear servicio
                     </button>
                 )}
             </div>
@@ -191,7 +194,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                         <div className="card-title">
                             <h3>Datos del servicio</h3>
                             <button type="button" className="text-button" onClick={cancelar}>
-                                ← Servicios
+                                Volver a servicios
                             </button>
                         </div>
                         <label>
@@ -256,11 +259,15 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                             </button>
                             <button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
                         </form>
-                        <TablePagination pagina={pagina} hayMas={hayMas} cargando={cargando} cantidad={servicios.length} etiqueta="servicios" onPagina={setPagina} />
                         {contenidoLista()}
+                        <TablePagination pagina={pagina} hayMas={hayMas} cargando={cargando} cantidad={servicios.length} etiqueta="servicios" onPagina={setPagina} />
                     </div>
                 )}
             </div>
+            {confirmacion && <ConfirmDialog titulo={`Desactivar ${confirmacion.nombre}`}
+                descripcion="El servicio dejará de estar disponible para nuevas operaciones; los registros existentes conservarán su información."
+                etiquetaConfirmar="Sí, desactivar" variante="danger" procesando={guardando}
+                onCancel={() => setConfirmacion(null)} onConfirm={() => void cambiarEstado(confirmacion)} />}
         </section>
     );
 }

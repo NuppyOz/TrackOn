@@ -5,6 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
     listar: vi.fn(), listarDisponibles: vi.fn(), vincular: vi.fn(), registrarDiagnostico: vi.fn(),
     rol: 'ADMIN', autenticado: true,
+    findFirst: vi.fn(),
+}));
+vi.mock('../src/infrastructure/prisma.js', () => ({
+    prisma: { ordenTrabajo: { findFirst: mocks.findFirst } },
 }));
 vi.mock('../src/modules/ordenes/ordenes.equipos.service.js', () => ({
     listar: mocks.listar,
@@ -32,6 +36,8 @@ app.use(manageErrors);
 beforeEach(() => {
     vi.resetAllMocks();
     mocks.rol = 'ADMIN'; mocks.autenticado = true;
+    // Simula una orden activa asignada al técnico, sin conectar con PostgreSQL.
+    mocks.findFirst.mockResolvedValue({ id: 4 });
     mocks.listar.mockResolvedValue([]);
     mocks.listarDisponibles.mockResolvedValue([]);
     mocks.vincular.mockResolvedValue({ id: 15 });
@@ -39,10 +45,23 @@ beforeEach(() => {
 });
 
 describe('HTTP de equipos y diagnósticos de una OT', () => {
-    it('permite consultar equipos a TEC', async () => {
+    it('permite consultar equipos a TEC solo cuando la orden está asignada', async () => {
         mocks.rol = 'TEC';
         expect((await request(app).get('/api/ordenes/4/equipos')).status).toBe(200);
+        expect(mocks.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+            where: expect.objectContaining({
+                id: 4,
+                estadoCodigo: { in: ['ASIGNADA', 'EN_EJECUCION', 'EN_REVISION'] },
+                asignaciones: expect.objectContaining({ some: expect.objectContaining({ fin: null }) }),
+            }),
+        }));
         expect(mocks.listar).toHaveBeenCalledWith(4);
+    });
+    it('oculta equipos de órdenes no asignadas al técnico', async () => {
+        mocks.rol = 'TEC';
+        mocks.findFirst.mockResolvedValue(null);
+        expect((await request(app).get('/api/ordenes/4/equipos')).status).toBe(404);
+        expect(mocks.listar).not.toHaveBeenCalled();
     });
     it('no permite consultar sin autenticación', async () => {
         mocks.autenticado = false;

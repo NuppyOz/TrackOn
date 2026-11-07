@@ -91,9 +91,23 @@ export function crear(datos: CrearOrdenInput, usuarioId: number, historicos: Dat
     });
 }
 
-export async function listar(filtros: ListarOrdenesInput) {
+export async function listar(filtros: ListarOrdenesInput, actor?: ActorOrden) {
+    // AND evita que un filtro solicitado (p. ej. estado=CANCELADA) invalide
+    // el límite de visibilidad de una persona técnica.
+    const filtroTecnico = actor?.rol === 'TEC' ? { AND: [
+        { estadoCodigo: { in: ['ASIGNADA', 'EN_EJECUCION', 'EN_REVISION'] as EstadoOrdenCodigo[] } },
+        { asignaciones: { some: {
+            fin: null,
+            OR: [
+                { empleadoResponsableId: actor.empleadoId },
+                { tecnicos: { some: { empleadoId: actor.empleadoId } } },
+                { cuadrilla: { is: { miembros: { some: { empleadoId: actor.empleadoId, fin: null } } } } },
+            ],
+        } } },
+    ] } : {};
     const items = await prisma.ordenTrabajo.findMany({
         where: {
+            ...filtroTecnico,
             ...(filtros.estado ? { estadoCodigo: filtros.estado } : {}),
             ...(filtros.prioridad ? { prioridad: filtros.prioridad } : {}),
             ...(filtros.clienteId ? { ubicacion: { clienteId: filtros.clienteId } } : {}),

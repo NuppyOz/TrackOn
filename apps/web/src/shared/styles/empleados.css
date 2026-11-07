@@ -11,12 +11,13 @@
 .tk-employee-primary:hover:not(:disabled) { background: var(--tk-blue-dark, #087db5); }
 .tk-employee-secondary { background: var(--tk-soft-purple, #f3f1f6); color: var(--tk-purple, #2f254d); border-color: var(--tk-border, #e6e2ec); }
 .tk-employee-secondary:hover:not(:disabled) { background: #eae6f0; }
-.tk-employee-panel, .tk-employee-filters, .tk-employee-stats > div { background: #fff; border: 1px solid var(--tk-border, #e6e2ec); border-radius: 10px; box-shadow: 0 2px 5px rgb(47 37 77 / 3%); }
-.tk-employee-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
-.tk-employee-stats > div { display: grid; gap: 8px; padding: 18px 20px; }
+.tk-employee-panel { background: #fff; border: 1px solid var(--tk-border, #e6e2ec); border-radius: var(--tk-radius); box-shadow: none; }
+.tk-employee-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-bottom: 18px; border: 1px solid var(--tk-border); border-radius: var(--tk-radius); background: #fff; }
+.tk-employee-stats > div { display: grid; gap: 8px; padding: 16px 20px; }
+.tk-employee-stats > div + div { border-left: 1px solid var(--tk-border); }
 .tk-employee-stats span { color: var(--tk-muted, #454b55); font-size: 12px; }
 .tk-employee-stats strong { font-size: 25px; line-height: 1.2; font-weight: 700; color: var(--tk-purple, #2f254d); }
-.tk-employee-filters { display: grid; grid-template-columns: minmax(200px, 2fr) repeat(2, minmax(140px, 1fr)) auto; align-items: end; gap: 14px; padding: 20px; margin-bottom: 16px; }
+.tk-employee-filters { display: grid; grid-template-columns: minmax(200px, 2fr) repeat(2, minmax(140px, 1fr)) auto; align-items: end; gap: 14px; padding: 0 0 18px; margin-bottom: 16px; border-bottom: 1px solid var(--tk-border); }
 .tk-employee-filters label, .tk-employee-field { display: grid; gap: 8px; min-width: 0; }
 .tk-employee-filters label span, .tk-employee-field > span { font-size: 12px; font-weight: 600; }
 .tk-employee-filters input, .tk-employee-filters select, .tk-employee-field input, .tk-employee-field select { background: #fff; border: 1px solid #e4e3ea; border-radius: 6px; min-height: 40px; padding: 9px 12px; width: 100%; min-width: 0; color: var(--tk-text, #202124); font-size: 13px; }
@@ -75,11 +76,11 @@
 @media(max-width: 767px) {
     .tk-employee-heading { flex-direction: column; align-items: stretch; }
     .tk-employee-heading h2 { font-size: 26px; }
-    .tk-employee-stats { gap: 8px; }
+    .tk-employee-stats { gap: 0; }
     .tk-employee-stats > div { padding: 13px 10px; }
     .tk-employee-stats span { font-size: 10px; }
     .tk-employee-stats strong { font-size: 22px; }
-    .tk-employee-filters { grid-template-columns: minmax(0,1fr); padding: 16px; }
+    .tk-employee-filters { grid-template-columns: minmax(0,1fr); padding: 0 0 16px; }
     .tk-employee-table-wrap { overflow: visible; padding: 0 12px; }
     .tk-employee-table, .tk-employee-table tbody, .tk-employee-table tr, .tk-employee-table td { display: block; width: 100%; min-width: 0; }
     .tk-employee-table thead { display: none; }

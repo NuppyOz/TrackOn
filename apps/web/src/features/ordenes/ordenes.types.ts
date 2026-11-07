@@ -14,7 +14,7 @@ export interface AsignacionResumen {
 export interface AsignarOrdenInput {
     cuadrillaId: number;
     motivo: string;
-    fechaProgramada?: string;
+    fechaProgramada: string;
 }
 
 export interface OrdenResumen {

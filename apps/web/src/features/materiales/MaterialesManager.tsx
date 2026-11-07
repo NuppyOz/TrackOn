@@ -1,6 +1,7 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { cambiarEstadoMaterial, crearMaterial, editarMaterial, listarMateriales, type EstadoMaterial, type Material, type MaterialInput } from './materiales.api';
-import { Button, DataTable, StatePanel, StatusBadge, TablePagination } from '../../shared/ui';
+import { Button, DataTable, RowActions, StatePanel, StatusBadge, TablePagination } from '../../shared/ui';
+import TableActionButton from '../../shared/TableActionButton';
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
 
 const vacio: MaterialInput = { codigo: '', nombre: '', unidadMedida: '' };
@@ -59,7 +60,7 @@ export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGe
     return <section aria-labelledby="materiales-titulo">
         <div className="section-heading"><div><h2 id="materiales-titulo">{formulario ? (editando ? 'Editar material' : 'Registrar material') : 'Materiales'}</h2>
             <p>Administra los insumos y sus unidades para registrar el consumo en cada intervención.</p></div>
-            {puedeGestionar && !formulario && <Button variant="primary" onClick={() => { setEditando(null); setFormulario({ ...vacio }); setMensaje(null); }}>+ Registrar material</Button>}
+            {puedeGestionar && !formulario && <Button variant="primary" onClick={() => { setEditando(null); setFormulario({ ...vacio }); setMensaje(null); }}>Registrar material</Button>}
         </div>
         {mensaje && <div className={`notice ${mensaje.error ? 'error' : 'exito'}`} role={mensaje.error ? 'alert' : 'status'}>{mensaje.texto}</div>}
         {formulario ? <form className="card form-card" onSubmit={event => void guardar(event)}>
@@ -76,17 +77,19 @@ export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGe
                     <option value="activos">Activos</option><option value="inactivos">Inactivos</option><option value="todos">Todos</option>
                 </select><Button type="submit">Buscar</Button><Button type="button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</Button>
             </form>
-            <TablePagination pagina={aplicados.pagina} hayMas={datos.hayMas} cargando={cargando} cantidad={datos.items.length} etiqueta="materiales"
-                onPagina={pagina => { setCargando(true); aplicarFiltros({ ...aplicados, pagina }); }} />
             {cargando ? <StatePanel type="loading" title="Cargando materiales…" /> : datos.items.length === 0 ? <StatePanel type="empty" title="No hay materiales para estos filtros" /> :
-                <DataTable label="Materiales"><thead><tr><th>Material</th><th>Unidad de medida</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+                <DataTable label="Materiales"><thead><tr><th>Material</th><th>Unidad de medida</th><th data-align="center">Estado</th><th data-align="actions">Acciones</th></tr></thead><tbody>
                     {datos.items.map(material => <tr key={material.id}>
                         <td data-label="Material"><strong>{material.nombre}</strong><small>{material.codigo}</small></td><td data-label="Unidad">{material.unidadMedida}</td>
-                        <td data-label="Estado"><StatusBadge active={material.activo} /></td><td data-label="Acciones" className="actions">{puedeGestionar && <>
-                            <Button onClick={() => { setEditando(material.id); setFormulario({ codigo: material.codigo, nombre: material.nombre, unidadMedida: material.unidadMedida }); }}>Editar</Button>
-                            <Button onClick={() => setConfirmacion(material)}>{material.activo ? 'Desactivar' : 'Activar'}</Button>
-                        </>}</td></tr>)}
+                        <td data-label="Estado" data-align="center"><StatusBadge active={material.activo} /></td><td data-label="Acciones" data-align="actions" className="tk-shared-actions-cell">{puedeGestionar && (
+                            <RowActions className="tk-table-actions" label={`Acciones de material ${material.codigo}`}>
+                                <TableActionButton action="edit" onClick={() => { setEditando(material.id); setFormulario({ codigo: material.codigo, nombre: material.nombre, unidadMedida: material.unidadMedida }); }}>Editar</TableActionButton>
+                                <TableActionButton action={material.activo ? 'deactivate' : 'activate'} onClick={() => setConfirmacion(material)}>{material.activo ? 'Desactivar' : 'Activar'}</TableActionButton>
+                            </RowActions>
+                        )}</td></tr>)}
                 </tbody></DataTable>}
+            <TablePagination pagina={aplicados.pagina} hayMas={datos.hayMas} cargando={cargando} cantidad={datos.items.length} etiqueta="materiales"
+                onPagina={pagina => { setCargando(true); aplicarFiltros({ ...aplicados, pagina }); }} />
         </div>}
         {confirmacion && <div className="card form-card" role="dialog" aria-modal="false" aria-labelledby="material-confirmar">
             <h3 id="material-confirmar">{confirmacion.activo ? 'Desactivar' : 'Activar'} {confirmacion.nombre}</h3>

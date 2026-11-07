@@ -14,7 +14,7 @@ beforeEach(() => {
 
 describe('Servicio de asignación de órdenes', () => {
     it('devuelve orden actualizada con número serializable', async () => {
-        const input = { cuadrillaId: 4, motivo: 'Asignación inicial' };
+        const input = { cuadrillaId: 4, motivo: 'Asignación inicial', fechaProgramada: '2026-11-07T14:00:00-06:00' };
         const salida = await asignar(8, input, 3);
         expect(salida.numero).toBe('80');
         expect(mocks.registrarAsignacion).toHaveBeenCalledWith(8, input, 3);
@@ -23,7 +23,7 @@ describe('Servicio de asignación de órdenes', () => {
 
     it('mantiene los errores de persistencia', async () => {
         mocks.registrarAsignacion.mockRejectedValue(new Error('Error de base de datos'));
-        await expect(asignar(8, { cuadrillaId: 4, motivo: 'Asignación' }, 3)).rejects.toThrow('Error de base de datos');
+        await expect(asignar(8, { cuadrillaId: 4, motivo: 'Asignación', fechaProgramada: '2026-11-07T14:00:00-06:00' }, 3)).rejects.toThrow('Error de base de datos');
     });
 
     it('gestiona ausencia posterior de la orden', async () => {

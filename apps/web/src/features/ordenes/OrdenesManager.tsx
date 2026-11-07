@@ -13,8 +13,10 @@ import DesactivarOrdenForm from './DesactivarOrdenForm';
 import OrdenAcciones from './OrdenAcciones';
 import { permiteAccionOrden, type AccionOrden } from './ordenes.acciones';
 import { TablePagination } from '../../shared/ui';
+import { Search, SlidersHorizontal } from 'lucide-react';
+import { DEFAULT_PAGE_SIZE } from '../../shared/pagination';
 
-const filtrosIniciales: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 25 };
+const filtrosIniciales: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: DEFAULT_PAGE_SIZE };
 const estados: EstadoOrden[] = [
     'BORRADOR', 'PENDIENTE', 'ASIGNADA', 'EN_EJECUCION', 'EN_REVISION', 'CERRADA', 'CANCELADA',
 ];
@@ -24,6 +26,13 @@ const siguientes: Partial<Record<EstadoOrden, EstadoOrden[]>> = {
     EN_EJECUCION: ['EN_REVISION'],
     EN_REVISION: ['EN_EJECUCION', 'CERRADA'],
 };
+function permiteTransicion(estadoActual: EstadoOrden, destino: EstadoOrden, puedeGestionar: boolean): boolean {
+    if (!(siguientes[estadoActual] ?? []).includes(destino)) return false;
+    return puedeGestionar ||
+        (estadoActual === 'ASIGNADA' && destino === 'EN_EJECUCION') ||
+        (estadoActual === 'EN_EJECUCION' && destino === 'EN_REVISION');
+}
+
 const indicacionesEstado: Record<EstadoOrden, string> = {
     BORRADOR: 'Publica la orden para poder asignar una cuadrilla.',
     PENDIENTE: 'Pendiente de asignar una cuadrilla.',
@@ -179,8 +188,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
         const boton = (event.nativeEvent as SubmitEvent).submitter;
         if (!detalle || guardando || !(boton instanceof HTMLButtonElement)) return;
         const nuevoEstado = boton.value as EstadoOrden;
-        const opciones = siguientes[detalle.estadoCodigo] ?? [];
-        if (!opciones.includes(nuevoEstado) || (!puedeGestionar && nuevoEstado !== 'EN_EJECUCION' && nuevoEstado !== 'EN_REVISION')) return;
+        if (!permiteTransicion(detalle.estadoCodigo, nuevoEstado, puedeGestionar)) return;
         if (motivo.trim().length < 3) { setMensaje({ tipo: 'error', texto: 'Indica un motivo de al menos tres caracteres.' }); return; }
         setGuardando(true); setMensaje(null);
         try {
@@ -203,7 +211,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
 
     function contenidoDetalle() {
         if (!detalle) return null;
-        const opciones = (siguientes[detalle.estadoCodigo] ?? []).filter(estado => puedeGestionar || estado === 'EN_EJECUCION' || estado === 'EN_REVISION');
+        const opciones = (siguientes[detalle.estadoCodigo] ?? []).filter(estado => permiteTransicion(detalle.estadoCodigo, estado, puedeGestionar));
         const asignacion = detalle.asignaciones?.[0];
         const etiquetaCambio = (estado: EstadoOrden) => estado === 'PENDIENTE' ? 'Publicar orden'
             : estado === 'EN_REVISION' ? 'Enviar a revisión' : estado === 'CERRADA' ? 'Cerrar orden'
@@ -234,6 +242,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                 )}</details>
                 {opciones.length > 0 && (
                         <form className="tk-order-next-step" onSubmit={event => void actualizarEstado(event)}>
+                            {mensaje?.tipo === 'error' && <p className="notice error" role="alert">{mensaje.texto}</p>}
                             <label>Motivo del cambio
                                 <textarea aria-label="Motivo del cambio" value={motivo}
                                     onChange={event => setMotivo(event.target.value)} minLength={3}
@@ -259,22 +268,22 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
             </div>
         );
         return (
-            <div className="table-wrap">
+            <div className="table-wrap" role="region" aria-label="Tabla: Órdenes" tabIndex={0}>
                 <table className="tk-orders-table">
                     <thead>
                         <tr>
-                            <th>OT</th>
+                            <th data-align="center">OT</th>
                             <th>Cliente / solicitud</th>
                             <th>Asignación</th>
-                            <th>Programación</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
+                            <th data-align="center">Programación</th>
+                            <th data-align="center">Estado</th>
+                            <th data-align="actions">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {pagina.items.map(orden => (
                             <tr key={orden.id}>
-                                <td data-label="OT">
+                                <td data-label="OT" data-align="center">
                                     <strong className="tk-ot-number">OT-{orden.numero}</strong>
                                     <small>{orden.prioridad}</small>
                                 </td>
@@ -288,16 +297,16 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                                         ? `${orden.asignaciones[0].empleadoResponsable.persona.firstName} ${orden.asignaciones[0].empleadoResponsable.persona.firstLastName}`
                                         : orden.ubicacionNombreRegistrado}</small>
                                 </td>
-                                <td data-label="Programación">
+                                <td data-label="Programación" data-align="center">
                                     <strong>{orden.fechaProgramada ? fecha(orden.fechaProgramada) : 'Sin programar'}</strong>
                                     <small>{orden.fechaProgramada ? new Intl.DateTimeFormat('es-NI', { timeStyle: 'short' }).format(new Date(orden.fechaProgramada)) : '—'}</small>
                                 </td>
-                                <td data-label="Estado">
+                                <td data-label="Estado" data-align="center">
                                     <span className="tk-status-badge" data-status={orden.estadoCodigo}>
                                         {nombreEstado(orden.estadoCodigo)}
                                     </span>
                                 </td>
-                                <td data-label="Acciones">
+                                <td data-label="Acciones" data-align="actions">
                                     <OrdenAcciones orden={orden} puedeGestionar={puedeGestionar} onAction={tipo => abrirAccion(orden, tipo)} />
                                 </td>
                             </tr>
@@ -373,16 +382,15 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
 
     return (
         <section className="tk-orders" aria-labelledby="ordenes-titulo">
-            <div className="tk-breadcrumb">Gestión operativa › <span>Órdenes</span></div>
             <div className="tk-orders-heading">
                 <div>
                     <h2 id="ordenes-titulo">Órdenes de trabajo</h2>
-                    <p>Consulta, edita o asigna una orden con los iconos de cada fila.</p>
+                    <p>Consulta, edita y asigna el trabajo desde un mismo listado.</p>
                 </div>
                 <div className="tk-order-toolbar"><button type="button" className="secondary-button" aria-label="Actualizar órdenes" disabled={cargando} onClick={() => { setMensaje(null); cargar(); }}>Actualizar</button>
                 {puedeGestionar && !creando && !detalle && !ordenInicial && (
                     <button type="button" className="primary-button tk-order-create"
-                        onClick={() => { setMensaje(null); setDetalle(null); setOperacion(null); setCreando(true); }}>+ Nueva orden</button>
+                        onClick={() => { setMensaje(null); setDetalle(null); setOperacion(null); setCreando(true); }}>Nueva orden</button>
                 )}</div>
             </div>
             {mensaje && !creando && !operacion && !detalle && !ordenInicial && <div className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</div>}
@@ -392,6 +400,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                         event.preventDefault(); setMensaje(null); cargar({ ...filtros, pagina: 1 });
                     }}>
                         <div className="tk-search-group">
+                            <Search className="tk-search-icon" aria-hidden="true" size={17} strokeWidth={1.8} />
                             <input aria-label="Buscar órdenes" placeholder="Buscar cliente o solicitud"
                                 value={filtros.buscar}
                                 maxLength={150} onChange={event => filtrar({ ...filtros, buscar: event.target.value }, true)} />
@@ -416,19 +425,24 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                         </select>
                         <button type="submit" className="secondary-button tk-search-submit">Buscar</button>
                         <button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
-                        <label>Prioridad<select aria-label="Filtrar prioridad" value={filtros.prioridad ?? ''} onChange={event => filtrar({ ...filtros, prioridad: event.target.value as PrioridadOrden | '' })}>
-                            <option value="">Todas</option>{(['BAJA', 'MEDIA', 'ALTA', 'URGENTE'] as const).map(item => <option key={item} value={item}>{item.charAt(0) + item.slice(1).toLowerCase()}</option>)}
-                        </select></label>
-                        <label>Cliente<select aria-label="Filtrar cliente" value={filtros.clienteId ?? ''} onChange={event => filtrar({ ...filtros, clienteId: event.target.value })}>
-                            <option value="">Todos</option>{clientesDisponibles.map(item => <option key={item.cliente.id} value={item.cliente.id}>{nombreCliente(item)}</option>)}
-                        </select></label>
-                        <label>Programada desde<input type="date" aria-label="Programada desde" value={filtros.desde ?? ''} max={filtros.hasta || undefined} onChange={event => filtrar({ ...filtros, desde: event.target.value })} /></label>
-                        <label>Programada hasta<input type="date" aria-label="Programada hasta" value={filtros.hasta ?? ''} min={filtros.desde || undefined} onChange={event => filtrar({ ...filtros, hasta: event.target.value })} /></label>
+                        <details className="tk-advanced-filters">
+                            <summary><SlidersHorizontal aria-hidden="true" size={16} strokeWidth={1.8} />Más filtros</summary>
+                            <div className="tk-advanced-filters__content">
+                                <label>Prioridad<select aria-label="Filtrar prioridad" value={filtros.prioridad ?? ''} onChange={event => filtrar({ ...filtros, prioridad: event.target.value as PrioridadOrden | '' })}>
+                                    <option value="">Todas</option>{(['BAJA', 'MEDIA', 'ALTA', 'URGENTE'] as const).map(item => <option key={item} value={item}>{item.charAt(0) + item.slice(1).toLowerCase()}</option>)}
+                                </select></label>
+                                <label>Cliente<select aria-label="Filtrar cliente" value={filtros.clienteId ?? ''} onChange={event => filtrar({ ...filtros, clienteId: event.target.value })}>
+                                    <option value="">Todos</option>{clientesDisponibles.map(item => <option key={item.cliente.id} value={item.cliente.id}>{nombreCliente(item)}</option>)}
+                                </select></label>
+                                <label>Programada desde<input type="date" aria-label="Programada desde" value={filtros.desde ?? ''} max={filtros.hasta || undefined} onChange={event => filtrar({ ...filtros, desde: event.target.value })} /></label>
+                                <label>Programada hasta<input type="date" aria-label="Programada hasta" value={filtros.hasta ?? ''} min={filtros.desde || undefined} onChange={event => filtrar({ ...filtros, hasta: event.target.value })} /></label>
+                            </div>
+                        </details>
                     </form>
                     <div className="card tk-table-card">
+                        {contenidoLista()}
                         <TablePagination pagina={aplicados.pagina} limite={aplicados.limite} hayMas={pagina.hayMas} cargando={cargando} cantidad={pagina.items.length} etiqueta="órdenes"
                             onPagina={numero => cargar({ ...aplicados, pagina: numero })} />
-                        {contenidoLista()}
                     </div>
                 </>
             )}
@@ -442,7 +456,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                     : operacion?.tipo === 'asignar' ? 'Selecciona la cuadrilla que atenderá esta orden.'
                         : operacion?.tipo === 'desactivar' ? 'Cancela esta orden indicando un motivo.' : 'Resumen de la solicitud y su avance.'}
                 ocupado={guardando} onClose={cerrarOperacion}>
-                {mensaje && <p className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</p>}
+                {mensaje && (!detalle || mensaje.tipo !== 'error') && <p className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</p>}
                 {operacion?.tipo === 'editar' && <EditarOrdenForm orden={operacion.orden} onBusy={setGuardando} onCancel={cerrarOperacion} onSaved={() => finalizarOperacion('Orden actualizada correctamente.')} />}
                 {operacion?.tipo === 'desactivar' && <DesactivarOrdenForm orden={operacion.orden} onBusy={setGuardando} onCancel={cerrarOperacion} onSaved={() => finalizarOperacion('Orden desactivada. Su estado es CANCELADA.')} />}
                 {operacion?.tipo === 'asignar' && <AsignarOrdenPanel orden={operacion.orden} onBusy={setGuardando} compacto onCancel={cerrarOperacion} onAssigned={() => finalizarOperacion('Orden asignada correctamente.')} />}

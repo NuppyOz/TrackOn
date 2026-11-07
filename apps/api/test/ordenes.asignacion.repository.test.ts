@@ -25,7 +25,7 @@ vi.mock("../src/infrastructure/prisma.js", () => ({
 
 import { registrarAsignacion } from "../src/modules/ordenes/ordenes.asignacion.repository.js";
 
-const datos = { cuadrillaId: 4, motivo: "Programación de servicio" };
+const datos = { cuadrillaId: 4, motivo: "Programación de servicio", fechaProgramada: "2026-10-12T14:30:00-06:00" };
 
 beforeEach(() => {
     vi.resetAllMocks();
@@ -50,7 +50,7 @@ describe("Transacción de asignación de órdenes", () => {
         });
         expect(mocks.updateOrden).toHaveBeenCalledWith({
             where: { id: 8, estadoCodigo: "PENDIENTE", version: 2 },
-            data: { estadoCodigo: "ASIGNADA", version: { increment: 1 } },
+            data: { estadoCodigo: "ASIGNADA", version: { increment: 1 }, fechaProgramada: new Date(datos.fechaProgramada) },
         });
         expect(mocks.createHistorial).toHaveBeenCalledWith({
             data: {

@@ -5,6 +5,7 @@ import { Button, StatePanel, TablePagination } from '../../shared/ui';
 import { connectRealtime } from '../../shared/realtime';
 import { conectarGoogleCalendar, desconectarGoogleCalendar, estadoGoogleCalendar, sincronizarGoogleCalendar, type GoogleCalendarStatus } from './google-calendar.api';
 import ConfirmDialog from '../../shared/ConfirmDialog';
+import { DEFAULT_PAGE_SIZE } from '../../shared/pagination';
 
 function hoyManagua() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Managua', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 export default function Agenda({ onOrden }: Readonly<{ onOrden: (id: number) => void }>) {
@@ -24,7 +25,7 @@ export default function Agenda({ onOrden }: Readonly<{ onOrden: (id: number) => 
     const [confirmandoDesconexion, setConfirmandoDesconexion] = useState(false);
     useEffect(() => {
         let vigente = true;
-        void listarOrdenes({ estado: '', buscar: '', pagina, limite: 25, desde: dia, hasta: dia })
+        void listarOrdenes({ estado: '', buscar: '', pagina, limite: DEFAULT_PAGE_SIZE, desde: dia, hasta: dia })
             .then(datos => { if (vigente) { setDatos(datos); setError(null); } })
             .catch(error => { if (vigente) setError(error instanceof Error ? error.message : 'No se pudo cargar la agenda.'); });
         return () => { vigente = false; };
@@ -73,9 +74,9 @@ export default function Agenda({ onOrden }: Readonly<{ onOrden: (id: number) => 
         <div className="filters"><Button onClick={() => desplazar(-1)}>Día anterior</Button><label>Día de atención<input type="date" value={dia} onChange={event => seleccionarDia(event.target.value)} /></label><Button onClick={() => seleccionarDia(hoyManagua())}>Hoy</Button><Button onClick={() => desplazar(1)}>Día siguiente</Button></div>
         {error && <StatePanel type="error" title={error} />}{!datos && !error && <StatePanel type="loading" title="Cargando agenda…" />}
         {datos && <div className="card tk-dashboard-list"><h3>{new Intl.DateTimeFormat('es-NI', { dateStyle: 'full', timeZone: 'America/Managua' }).format(new Date(`${dia}T12:00:00-06:00`))}</h3>
-            <TablePagination pagina={pagina} hayMas={datos.hayMas} cantidad={datos.items.length} etiqueta="atenciones" onPagina={valor => { setDatos(null); setPagina(valor); }} />
             {datos.items.length === 0 && <StatePanel type="empty" title="No hay órdenes programadas para este día" />}
             {[...datos.items].sort((a, b) => (a.fechaProgramada ?? '').localeCompare(b.fechaProgramada ?? '')).map(item => <div className="tk-dashboard-row" key={item.id}><div><strong>{item.fechaProgramada && new Intl.DateTimeFormat('es-NI', { timeStyle: 'short', timeZone: 'America/Managua' }).format(new Date(item.fechaProgramada))} · OT-{item.numero}</strong><p>{item.clienteNombreRegistrado} · {item.ubicacionNombreRegistrado}</p><small>{item.asignaciones?.[0]?.cuadrilla?.nombre ?? 'Sin cuadrilla asignada'} · {item.estadoCodigo.replaceAll('_', ' ')}</small></div><Button onClick={() => onOrden(item.id)}>Gestionar orden</Button></div>)}
+            <TablePagination pagina={pagina} hayMas={datos.hayMas} cantidad={datos.items.length} etiqueta="atenciones" onPagina={valor => { setDatos(null); setPagina(valor); }} />
         </div>}
         {confirmandoDesconexion && <ConfirmDialog titulo="Desconectar Google Calendar"
             descripcion="Las citas ya creadas permanecerán en Google Calendar, pero TrackOn dejará de actualizarlas."

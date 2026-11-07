@@ -3,6 +3,7 @@ import { ApiError } from '../../shared/api'
 import { contarNoLeidas, listarNotificaciones, marcarNotificacionLeida, marcarTodasNotificacionesLeidas, type Notificacion } from './notificaciones.api'
 import { irA } from '../../shared/navigation'
 import { connectRealtime } from '../../shared/realtime'
+import { Bell, X } from 'lucide-react'
 
 const fechaRelativa = (date: string) => {
   const minutos = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000))
@@ -107,7 +108,7 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
       const estadoLectura = item.leidaEn ? '' : 'unread'
       const identificadorOrden = item.ordenId ? ` · OT-${item.ordenId}` : ''
       return <button type="button" disabled={leyendo !== null} className={`notification-item ${estadoLectura}`} key={item.id} onClick={() => void leer(item)}>
-        <span className="notification-dot" aria-hidden="true">{item.leidaEn ? '○' : '●'}</span>
+        <span className={`notification-dot ${item.leidaEn ? 'read' : ''}`} aria-hidden="true" />
         <span className="notification-copy"><strong>{item.tipo.replaceAll('_', ' ')}</strong><span>{item.mensaje}</span><small>{fechaRelativa(item.creadaEn)}{identificadorOrden}</small></span>
       </button>
     })}</div>
@@ -118,13 +119,13 @@ export default function NotificationsBell({ habilitada }: NotificationsBellProps
 
   return <div className="notification-area">
     <button type="button" className="notification-button" title="Notificaciones" aria-label={etiquetaCampana} aria-expanded={abierto} onClick={() => void abrir()}>
-      <svg aria-hidden="true" viewBox="0 0 24 24" className="notification-icon"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+      <Bell aria-hidden="true" className="notification-icon" size={20} strokeWidth={1.8} />
       {noLeidas > 0 && <span className="notification-count">{noLeidas > 99 ? '99+' : noLeidas}</span>}
     </button>
     {abierto && <>
       <button type="button" className="notification-dismiss" aria-label="Cerrar notificaciones" onClick={() => setAbierto(false)} />
       <section className="notification-panel" aria-label="Notificaciones">
-        <header><div><h2>Notificaciones</h2><span>{subtituloPanel}</span></div><div className="notification-panel-actions">{habilitada && noLeidas > 0 && <button type="button" disabled={leyendoTodas || leyendo !== null} onClick={() => void leerTodas()}>{leyendoTodas ? 'Marcando…' : 'Leer todas'}</button>}{habilitada && <button type="button" aria-label="Actualizar notificaciones" disabled={cargando || leyendo !== null || leyendoTodas} onClick={() => void cargar()}>Actualizar</button>}<button type="button" aria-label="Cerrar" onClick={() => setAbierto(false)}>×</button></div></header>
+        <header><div><h2>Notificaciones</h2><span>{subtituloPanel}</span></div><div className="notification-panel-actions">{habilitada && noLeidas > 0 && <button type="button" disabled={leyendoTodas || leyendo !== null} onClick={() => void leerTodas()}>{leyendoTodas ? 'Marcando…' : 'Leer todas'}</button>}{habilitada && <button type="button" aria-label="Actualizar notificaciones" disabled={cargando || leyendo !== null || leyendoTodas} onClick={() => void cargar()}>Actualizar</button>}<button type="button" className="tk-icon-button" aria-label="Cerrar notificaciones" title="Cerrar" onClick={() => setAbierto(false)}><X aria-hidden="true" size={18} /></button></div></header>
         {contenidoPanel()}
         {habilitada && cursor && <button type="button" className="notification-more" disabled={cargando} onClick={() => void cargar(true)}>{cargando ? 'Cargando…' : 'Cargar más'}</button>}
       </section>

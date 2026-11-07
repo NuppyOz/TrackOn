@@ -24,7 +24,7 @@ describe('Trabajo del equipo', () => {
     it('lista el trabajo y registra un servicio', async () => {
         render(<TrabajoEquipoPanel ordenId={10} registroId={20} puedeRegistrar />);
         await screen.findByText(/Limpieza · 1/); expect(screen.getByText('Carga nueva')).toBeTruthy();
-        fireEvent.click(screen.getByRole('button', { name: '+ Registrar servicio' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Registrar servicio' }));
         expect(await screen.findByRole('option', { name: 'SRV · Diagnóstico' })).toBeTruthy();
         expect(screen.getByText('Escribe un nombre o código para encontrar más resultados.')).toBeTruthy();
         fireEvent.change(screen.getByLabelText('Servicio *'), { target: { value: '3' } });
@@ -37,7 +37,7 @@ describe('Trabajo del equipo', () => {
 
     it('busca y registra un material sin observación', async () => {
         render(<TrabajoEquipoPanel ordenId={10} registroId={20} puedeRegistrar />); await screen.findByText(/^Limpieza · 1$/);
-        fireEvent.click(screen.getByRole('button', { name: '+ Registrar material' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Registrar material' }));
         await screen.findByRole('option', { name: 'MAT · Tubería (m)' });
         fireEvent.change(screen.getByLabelText('Buscar en el catálogo'), { target: { value: 'tubo' } });
         await waitFor(() => expect(mocks.buscarMateriales).toHaveBeenLastCalledWith('tubo'));
@@ -49,10 +49,10 @@ describe('Trabajo del equipo', () => {
     it('permite cancelar y muestra errores de catálogo y guardado', async () => {
         mocks.buscarServicios.mockRejectedValue(new Error('Catálogo caído'));
         render(<TrabajoEquipoPanel ordenId={10} registroId={20} puedeRegistrar />); await screen.findByText(/^Limpieza · 1$/);
-        fireEvent.click(screen.getByRole('button', { name: '+ Registrar servicio' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Registrar servicio' }));
         expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Catálogo caído');
         fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
-        expect(screen.queryByText('Registrar servicio')).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Cancelar' })).toBeNull();
     });
 
     it('reintenta si falla la carga principal y muestra colecciones vacías', async () => {

@@ -27,7 +27,7 @@ const ubicacion: UbicacionCliente = {
     referencia: null, contactoNombre: null, contactoTelefono: null, activa: true,
 };
 const pagina = (items: UbicacionCliente[] = [ubicacion], hayMas = false) => ({
-    items, pagina: 1, limite: 25, hayMas,
+    items, pagina: 1, limite: 10, hayMas,
 });
 
 beforeEach(() => {
@@ -56,6 +56,44 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         render(<ClientesManager puedeGestionar />);
         expect(await screen.findByText("Clínica Santa María S.A.")).toBeTruthy();
         expect(screen.getByText("Ana López")).toBeTruthy();
+        expect(mocks.listarClientes).toHaveBeenCalledTimes(1);
+    });
+
+    it("Limpiar sobre filtros iniciales no bloquea el listado ni consulta de nuevo", async () => {
+        render(<ClientesManager puedeGestionar />);
+        await screen.findByText("Clínica Santa María S.A.");
+        fireEvent.click(screen.getByRole("button", { name: "Limpiar", exact: true }));
+        expect(screen.queryByText("Cargando clientes…")).toBeNull();
+        expect(screen.getByText("Clínica Santa María S.A.")).toBeTruthy();
+        expect(mocks.listarClientes).toHaveBeenCalledTimes(1);
+    });
+
+    it("Limpiar repetido con filtros iniciales mantiene el listado", async () => {
+        render(<ClientesManager puedeGestionar />);
+        await screen.findByText("Clínica Santa María S.A.");
+        const limpiar = screen.getByRole("button", { name: "Limpiar", exact: true });
+        fireEvent.click(limpiar);
+        fireEvent.click(limpiar);
+        expect(screen.queryByText("Cargando clientes…")).toBeNull();
+        expect(mocks.listarClientes).toHaveBeenCalledTimes(1);
+    });
+
+    it("Limpiar después de filtrar restaura resultados sin carga permanente", async () => {
+        render(<ClientesManager puedeGestionar />);
+        await screen.findByText("Ana López");
+        fireEvent.change(screen.getByRole("textbox", { name: "Buscar cliente" }), { target: { value: "Clínica" } });
+        await waitFor(() => expect(screen.queryByText("Ana López")).toBeNull());
+        fireEvent.click(screen.getByRole("button", { name: "Limpiar", exact: true }));
+        await screen.findByText("Ana López");
+        expect(screen.queryByText("Cargando clientes…")).toBeNull();
+    });
+
+    it("Limpiar neutral no dispara consultas tras un error inicial", async () => {
+        mocks.listarClientes.mockRejectedValueOnce(new Error("Consulta ficticia fallida"));
+        render(<ClientesManager puedeGestionar />);
+        await screen.findByRole("alert");
+        fireEvent.click(screen.getByRole("button", { name: "Limpiar", exact: true }));
+        expect(screen.queryByText("Cargando clientes…")).toBeNull();
         expect(mocks.listarClientes).toHaveBeenCalledTimes(1);
     });
 
@@ -184,6 +222,7 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         render(<ClientesManager puedeGestionar />);
         await abrirDetalle();
         fireEvent.click(screen.getByRole("button", { name: "Desactivar cliente" }));
+        fireEvent.click(screen.getByRole("button", { name: "Sí, desactivar" }));
         await waitFor(() => expect(mocks.cambiarEstadoCliente).toHaveBeenCalledWith(8, false));
         expect(await screen.findByText("Cliente desactivado.")).toBeTruthy();
     });
@@ -192,6 +231,7 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         render(<ClientesManager puedeGestionar />);
         await abrirDetalle();
         fireEvent.click(screen.getByRole("button", { name: "Desactivar" }));
+        fireEvent.click(screen.getByRole("button", { name: "Sí, desactivar" }));
         await waitFor(() => expect(mocks.cambiarEstadoUbicacion).toHaveBeenCalledWith(15, false));
     });
 

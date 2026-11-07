@@ -1,7 +1,8 @@
 import type { PaginaEmpleados } from './empleados.api';
 import type { FiltrosEmpleados } from './empleados.types';
 import { nombreEmpleado } from './empleados.types';
-import { DataTable, TablePagination } from '../../shared/ui';
+import { DataTable, RowActions, TablePagination } from '../../shared/ui';
+import TableActionButton from '../../shared/TableActionButton';
 
 interface Props {
     datos: PaginaEmpleados;
@@ -11,10 +12,11 @@ interface Props {
     onPagina: (pagina: number) => void;
     onLimite: (limite: number) => void;
     onVer: (id: number) => void;
+    onEditar: (id: number) => void;
     onCrear: () => void;
 }
 
-export default function EmpleadosListado({ datos, filtros, cargando, onFiltros, onPagina, onLimite, onVer, onCrear }: Readonly<Props>) {
+export default function EmpleadosListado({ datos, filtros, cargando, onFiltros, onPagina, onLimite, onVer, onEditar, onCrear }: Readonly<Props>) {
     const { items: empleados, resumen } = datos;
     const cambiar = (cambios: Partial<FiltrosEmpleados>, esperar = false) =>
         onFiltros({ ...filtros, ...cambios, pagina: 1 }, esperar);
@@ -39,22 +41,27 @@ export default function EmpleadosListado({ datos, filtros, cargando, onFiltros, 
         </div>
         <div className="tk-employee-panel tk-employee-list" aria-busy={cargando}>
             <div className="tk-employee-list-caption">{datos.total} empleados encontrados</div>
-            <TablePagination pagina={datos.pagina} limite={datos.limite} hayMas={datos.hayMas} cargando={cargando}
-                cantidad={empleados.length} etiqueta="empleados" onPagina={onPagina} onLimite={onLimite} />
             {empleados.length ? <DataTable className="tk-employee-table" label="Empleados">
-                <thead><tr><th>Código</th><th>Empleado</th><th>Estado</th><th>Habilitación técnica</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Código</th><th>Empleado</th><th data-align="center">Estado</th><th data-align="center">Habilitación técnica</th><th data-align="actions">Acciones</th></tr></thead>
                 <tbody>{empleados.map(item => <tr key={item.id}>
                     <td data-label="Código"><strong className="tk-employee-code">{item.codEmpleado}</strong></td>
                     <td data-label="Empleado">{nombreEmpleado(item)}</td>
-                    <td data-label="Estado"><span className={`tk-employee-pill ${item.active ? 'is-active' : 'is-inactive'}`}>{item.active ? 'Activo' : 'Inactivo'}</span></td>
-                    <td data-label="Habilitación técnica"><span className={`tk-employee-pill ${item.habilitadoComoTecnico ? 'is-tech' : 'is-neutral'}`}>{item.habilitadoComoTecnico ? 'Habilitado' : 'No habilitado'}</span></td>
-                    <td data-label="Acciones"><button type="button" className="tk-employee-link" onClick={() => onVer(item.id)}>Ver detalle</button></td>
+                    <td data-label="Estado" data-align="center"><span className={`tk-employee-pill ${item.active ? 'is-active' : 'is-inactive'}`}>{item.active ? 'Activo' : 'Inactivo'}</span></td>
+                    <td data-label="Habilitación técnica" data-align="center"><span className={`tk-employee-pill ${item.habilitadoComoTecnico ? 'is-tech' : 'is-neutral'}`}>{item.habilitadoComoTecnico ? 'Habilitado' : 'No habilitado'}</span></td>
+                    <td data-label="Acciones" data-align="actions" className="tk-shared-actions-cell">
+                        <RowActions className="tk-table-actions" label={`Acciones de empleado ${item.codEmpleado}`}>
+                            <TableActionButton action="view" onClick={() => onVer(item.id)}>Ver detalle</TableActionButton>
+                            <TableActionButton action="edit" onClick={() => onEditar(item.id)}>Editar</TableActionButton>
+                        </RowActions>
+                    </td>
                 </tr>)}</tbody>
             </DataTable> : <div className="tk-employee-empty">
                 <strong>No hay empleados con estos filtros.</strong>
                 <p>Prueba otros criterios o registra un empleado.</p>
                 {resumen.total === 0 && <button type="button" className="tk-employee-primary" onClick={onCrear}>Registrar empleado</button>}
             </div>}
+            <TablePagination pagina={datos.pagina} limite={datos.limite} hayMas={datos.hayMas} cargando={cargando}
+                cantidad={empleados.length} total={datos.total} etiqueta="empleados" onPagina={onPagina} onLimite={onLimite} />
         </div>
     </>;
 }

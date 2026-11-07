@@ -113,11 +113,11 @@ describe('Flujo operativo real de TrackOn', () => {
         expect(vinculada.status).toBe(201);
         const trabajo = `${base}/equipos/${vinculada.body.data.id}`;
         expect((await request(app).patch(`${trabajo}/diagnostico`).set('Authorization', auth()).send({ diagnostico: 'Falta refrigerante en el circuito' })).status).toBe(409);
-        const asignada = await request(app).post(`${base}/asignacion`).set('Authorization', auth()).send({ cuadrillaId, motivo: 'Atención de mantenimiento' });
+        const asignada = await request(app).post(`${base}/asignacion`).set('Authorization', auth()).send({ cuadrillaId, motivo: 'Atención de mantenimiento', fechaProgramada: '2026-11-09T10:30:00-06:00' });
         expect(asignada.status).toBe(200);
-        expect((await request(app).patch(`${base}/ejecucion`).set('Authorization', auth('otro')).send({ estado: 'EN_EJECUCION', motivo: 'Inicio no autorizado' })).status).toBe(403);
+        expect((await request(app).patch(`${base}/ejecucion`).set('Authorization', auth('otro')).send({ estado: 'EN_EJECUCION', motivo: 'Inicio no autorizado' })).status).toBe(404);
         expect((await request(app).patch(`${base}/ejecucion`).set('Authorization', auth('tecnico')).send({ estado: 'EN_EJECUCION', motivo: 'Inicio de trabajo' })).status).toBe(200);
-        expect((await request(app).post(`${trabajo}/servicios`).set('Authorization', auth('otro')).send({ servicioId: servicio.body.data.id, cantidad: 1, descripcionTrabajo: 'Trabajo no autorizado' })).status).toBe(403);
+        expect((await request(app).post(`${trabajo}/servicios`).set('Authorization', auth('otro')).send({ servicioId: servicio.body.data.id, cantidad: 1, descripcionTrabajo: 'Trabajo no autorizado' })).status).toBe(404);
         expect((await request(app).post(`${trabajo}/servicios`).set('Authorization', auth('tecnico')).send({ servicioId: servicio.body.data.id, cantidad: 1, descripcionTrabajo: 'Se realizó limpieza y carga de gas.' })).status).toBe(201);
         expect((await request(app).post(`${trabajo}/materiales`).set('Authorization', auth('tecnico')).send({ materialId: material.body.data.id, cantidad: 1.5 })).status).toBe(201);
         expect((await request(app).post(`${trabajo}/materiales`).set('Authorization', auth('tecnico')).send({ materialId: material.body.data.id, cantidad: 0 })).status).toBe(400);
@@ -131,7 +131,7 @@ describe('Flujo operativo real de TrackOn', () => {
         const evidencia = await request(app).post(`${trabajo}/evidencias`).set('Authorization', auth('tecnico')).send({ nombreOriginal: 'trabajo.png', tipoArchivo: 'image/png', tamanoBytes: contenido.length, hashArchivo: createHash('sha256').update(contenido).digest('hex') });
         expect(evidencia.status).toBe(201);
         const rutaEvidencia = `${trabajo}/evidencias/${evidencia.body.data.id}`;
-        expect((await request(app).put(`${rutaEvidencia}/archivo`).set('Authorization', auth('otro')).set('Content-Type', 'application/octet-stream').send(contenido)).status).toBe(403);
+        expect((await request(app).put(`${rutaEvidencia}/archivo`).set('Authorization', auth('otro')).set('Content-Type', 'application/octet-stream').send(contenido)).status).toBe(404);
         expect((await request(app).put(`${rutaEvidencia}/archivo`).set('Authorization', auth('tecnico')).set('Content-Type', 'application/octet-stream').send(Buffer.from('incorrecto'))).status).toBe(400);
         const fallida = await request(app).get(`${trabajo}/evidencias`).set('Authorization', auth());
         expect(fallida.body.data[0].estadoCarga).toBe('FALLIDA');

@@ -38,7 +38,7 @@ const orden: OrdenResumen = {
 
 beforeEach(() => {
     vi.resetAllMocks();
-    mocks.listarOrdenes.mockResolvedValue({ items: [orden], pagina: 1, limite: 25, hayMas: false });
+    mocks.listarOrdenes.mockResolvedValue({ items: [orden], pagina: 1, limite: 10, hayMas: false });
     mocks.listarUbicaciones.mockResolvedValue([]);
 });
 afterEach(cleanup);
@@ -60,7 +60,7 @@ describe('Presentación de Órdenes según Figma y backend', () => {
         await screen.findByText('OT-140');
         fireEvent.click(screen.getByRole('button', { name: 'Asignadas' }));
         await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenCalledWith({
-            buscar: '', estado: 'ASIGNADA', pagina: 1, limite: 25,
+            buscar: '', estado: 'ASIGNADA', pagina: 1, limite: 10,
         }));
         expect(screen.getByRole('button', { name: 'Asignadas' }).getAttribute('aria-pressed')).toBe('true');
     });
@@ -68,7 +68,7 @@ describe('Presentación de Órdenes según Figma y backend', () => {
     it('mantiene los permisos para técnicos en la nueva interfaz', async () => {
         render(<OrdenesManager puedeGestionar={false} />);
         await screen.findByText('OT-140');
-        expect(screen.queryByRole('button', { name: '+ Nueva orden' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Nueva orden' })).toBeNull();
         expect(screen.getByRole('button', { name: 'Ver OT-140' })).toBeTruthy();
         expect(screen.queryByRole('button', { name: 'Editar OT-140' })).toBeNull();
     });

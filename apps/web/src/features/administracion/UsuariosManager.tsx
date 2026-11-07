@@ -4,7 +4,9 @@ import { listarEmpleados } from '../empleados/empleados.api';
 import type { EmpleadoResumen } from '../empleados/empleados.types';
 import type { Rol } from '../roles/roles.types';
 import AccesoForm from './AccesoForm';
-import { Button, DataTable, StatePanel, StatusBadge } from '../../shared/ui';
+import { Button, DataTable, RowActions, StatePanel, StatusBadge, TablePagination } from '../../shared/ui';
+import TableActionButton from '../../shared/TableActionButton';
+import { DEFAULT_PAGE_SIZE } from '../../shared/pagination';
 
 async function listarEmpleadosActivos() {
     const empleados: EmpleadoResumen[] = [];
@@ -26,6 +28,7 @@ export default function UsuariosManager() {
     const [recarga, setRecarga] = useState(0);
     const [buscar, setBuscar] = useState('');
     const [rol, setRol] = useState('');
+    const [pagina, setPagina] = useState(1);
     const [formulario, setFormulario] = useState(false);
     const [editando, setEditando] = useState<UsuarioAcceso | null>(null);
     const [confirmacion, setConfirmacion] = useState<UsuarioAcceso | null>(null);
@@ -40,6 +43,7 @@ export default function UsuariosManager() {
     }, [recarga]);
     const disponibles = empleados.filter(item => item.active && !usuarios.some(usuario => usuario.empleado.id === item.id));
     const visibles = usuarios.filter(item => (!rol || item.rol.cod === rol) && `${item.identificador} ${item.empleado.codEmpleado} ${item.empleado.persona?.firstName} ${item.empleado.persona?.firstLastName}`.toLocaleLowerCase('es').includes(buscar.trim().toLocaleLowerCase('es')));
+    const usuariosPagina = visibles.slice((pagina - 1) * DEFAULT_PAGE_SIZE, pagina * DEFAULT_PAGE_SIZE);
     async function cambiarEstado() {
         if (!confirmacion || guardando) return;
         setGuardando(true); setError(null);
@@ -47,12 +51,16 @@ export default function UsuariosManager() {
         catch (error) { setError(error instanceof Error ? error.message : 'No se pudo cambiar el estado.'); }
         finally { setGuardando(false); }
     }
-    return <section className="tk-admin" aria-labelledby="usuarios-titulo"><div className="section-heading"><div><h2 id="usuarios-titulo">Usuarios y acceso</h2><p>Administra cuentas, roles y estados de acceso.</p></div>{!formulario && <Button variant="primary" onClick={() => { setEditando(null); setFormulario(true); }}>+ Crear usuario</Button>}</div>
+    return <section className="tk-admin" aria-labelledby="usuarios-titulo"><div className="section-heading"><div><h2 id="usuarios-titulo">Usuarios y acceso</h2><p>Administra cuentas, roles y estados de acceso.</p></div>{!formulario && <Button variant="primary" onClick={() => { setEditando(null); setFormulario(true); }}>Crear usuario</Button>}</div>
         {error && <StatePanel type="error" title={error} action={<Button onClick={() => setRecarga(valor => valor + 1)}>Reintentar</Button>} />}
         {cargando && <StatePanel type="loading" title="Cargando usuarios…" />}
         {formulario ? <AccesoForm usuario={editando} roles={roles} empleados={disponibles} onCancel={() => setFormulario(false)} onSaved={() => { setFormulario(false); setRecarga(valor => valor + 1); }} /> : <>
-            <div className="filters"><input aria-label="Buscar usuario" placeholder="Usuario, identificador o empleado" value={buscar} onChange={event => setBuscar(event.target.value)} /><select aria-label="Filtrar rol de usuario" value={rol} onChange={event => setRol(event.target.value)}><option value="">Todos los roles</option>{roles.map(item => <option key={item.id} value={item.cod}>{item.nombre}</option>)}</select><Button onClick={() => { setBuscar(''); setRol(''); }}>Limpiar</Button></div>
-            <div className="tk-dashboard-body"><div className="card list-card"><DataTable label="Usuarios"><thead><tr><th>Usuario</th><th>Empleado</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{visibles.map(item => <tr key={item.id}><td data-label="Usuario">{item.identificador}</td><td data-label="Empleado">{item.empleado.persona?.firstName} {item.empleado.persona?.firstLastName}<small>{item.empleado.codEmpleado}</small></td><td data-label="Rol">{item.rol.nombre}</td><td data-label="Estado"><StatusBadge active={item.activo} /></td><td data-label="Acciones" className="actions"><Button onClick={() => { setEditando(item); setFormulario(true); }}>Editar acceso</Button><Button onClick={() => setConfirmacion(item)}>{item.activo ? 'Desactivar' : 'Activar'}</Button></td></tr>)}</tbody></DataTable>
+            <div className="filters"><input aria-label="Buscar usuario" placeholder="Usuario, identificador o empleado" value={buscar} onChange={event => { setBuscar(event.target.value); setPagina(1); }} /><select aria-label="Filtrar rol de usuario" value={rol} onChange={event => { setRol(event.target.value); setPagina(1); }}><option value="">Todos los roles</option>{roles.map(item => <option key={item.id} value={item.cod}>{item.nombre}</option>)}</select><Button onClick={() => { setBuscar(''); setRol(''); setPagina(1); }}>Limpiar</Button></div>
+            <div className="tk-dashboard-body"><div className="card list-card"><DataTable label="Usuarios"><thead><tr><th>Usuario</th><th>Empleado</th><th>Rol</th><th data-align="center">Estado</th><th data-align="actions">Acciones</th></tr></thead><tbody>{usuariosPagina.map(item => <tr key={item.id}><td data-label="Usuario">{item.identificador}</td><td data-label="Empleado">{item.empleado.persona?.firstName} {item.empleado.persona?.firstLastName}<small>{item.empleado.codEmpleado}</small></td><td data-label="Rol">{item.rol.nombre}</td><td data-label="Estado" data-align="center"><StatusBadge active={item.activo} /></td><td data-label="Acciones" data-align="actions" className="tk-shared-actions-cell"><RowActions className="tk-table-actions" label={`Acciones de usuario ${item.identificador}`}>
+                                <TableActionButton action="edit" onClick={() => { setEditando(item); setFormulario(true); }}>Editar acceso</TableActionButton>
+                                <TableActionButton action={item.activo ? 'deactivate' : 'activate'} onClick={() => setConfirmacion(item)}>{item.activo ? 'Desactivar' : 'Activar'}</TableActionButton>
+                            </RowActions></td></tr>)}</tbody></DataTable>
+                {visibles.length > 0 && <TablePagination pagina={pagina} limite={DEFAULT_PAGE_SIZE} total={visibles.length} cantidad={usuariosPagina.length} hayMas={pagina * DEFAULT_PAGE_SIZE < visibles.length} etiqueta="usuarios" onPagina={setPagina} />}
                 {!cargando && visibles.length === 0 && <StatePanel type="empty" title="Sin usuarios para estos filtros" />}</div><aside className="card tk-dashboard-list"><h3>Roles de acceso</h3>{roles.map(item => <div key={item.id}><strong>{item.nombre}</strong><p>{item.descripcion ?? item.cod}</p></div>)}</aside></div>
         </>}
         {confirmacion && <div className="card form-card" role="dialog" aria-labelledby="confirmar-acceso"><h3 id="confirmar-acceso">{confirmacion.activo ? 'Desactivar' : 'Activar'} {confirmacion.identificador}</h3><p>El cambio actualizará el acceso de esta cuenta al sistema.</p><Button disabled={guardando} onClick={() => setConfirmacion(null)}>Cancelar</Button><Button variant="primary" loading={guardando} onClick={() => void cambiarEstado()}>Confirmar</Button></div>}

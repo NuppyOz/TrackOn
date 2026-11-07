@@ -72,7 +72,7 @@ export default function TrabajoEquipoPanel({ ordenId, registroId, puedeRegistrar
         {trabajo && <><h5>Servicios realizados</h5>{trabajo.servicios.length === 0 ? <p>Sin servicios registrados.</p> : <ul className="tk-work-list">{trabajo.servicios.map(item => <li key={item.id}><strong>{item.nombreRegistrado} · {item.cantidad}</strong><p>{item.descripcionTrabajo}</p></li>)}</ul>}
             <h5>Materiales utilizados</h5>{trabajo.materiales.length === 0 ? <p>Sin consumo de materiales registrado.</p> : <ul className="tk-work-list">{trabajo.materiales.map(item => <li key={item.id}><strong>{item.nombreRegistrado} · {item.cantidad} {item.unidadRegistrada}</strong>{item.observacion && <p>{item.observacion}</p>}</li>)}</ul>}
         </>}
-        {puedeRegistrar && !formulario && <div className="tk-form-actions"><Button onClick={() => setFormulario('servicio')}>+ Registrar servicio</Button><Button onClick={() => setFormulario('material')}>+ Registrar material</Button></div>}
+        {puedeRegistrar && !formulario && <div className="tk-form-actions"><Button onClick={() => setFormulario('servicio')}>Registrar servicio</Button><Button onClick={() => setFormulario('material')}>Registrar material</Button></div>}
         {puedeRegistrar && formulario && <RegistroTrabajoForm tipo={formulario} ordenId={ordenId} registroId={registroId} onCancel={() => setFormulario(null)} onSaved={() => { setFormulario(null); setRecarga(valor => valor + 1); }} />}
     </section>;
 }

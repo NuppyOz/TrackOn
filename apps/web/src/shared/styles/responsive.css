@@ -14,6 +14,7 @@ body, #root { min-width: 0; max-width: 100%; }
 .tk-orders, .tk-table-card { min-width: 0; max-width: 100%; }
 .workspace { overflow-x: clip; }
 .workspace .table-wrap { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+.workspace .table-container { width: 100%; max-width: 100%; overflow-x: auto; }
 .workspace :is(input, select, textarea) { max-width: 100%; min-width: 0; }
 .workspace .section-heading > div, .workspace .card-title > div { min-width: 0; }
 .workspace .section-heading p, .workspace .card-title p,
@@ -23,6 +24,21 @@ body, #root { min-width: 0; max-width: 100%; }
 .figma-topbar .figma-user-actions { min-width: 0; }
 .figma-topbar .notification-area { position: relative; flex-shrink: 0; }
 .figma-topbar .menu-toggle { flex-shrink: 0; }
+.workspace :is(button, a) { overflow-wrap: anywhere; }
+.workspace :is(.button, .primary-button, .secondary-button, .text-button) {
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.25;
+}
+.workspace :is(.button, .primary-button, .secondary-button, .text-button) > svg { flex: 0 0 auto; }
+.workspace .text-button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 6px 10px; }
+.tk-modal { max-width: calc(100vw - 32px); overflow: hidden; }
+.tk-modal[open] { display: flex; flex-direction: column; }
+.tk-modal .tk-modal-heading { flex: 0 0 auto; }
+.tk-modal .tk-modal-heading > div { min-width: 0; }
+.tk-modal .tk-modal-heading :is(h2, p) { overflow-wrap: anywhere; }
+.tk-modal .tk-modal-body { min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 
 /* Tablet Figma: menú desplegable en lugar de sidebar que consuma 232px. */
 @media (max-width: 1199px) {
@@ -107,11 +123,13 @@ body, #root { min-width: 0; max-width: 100%; }
   .figma-brand-identity small { display: block; }
   .workspace .panel-grid { grid-template-columns: minmax(0, 1fr); }
   .workspace .section-heading { gap: 16px; }
+  .workspace .page-header { gap: 16px; }
 
   /* Se reorganizan los filtros de todos los catálogos. */
   .workspace .list-card > .filters,
   .workspace .list-card > .filters.service-filters,
   .workspace .list-card > .filters.crew-filters,
+  .workspace > section > .filters,
   .equipos-page .filters {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -119,9 +137,11 @@ body, #root { min-width: 0; max-width: 100%; }
     align-items: stretch;
   }
   .workspace .filters > :is(input, select, button),
+  .workspace .filters > label,
   .equipos-page .filters > :is(input, select, button) {
     width: 100%; min-width: 0; max-width: none;
   }
+  .workspace .filters > label { display: grid; gap: 6px; }
   .workspace .members-layout { grid-template-columns: minmax(0, 1fr); }
   .workspace .membership-history {
     border-left: 0;
@@ -145,7 +165,27 @@ body, #root { min-width: 0; max-width: 100%; }
   .tk-orders .tk-summary-panel { width: 100%; }
 }
 
-/* Móvil: transformar listados en tarjetas, siguiendo los nodos móviles de Figma. */
+/* La paginación gana una fila propia antes de que sus controles compitan por espacio. */
+@media (max-width: 900px) {
+  .shared-pagination {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "summary size" "actions actions";
+    gap: 10px;
+  }
+  .shared-pagination__summary { grid-area: summary; }
+  .shared-pagination__size { grid-area: size; grid-column: auto; justify-self: end; }
+  .shared-pagination__actions {
+    grid-area: actions;
+    grid-column: auto;
+    display: flex;
+    grid-template-columns: none;
+    justify-content: center;
+    width: 100%;
+  }
+  .shared-pagination__actions > .button { flex: 0 0 auto; width: auto; }
+}
+
+/* Móvil: controles táctiles y tablas semánticas con desplazamiento local. */
 @media (max-width: 767px) {
   .figma-topbar { padding: 0 16px; gap: 8px; }
   .figma-topbar .menu-toggle { min-width: 44px; }
@@ -156,7 +196,9 @@ body, #root { min-width: 0; max-width: 100%; }
   .figma-brand-product { font-size: 21px; color: var(--tk-purple); }
   .figma-brand-lockup .brand-logo { width: 30px; height: 30px; }
   .figma-topbar .figma-user-info,
-  .figma-topbar .figma-logout { display: none; }
+  .figma-topbar .figma-account-chevron { display: none; }
+  .figma-topbar .figma-account-trigger { min-width:44px; padding:4px; justify-content:center; }
+  .figma-topbar .figma-account-menu { position:fixed; top:calc(var(--tk-responsive-header-height) - 2px); right:12px; width:min(260px,calc(100vw - 24px)); }
   .figma-topbar .figma-user-avatar { display: grid; width: 36px; height: 36px; flex-basis: 36px; }
   .figma-topbar .figma-user-actions { gap: 8px; flex-shrink: 0; }
   .figma-topbar .notification-area { margin: 0; }
@@ -173,6 +215,7 @@ body, #root { min-width: 0; max-width: 100%; }
   .workspace { padding: 24px 16px 48px; }
   .workspace > section { width: 100%; }
   .workspace .section-heading,
+  .workspace .page-header,
   .tk-orders .tk-orders-heading {
     display: flex;
     flex-direction: column;
@@ -184,7 +227,17 @@ body, #root { min-width: 0; max-width: 100%; }
   .workspace .section-heading h2,
   .tk-orders .tk-orders-heading h2 { font-size: 26px; line-height: 1.25; }
   .workspace .section-heading .primary-button,
+  .workspace .section-heading > .button,
+  .workspace .page-header__action,
+  .workspace .page-header__action > *,
   .tk-orders .tk-order-create { width: 100%; min-height: 44px; }
+  .workspace .section-heading > :is(.actions, .tk-heading-actions) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    gap: 10px;
+  }
+  .workspace .section-heading > :is(.actions, .tk-heading-actions) > * { width: 100%; min-height: 44px; }
   .workspace .panel-grid, .workspace .two-columns,
   .workspace .members-layout { grid-template-columns: minmax(0, 1fr); }
   .workspace .card-title { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -194,6 +247,7 @@ body, #root { min-width: 0; max-width: 100%; }
   .workspace .list-card > .filters,
   .workspace .list-card > .filters.service-filters,
   .workspace .list-card > .filters.crew-filters,
+  .workspace > section > .filters,
   .equipos-page .filters {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -201,8 +255,9 @@ body, #root { min-width: 0; max-width: 100%; }
     gap: 12px;
   }
   .workspace .list-card > .filters > *,
+  .workspace > section > .filters > *,
   .equipos-page .filters > * { min-width: 0; width: 100%; max-width: none; }
-  .workspace .list-card > .filters button { min-height: 44px; }
+  .workspace .filters button { min-height: 44px; }
   .workspace .card.list-card { background: transparent; border: 0; box-shadow: none; overflow: visible; }
   .workspace .list-card > .filters {
     border: 1px solid var(--tk-border);
@@ -211,61 +266,45 @@ body, #root { min-width: 0; max-width: 100%; }
     margin-bottom: 14px;
   }
 
-  /* Todas las tablas disponibles en móvil son tarjetas, no páginas recortadas. */
-  .workspace .table-wrap { overflow: visible; }
-  .workspace .table-wrap table,
-  .workspace .table-wrap tbody,
-  .workspace .table-wrap tr,
-  .workspace .table-wrap td { display: block; width: 100%; min-width: 0; max-width: 100%; }
-  .workspace .table-wrap table { table-layout: auto; border-collapse: separate; min-width: 0 !important; }
-  .workspace .table-wrap thead { display: none; }
-  .workspace .table-wrap tr {
-    margin: 0 0 12px;
-    padding: 14px 16px;
-    border: 1px solid var(--tk-border);
-    border-radius: 10px;
-    background: #fff;
-    box-shadow: 0 2px 7px rgb(47 37 77 / 3%);
-    overflow: hidden;
-  }
-  .workspace .table-wrap td {
-    height: auto;
-    padding: 8px 0;
-    border: 0;
-    background: transparent;
-    text-align: left;
-    font-size: 13px;
-    overflow-wrap: anywhere;
-  }
-  .workspace .table-wrap td + td { border-top: 1px solid #f0eef4; }
-  .workspace .table-wrap td::before {
-    content: attr(data-label);
-    display: block;
-    margin: 0 0 5px;
-    font-size: 10px;
-    letter-spacing: .025em;
-    color: var(--tk-muted);
-    font-weight: 700;
-  }
-  .workspace .table-wrap td:not([data-label])::before { content: none; }
-  .workspace .table-wrap td :is(strong, span, small) {
+  /* Conservar la semántica tabular y desplazar solo el contenedor, nunca la página. */
+  .workspace .table-wrap {
     max-width: 100%;
-    white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-x: auto;
+    border: 1px solid var(--tk-border);
+    border-radius: var(--tk-radius);
+    background: var(--tk-surface);
   }
+  .workspace .table-wrap table {
+    display: table;
+    width: max-content;
+    min-width: 560px !important;
+    border-collapse: collapse;
+    table-layout: auto;
+  }
+  .workspace .table-wrap thead { display: table-header-group; }
+  .workspace .table-wrap tbody { display: table-row-group; }
+  .workspace .table-wrap tr { display: table-row; }
+  .workspace .table-wrap :is(th, td) {
+    display: table-cell;
+    width: auto;
+    min-width: 110px;
+    max-width: 300px;
+    height: 44px;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--tk-border);
+    background: transparent;
+    white-space: normal;
+    vertical-align: middle;
+  }
+  .workspace .table-wrap th { background: var(--tk-surface-soft); white-space: nowrap; }
+  .workspace .table-wrap td::before { display: none; content: none; }
+  .workspace .table-wrap td :is(strong, span, small) { max-width: 100%; overflow-wrap: anywhere; }
   .workspace .table-wrap td.actions,
-  .workspace .table-wrap td:last-child { text-align: left; }
+  .workspace .table-wrap td[data-align="actions"] { white-space: nowrap; }
   .workspace .table-wrap td.actions button,
-  .workspace .table-wrap td:last-child button { min-height: 36px; }
-  .workspace .table-wrap td.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .workspace .table-wrap td.actions::before { flex: 0 0 100%; }
-
-  /* Equipos no tiene data-label en su tabla: añadir etiquetas reales sin tocar API. */
-  .equipos-page .table-wrap td:nth-child(1)::before { content: 'Equipo'; }
-  .equipos-page .table-wrap td:nth-child(2)::before { content: 'Cliente / ubicación'; }
-  .equipos-page .table-wrap td:nth-child(3)::before { content: 'Serie'; }
-  .equipos-page .table-wrap td:nth-child(4)::before { content: 'Estado'; }
-  .equipos-page .table-wrap td:nth-child(5)::before { content: 'Acciones'; }
+  .workspace .table-wrap td[data-align="actions"] button { min-height: 40px; }
+  .workspace .tk-orders-table { min-width: 920px !important; }
+  .workspace .tk-attention-table { min-width: 720px !important; }
   .equipos-page .equipos-pagination {
     display: flex;
     flex-direction: column;
@@ -283,10 +322,7 @@ body, #root { min-width: 0; max-width: 100%; }
   .tk-orders .tk-status-tab { flex: 0 0 auto; padding: 9px 12px; }
   .tk-orders .tk-advanced-state { flex: 1 1 100%; min-width: 0; height: 44px; max-width: none; }
   .tk-orders .tk-search-submit { flex: 1 1 100%; width: 100%; min-height: 44px; }
-  .tk-orders .tk-table-card { background: transparent; box-shadow: none; border: 0; overflow: visible; }
-  .tk-orders .tk-orders-table td:first-child::before,
-  .tk-orders .tk-orders-table td:nth-child(2)::before { display: none; }
-  .tk-orders .tk-orders-table td:first-child .tk-ot-number { font-size: 14px; }
+  .tk-orders .tk-table-card { overflow: hidden; }
   .tk-orders .tk-table-pagination { border: 1px solid var(--tk-border); border-radius: 10px; display: grid; grid-template-columns: auto 1fr auto; gap: 8px; padding: 10px; }
   .tk-orders .tk-table-pagination > span { margin: 0; text-align: center; align-self: center; }
   .tk-orders .tk-table-pagination > button { min-width: 0; padding-inline: 8px; }
@@ -318,6 +354,30 @@ body, #root { min-width: 0; max-width: 100%; }
   .workspace .member-row { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
   .workspace .member-actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .workspace .member-list, .workspace .membership-history { min-width: 0; }
+  .workspace .tk-dashboard-row { align-items: stretch; flex-direction: column; }
+  .workspace .tk-dashboard-row > .button { width: 100%; }
+  .shared-pagination {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "summary size" "actions actions";
+    max-width: 100%;
+    gap: 10px;
+  }
+  .shared-pagination__summary { grid-area: summary; }
+  .shared-pagination__size { grid-area: size; grid-column: auto; justify-self: end; }
+  .shared-pagination__actions { grid-area: actions; grid-column: auto; display: flex; grid-template-columns: none; width: 100%; }
+  .shared-pagination__actions > .button { flex: 0 0 auto; width: auto; }
+  .shared-pagination__pages { display: flex; flex: 0 1 auto; max-width: 100%; overflow-x: auto; scrollbar-width: thin; }
+  .shared-pagination__pages > * { display: inline-grid; }
+  .shared-pagination__pages > :not(.shared-pagination__current) { display: inline-grid; }
+  .shared-pagination__summary,
+  .shared-pagination__actions { min-width: 0; }
+  .shared-pagination__actions .button { min-width: 0; }
+  .tk-modal { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); }
+  .tk-modal .tk-modal-heading { padding: 14px 16px; align-items: flex-start; }
+  .tk-modal .tk-modal-heading h2 { font-size: 18px; }
+  .tk-modal .tk-modal-body { padding: 16px; }
+  .tk-modal .tk-form-actions { flex-direction: column-reverse; align-items: stretch; }
+  .tk-modal .tk-form-actions > button { width: 100%; min-height: 44px; }
 }
 
 /* Teléfonos compactos, en especial 320px. */
@@ -334,11 +394,23 @@ body, #root { min-width: 0; max-width: 100%; }
   .tk-orders .tk-table-pagination span { grid-column: 1 / -1; grid-row: 1; }
   .tk-orders .tk-table-pagination button { grid-row: 2; }
   .workspace .member-actions button { flex: 1 1 auto; }
+  .workspace .card-title { align-items: stretch; flex-direction: column; }
+  .workspace .card-title > button { width: 100%; min-height: 44px; }
+  .shared-pagination { grid-template-columns: minmax(0, 1fr); grid-template-areas: "summary" "size" "actions"; }
+  .shared-pagination__size { justify-self: start; }
+  .shared-pagination__nav-label { display: none; }
+  .shared-pagination__actions > .button { flex: 0 0 40px; width: 40px; min-width: 40px; padding: 0; }
+  .shared-pagination__pages { flex: 1 1 auto; justify-content: flex-start; }
 }
 
 /* Evitar animaciones si el usuario lo solicita. */
 @media (prefers-reduced-motion: reduce) {
-  .figma-sidebar { transition: none; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
 
 /* Login: en tablet pequeña mantener una sola columna legible. */
@@ -350,4 +422,350 @@ body, #root { min-width: 0; max-width: 100%; }
   .auth-screen .auth-mobile-brand span { color: #b9b3c6; }
   .auth-screen .auth-mobile-brand small { flex-basis: 100%; color: var(--color-neutral-600, #454b55); font-size: 12px; }
   .auth-screen .auth-mobile-footer { display: block; width: min(100%,430px); margin-top: 40px; color: #777b84; font-size: 11px; }
+}
+
+
+/* PR30 follow-up: tablas como tarjetas legibles en pantallas estrechas.
+ * No truncar acciones ni permitir botones con texto vertical.
+ * En escritorio se conserva la tabla de seis columnas.
+ */
+.tk-diagnostico-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: 42px;
+  margin-top: 12px;
+  padding: 10px 18px;
+  font-weight: 700;
+}
+@media (max-width: 1199px) {
+  .tk-dashboard,
+  .tk-dashboard-body,
+  .tk-dashboard-body > div,
+  .tk-dashboard-body > aside,
+  .tk-orders,
+  .tk-orders .tk-table-card {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .tk-dashboard-body { grid-template-columns: minmax(0, 1fr); }
+  .tk-dashboard-body > aside { min-width: 0; }
+  .tk-dashboard .tk-heading-actions > * { white-space: nowrap; overflow-wrap: normal; }
+  .tk-orders .table-wrap,
+  .tk-dashboard .tk-attention .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+  .tk-orders .table-wrap .tk-orders-table,
+  .tk-dashboard .tk-attention .table-wrap .tk-attention-table {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    border: 0;
+    background: transparent;
+  }
+  .tk-orders .tk-orders-table thead,
+  .tk-dashboard .tk-attention-table thead { display: none !important; }
+  .tk-orders .tk-orders-table tbody,
+  .tk-dashboard .tk-attention-table tbody {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .tk-orders .tk-orders-table tbody tr,
+  .tk-dashboard .tk-attention-table tbody tr {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px 14px;
+    width: 100% !important;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid var(--tk-border);
+    border-radius: 10px;
+    background: var(--tk-surface);
+  }
+  .tk-orders .tk-orders-table tbody td,
+  .tk-dashboard .tk-attention-table tbody td {
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100%;
+    height: auto;
+    padding: 0 !important;
+    border: 0;
+    text-align: left !important;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+  }
+  .tk-orders .tk-orders-table tbody td::before,
+  .tk-dashboard .tk-attention-table tbody td::before {
+    content: attr(data-label) !important;
+    display: block !important;
+    margin-bottom: 1px;
+    color: var(--tk-muted);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tk-orders .tk-orders-table tbody td:nth-child(2),
+  .tk-orders .tk-orders-table tbody td[data-align="actions"],
+  .tk-dashboard .tk-attention-table tbody td:nth-child(3),
+  .tk-dashboard .tk-attention-table tbody td[data-align="actions"] {
+    grid-column: 1 / -1;
+  }
+  .tk-orders .tk-orders-table tbody td[data-align="actions"]::before { content: "Acciones" !important; }
+  .tk-orders .tk-order-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    justify-content: stretch !important;
+    gap: 8px;
+    width: 100%;
+  }
+  .tk-orders .tk-order-icon-action {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+    min-height: 42px;
+    padding: 8px;
+    border: 1px solid var(--tk-border);
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: normal;
+  }
+  .tk-orders .tk-order-icon-action span {
+    white-space: nowrap !important;
+    word-break: normal;
+    overflow-wrap: normal;
+    font-size: 12px;
+  }
+  .tk-dashboard .tk-attention-action .button {
+    width: 100%;
+    min-height: 42px;
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: normal;
+  }
+  .tk-dashboard .tk-attention-client,
+  .tk-dashboard .tk-attention-description {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  .tk-dashboard-context { flex-wrap: wrap; }
+}
+@media (max-width: 767px) {
+  .tk-orders .tk-orders-table tbody tr,
+  .tk-dashboard .tk-attention-table tbody tr { padding: 12px; gap: 12px; }
+  .tk-dashboard .tk-attention-table tbody td[data-align="actions"] {
+    grid-column: 1 / -1;
+  }
+  .tk-orders .tk-order-icon-action { min-height: 44px; }
+  .tk-diagnostico-cta { width: 100%; }
+}
+
+
+/* PR31 | Corrección de acciones y tablas observada en QA manual.
+ * Se aplica también en escritorio: el defecto no era exclusivo de móvil.
+ * Botones de órdenes compactos en fila y sin palabras cortadas.
+ */
+.workspace .tk-orders .tk-orders-table th:last-child,
+.workspace .tk-orders .tk-orders-table td[data-align="actions"] {
+  min-width: 280px;
+  width: 280px;
+  max-width: none;
+}
+.workspace .tk-orders .tk-orders-table td[data-align="actions"] {
+  white-space: normal;
+}
+.workspace .tk-orders .tk-order-actions.row-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-content: end;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+.workspace .tk-orders .tk-order-icon-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 7px 3px;
+  border: 1px solid var(--tk-border);
+  border-radius: 6px;
+  text-align: center;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.workspace .tk-orders .tk-order-icon-action svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+.workspace .tk-orders .tk-order-icon-action span {
+  display: block;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.workspace .tk-dashboard .tk-attention-table th:last-child,
+.workspace .tk-dashboard .tk-attention-table td.tk-attention-action {
+  width: 116px;
+  min-width: 116px;
+  max-width: none;
+}
+.workspace .tk-dashboard .tk-attention-table td.tk-attention-action {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.workspace .tk-dashboard .tk-attention-action .button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  min-width: 90px;
+  max-width: none;
+  min-height: 36px;
+  padding-inline: 12px;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+@media (max-width: 1199px) {
+  /* Tarjetas bajo el ancho de tableta: evitar que las columnas forzadas
+     en el modo escritorio anulen el diseño de tarjeta. */
+  .workspace .tk-orders .tk-orders-table tbody td[data-align="actions"],
+  .workspace .tk-dashboard .tk-attention-table tbody td.tk-attention-action {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .workspace .tk-orders .tk-order-actions.row-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 6px;
+  }
+  .workspace .tk-dashboard .tk-attention-action .button {
+    width: auto;
+    max-width: 100%;
+    min-width: 90px;
+  }
+}
+@media (max-width: 420px) {
+  .workspace .tk-orders .tk-order-actions.row-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .workspace .tk-dashboard .tk-attention-action .button {
+    width: 100%;
+  }
+}
+
+
+/* PR31 | Acciones de catálogos: mismo patrón que Órdenes, icono y rótulo.
+ * Se utiliza solo en celdas con clase tk-shared-actions-cell.
+ */
+.workspace .table-wrap :is(th[data-align="actions"], td.tk-shared-actions-cell) {
+  width: 220px;
+  min-width: 220px;
+  max-width: none;
+}
+.workspace .table-wrap td.tk-shared-actions-cell {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  vertical-align: middle;
+}
+.workspace .table-wrap td.tk-shared-actions-cell > .tk-table-actions.row-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  justify-content: end;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+}
+.workspace .table-wrap td.tk-shared-actions-cell .tk-table-icon-action {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 7px 4px;
+  color: var(--tk-purple);
+  background: transparent;
+  border: 1px solid var(--tk-border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+  cursor: pointer;
+}
+.workspace .table-wrap td.tk-shared-actions-cell .tk-table-icon-action svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+.workspace .table-wrap td.tk-shared-actions-cell .tk-table-icon-action span {
+  display: block;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.workspace .table-wrap td.tk-shared-actions-cell .tk-table-icon-action--deactivate {
+  color: var(--color-error);
+}
+.workspace .table-wrap td.tk-shared-actions-cell .tk-table-icon-action:hover:not(:disabled) {
+  background: var(--tk-soft-purple);
+}
+.workspace .table-wrap td.tk-shared-actions-cell .tk-table-icon-action--deactivate:hover:not(:disabled) {
+  background: #fff0f0;
+}
+.workspace .table-wrap td.tk-shared-actions-cell .tk-table-icon-action:disabled {
+  color: var(--tk-muted);
+  opacity: .55;
+  cursor: not-allowed;
+}
+.workspace .table-wrap td.tk-shared-actions-cell .tk-table-icon-action:focus-visible {
+  outline: 2px solid var(--tk-blue-dark);
+  outline-offset: 2px;
+}
+@media (max-width: 767px) {
+  .workspace .table-wrap td.tk-shared-actions-cell {
+    min-width: 220px;
+    width: 220px;
+    max-width: none;
+  }
 }
