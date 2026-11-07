@@ -6,7 +6,7 @@ import { accionesPermitidasCotizacion, decidirCotizacion as decidirDominio, envi
 import * as repository from '../infrastructure/cotizaciones.repository.js';
 import type { CotizacionConDetalle } from '../infrastructure/cotizaciones.repository.js';
 import type { EstadoCotizacionPersistido } from '../domain/estado.js';
-import type { ActualizarCotizacionInput, CrearCotizacionInput, ListarCotizacionesInput } from './cotizaciones.schema.js';
+import type { ActualizarCotizacionInput, CrearCotizacionInput, ListarCotizacionesInput, PrevisualizarCotizacionInput } from './cotizaciones.schema.js';
 
 export type ActorDecision = { tipo: 'USUARIO'; usuarioId: number } | { tipo: 'PORTAL'; cuentaId: number; clienteId: number };
 const fecha = (value: Date | null | undefined) => value?.toISOString() ?? null;
@@ -67,6 +67,33 @@ export async function listarCotizaciones(filtros: ListarCotizacionesInput) {
   return { items: rows.slice(0, filtros.limite).map(row => encabezado(row, ahora)), pagina: filtros.pagina, limite: filtros.limite, hayMas: rows.length > filtros.limite };
 }
 export async function obtenerCotizacion(id: number) { return detalleDto(await repository.detalle(id)); }
+
+/**
+ * Devuelve lo que costaría la cotización sin guardarla: tarifas vigentes del
+ * cliente, subtotal por línea, descuentos y total. El formulario muestra estos
+ * importes mientras se escribe, así que no hay cifras escritas a mano.
+ */
+export async function previsualizarCotizacion(datos: PrevisualizarCotizacionInput) {
+  const cliente = await repository.cliente(datos.clienteId);
+  if (!cliente) throw new AppError(404, 'El cliente no existe.');
+  if (!cliente.activo) throw new AppError(409, 'El cliente está inactivo.');
+  // El cálculo es asíncrono: el try/catch de `traducirDominio` no vería el rechazo
+  // de la promesa, así que el error de dominio se traduce aquí para que un
+  // descuento mayor que el subtotal responda 400 y no 500.
+  let previo;
+  try {
+    previo = await repository.previsualizar(datos.clienteId, datos.lineas);
+  } catch (error) {
+    traducirErrorDominio(error);
+  }
+  return {
+    moneda: previo.moneda,
+    subtotal: previo.subtotal,
+    descuento: previo.descuento,
+    total: previo.total,
+    lineas: previo.lineas.map(linea => ({ conceptoId: linea.conceptoId, descripcion: linea.descripcion, unidad: linea.unidad, cantidad: linea.cantidad, precio: linea.precio, descuento: linea.descuento, subtotal: linea.subtotal, total: linea.total })),
+  };
+}
 export async function crearCotizacion(datos: CrearCotizacionInput, usuarioId: number, clave: string) {
   try {
     return await ejecutarIdempotente({ tipo: 'USUARIO', id: usuarioId }, 'comercial.cotizaciones.crear', claveIdempotencia(clave), datos, async tx => {

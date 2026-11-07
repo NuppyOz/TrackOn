@@ -281,7 +281,7 @@ function Contenido({
                             </span>
                             <CaretRightIcon size={17} />
                         </button>
-                        <button type="button" onClick={() => irA('/inteligencia/origen/logistica')}>
+                        <button type="button" onClick={() => irA('/inteligencia/logistico/registros?fuente=articulos')}>
                             <span className="erp-stat-icon danger">
                                 <CubeIcon size={20} />
                             </span>
@@ -291,7 +291,7 @@ function Contenido({
                             </span>
                             <CaretRightIcon size={17} />
                         </button>
-                        <button type="button" onClick={() => irA('/inteligencia/origen/finanzas')}>
+                        <button type="button" onClick={() => irA('/inteligencia/financiero/registros?fuente=comprobantes')}>
                             <span className="erp-stat-icon danger">
                                 <FileTextIcon size={20} />
                             </span>
@@ -301,7 +301,7 @@ function Contenido({
                             </span>
                             <CaretRightIcon size={17} />
                         </button>
-                        <button type="button" onClick={() => irA('/inteligencia/origen/calidad')}>
+                        <button type="button" onClick={() => irA('/inteligencia/calidad/registros?fuente=garantias')}>
                             <span className="erp-stat-icon warning">
                                 <WarningCircleIcon size={20} />
                             </span>

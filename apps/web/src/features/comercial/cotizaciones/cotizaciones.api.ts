@@ -1,5 +1,5 @@
 import { api } from '../../../shared/api'
-import type { Cotizacion, CotizacionDraft, CotizacionPatch, CotizacionDecision, PaginaCotizaciones } from './cotizaciones.types'
+import type { Cotizacion, CotizacionDraft, CotizacionPatch, CotizacionDecision, LineaCotizacionInput, PaginaCotizaciones, PrevisualizacionCotizacion } from './cotizaciones.types'
 
 const body = (value: unknown) => JSON.stringify(value)
 const keyHeader = (key: string) => ({ 'Idempotency-Key': key })
@@ -16,3 +16,5 @@ export const actualizarCotizacion = (id: number, patch: CotizacionPatch) => api<
 export const enviarCotizacion = (id: number, version: number, key: string) => api<Cotizacion>(`${base}/${id}/enviar`, { method: 'POST', headers: keyHeader(key), body: body({ version }) })
 export const decidirCotizacion = (id: number, value: CotizacionDecision, key: string) => api<Cotizacion>(`${base}/${id}/decision`, { method: 'POST', headers: keyHeader(key), body: body(value) })
 export const agregarNotaCotizacion = (id: number, texto: string, key: string) => api<Cotizacion>(`${base}/${id}/notas`, { method: 'POST', headers: keyHeader(key), body: body({ texto }) })
+export const previsualizarCotizacion = (clienteId: number, lineas: LineaCotizacionInput[]) =>
+  api<PrevisualizacionCotizacion>(`${base}/previsualizar`, { method: 'POST', body: body({ clienteId, lineas }) })

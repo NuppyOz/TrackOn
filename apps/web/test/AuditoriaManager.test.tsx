@@ -17,7 +17,7 @@ describe('Auditoría', () => {
     it('lista operaciones, actores humanos y del sistema', async () => {
         render(<AuditoriaManager />); expect(screen.getByText('Cargando auditoría…')).toBeTruthy();
         expect(await screen.findByText('ana.admin')).toBeTruthy();
-        expect(screen.getByText('Sistema')).toBeTruthy(); expect(screen.getByText('CAMBIO ESTADO')).toBeTruthy();
+        expect(screen.getByText('Sistema')).toBeTruthy(); expect(screen.getByRole('cell', { name: 'Cambio de estado' })).toBeTruthy();
     });
 
     it('pagina y actualiza los resultados', async () => {
@@ -33,7 +33,7 @@ describe('Auditoría', () => {
     it('muestra resultados vacíos y errores de consulta', async () => {
         mocks.api.mockResolvedValueOnce({ items: [], hayMas: false, pagina: 1, limite: 25 });
         const vista = render(<AuditoriaManager />);
-        expect(await screen.findByText('Sin operaciones registradas')).toBeTruthy();
+        expect(await screen.findByText('Sin operaciones para estos filtros')).toBeTruthy();
         expect(screen.getByRole('button', { name: 'Anterior' })).toHaveProperty('disabled', true);
         expect(screen.getByRole('button', { name: 'Siguiente' })).toHaveProperty('disabled', true);
         vista.unmount(); mocks.api.mockRejectedValueOnce(new Error('Auditoría no disponible'));

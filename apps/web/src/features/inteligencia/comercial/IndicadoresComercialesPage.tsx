@@ -1,6 +1,9 @@
 import { AsistenteIndicadores } from '../asistente'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../shared/ui'
+import { formatearMoneda } from '../../../shared/formato'
+import { listarClientes } from '../../clientes/clientes.api'
+import { nombreCliente } from '../../clientes/clientes.types'
 import { DataTable, MetricSummary, ModuleHeader, SemanticBadge, type DataTableColumn } from '../../erp-ui/components'
 import { consultarTableroComercial } from './comercial.api'
 import type { DesgloseComercial, MetricaComercial, TableroComercial } from './comercial.types'
@@ -22,7 +25,7 @@ const DEFAULT_METRICS = [
 function metricValue(metric: MetricaComercial | undefined) {
   if (!metric) return 'No disponible'
   if (metric.estado === 'SIN_BASE_DE_CALCULO' || metric.valor === null) return 'Sin base'
-  if (metric.unidad === 'NIO') return `C$ ${metric.valor}`
+  if (metric.unidad === 'NIO') return formatearMoneda(metric.valor)
   if (metric.unidad === 'porcentaje') return `${metric.valor}%`
   return String(metric.valor)
 }
@@ -46,10 +49,19 @@ export function IndicadoresComercialesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [kind, setKind] = useState<'TODOS' | DesgloseComercial['tipo']>('TODOS')
+  const [nombresClientes, setNombresClientes] = useState<Map<number, string>>(new Map())
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
   const load = useCallback(async (from: string, until: string) => { const request = ++boardRequest.current; setLoading(true); setError(''); try { const value = await consultarTableroComercial(from, until); if (request === boardRequest.current) setBoard(value) } catch (cause) { if (request === boardRequest.current) setError(message(cause)) } finally { if (request === boardRequest.current) setLoading(false) } }, [])
   useEffect(() => { let active = true; queueMicrotask(() => { if (active) void load(range.desde, range.hasta) }); return () => { active = false; boardRequest.current += 1 } }, [load, range])
+  // El desglose trae el id del cliente; el nombre se resuelve una vez con el directorio.
+  useEffect(() => {
+    let vivo = true
+    void listarClientes()
+      .then(clientes => { if (vivo && Array.isArray(clientes)) setNombresClientes(new Map(clientes.map(cliente => [cliente.id, nombreCliente(cliente)]))) })
+      .catch(() => undefined)
+    return () => { vivo = false }
+  }, [])
   const filtered = useMemo(() => (board?.desgloses ?? []).filter(row => (kind === 'TODOS' || row.tipo === kind) && `${row.referencia} ${row.clienteId} ${row.id} ${row.estado ?? ''}`.toLocaleLowerCase().includes(q.toLocaleLowerCase())), [board, kind, q])
   const PAGE = 25
   const pageItems = filtered.slice((page - 1) * PAGE, page * PAGE)
@@ -60,11 +72,11 @@ export function IndicadoresComercialesPage() {
   const summary = metrics.slice(0, 4).map(({ metric, label }) => ({ label, value: metricValue(metric), description: denominator(metric) }))
   const cols: DataTableColumn<DesgloseComercial>[] = [
     { key: 'tipo', header: 'Fuente', render: row => row.tipo === 'COTIZACION' ? 'Cotización' : row.tipo === 'VENTA' ? 'Venta' : 'Contrato' },
-    { key: 'referencia', header: 'Referencia', render: row => <a className="h5-link" href={row.tipo === 'CONTRATO' ? `/inteligencia/origen/contratos?contratoId=${row.id}` : `/comercial/cotizaciones-ventas?${row.tipo === 'VENTA' ? 'ventaId' : 'cotizacionId'}=${row.id}`}>{row.referencia || `#${row.id}`}</a> },
-    { key: 'clienteId', header: 'Cliente', render: row => `Cliente #${row.clienteId}` },
+    { key: 'referencia', header: 'Referencia', render: row => <a className="h5-link" href={row.tipo === 'CONTRATO' ? `/inteligencia/comercial/registros?fuente=contratos&contratoId=${row.id}` : `/comercial/cotizaciones-ventas?${row.tipo === 'VENTA' ? 'ventaId' : 'cotizacionId'}=${row.id}`}>{row.referencia || `#${row.id}`}</a> },
+    { key: 'clienteId', header: 'Cliente', render: row => nombresClientes.get(row.clienteId) ?? `Cliente #${row.clienteId}` },
     { key: 'fecha', header: 'Fecha', render: row => formatDate(row.fecha) },
     { key: 'estado', header: 'Estado', render: row => row.estado ? <SemanticBadge label={row.estado} variant={row.estado === 'APROBADA' || row.estado === 'ACTIVA' ? 'success' : 'neutral'} /> : '—' },
-    { key: 'total', header: 'Importe', render: row => row.total ? `C$ ${row.total}` : '—' },
+    { key: 'total', header: 'Importe', render: row => row.total ? formatearMoneda(row.total) : '—', align: 'end' },
   ]
   const fromDate = draftFrom ? new Date(`${draftFrom}:00-06:00`) : null
   const untilDate = draftUntil ? new Date(`${draftUntil}:00-06:00`) : null
@@ -72,7 +84,7 @@ export function IndicadoresComercialesPage() {
   const apply = () => { if (validRange) { const toIso = (value: string) => new Date(`${value}:00-06:00`).toISOString(); setRange({ desde: toIso(draftFrom), hasta: toIso(draftUntil) }); setPage(1) } }
   const status = board?.cobertura.estado
   return <section className="h5-dashboard" aria-labelledby="commercial-dashboard-title">
-    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores comerciales" description="Cotizaciones, ventas, clientes, contratos y renovaciones registradas en TrackOn." action={<nav className="h5-source-links" aria-label="Registros de origen comerciales"><a href="/comercial/cotizaciones-ventas">Cotizaciones y ventas</a><a href="/inteligencia/origen/contratos">Contratos</a></nav>} />
+    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores comerciales" description="Cotizaciones, ventas, clientes, contratos y renovaciones registradas en TrackOn." />
     <form className="h5-range" onSubmit={event => { event.preventDefault(); apply() }}><label>Desde<input type="datetime-local" value={draftFrom} onChange={event => setDraftFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" value={draftUntil} onChange={event => setDraftUntil(event.currentTarget.value)} /></label><Button variant="primary" type="submit" disabled={!validRange || loading}>Consultar</Button></form>
     {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="comercial" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h5-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}

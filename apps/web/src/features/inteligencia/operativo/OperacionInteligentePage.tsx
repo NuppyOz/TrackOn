@@ -14,11 +14,20 @@ const vistas: ReadonlyArray<{ id: Vista; nombre: string }> = [
     { id: 'indicadores', nombre: 'Indicadores' },
 ];
 const estados: EstadoOrden[] = ['BORRADOR', 'PENDIENTE', 'ASIGNADA', 'EN_EJECUCION', 'EN_REVISION', 'CERRADA', 'CANCELADA'];
-const nombreEstado = (estado: string) => estado.replaceAll('_', ' ').toLocaleLowerCase('es').replace(/^./, letra => letra.toUpperCase());
+const nombresEstado: Record<string, string> = {
+    BORRADOR: 'Borrador',
+    PENDIENTE: 'Pendiente',
+    ASIGNADA: 'Asignada',
+    EN_EJECUCION: 'En ejecución',
+    EN_REVISION: 'En revisión',
+    CERRADA: 'Cerrada',
+    CANCELADA: 'Cancelada',
+};
+const nombreEstado = (estado: string) => nombresEstado[estado] ?? estado.replaceAll('_', ' ').toLocaleLowerCase('es');
 const fecha = (valor: string | null) => valor ? new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Managua' }).format(new Date(valor)) : 'Sin programar';
 
 export default function OperacionInteligentePage({ ruta, onOrden }: Readonly<{ ruta: string; onOrden: (id: number) => void }>) {
-    const segmento = ruta.split('/').filter(Boolean)[2];
+    const segmento = ruta.split('/').filter(Boolean).at(-1);
     const vista = vistas.find(item => item.id === segmento)?.id ?? 'resumen';
     const [resumen, setResumen] = useState<ResumenOperativo | null>(null);
     const [ordenes, setOrdenes] = useState<OrdenResumen[]>([]);
@@ -37,10 +46,10 @@ export default function OperacionInteligentePage({ ruta, onOrden }: Readonly<{ r
         .sort((a, b) => (a.fechaProgramada ?? '').localeCompare(b.fechaProgramada ?? '')), [ordenes]);
     function actualizar() { setCargando(true); setRecarga(valor => valor + 1); }
     return <section className="operativo-inteligente" aria-labelledby="operativo-titulo">
-        <header className="operativo-heading"><div><p>IA y negocio</p><h1 id="operativo-titulo">Información operativa</h1>
+        <header className="operativo-heading"><div><p>Operaciones</p><h1 id="operativo-titulo">Operación del día</h1>
             <span>Decisiones basadas en el estado real de las órdenes.</span></div><Button disabled={cargando} onClick={actualizar}>Actualizar</Button></header>
         <nav className="operativo-nav" aria-label="Vistas de información operativa">{vistas.map(item => <button key={item.id} type="button"
-            aria-current={item.id === vista ? 'page' : undefined} onClick={() => irA(`/inteligencia/operacion/${item.id}`)}>{item.nombre}</button>)}</nav>
+            aria-current={item.id === vista ? 'page' : undefined} onClick={() => irA(`/operacion/${item.id}`)}>{item.nombre}</button>)}</nav>
         {error && <StatePanel type="error" title={error} action={<Button onClick={actualizar}>Reintentar</Button>} />}
         {cargando && <StatePanel type="loading" title="Actualizando información operativa…" />}
         {!cargando && resumen && vista === 'resumen' && <Resumen datos={resumen} onOrden={onOrden} />}

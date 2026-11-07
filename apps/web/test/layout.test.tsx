@@ -72,11 +72,13 @@ describe("Layout responsive de TrackOn", () => {
         const sidebar = document.querySelector('aside')!;
         const opciones = within(sidebar).getAllByRole('button', { hidden: true });
         expect(opciones[0].textContent).toContain('Resumen general');
-        expect(within(sidebar).getByRole('navigation', {name: 'Inteligencia y control', hidden: true}).textContent).toContain('IA y negocio');
+        // Inteligencia queda con las cuatro áreas; la operación vive en su grupo.
+        const inteligencia = within(sidebar).getByRole('navigation', { name: 'Inteligencia y control', hidden: true });
+        for (const area of ['Comercial', 'Financiero', 'Logístico', 'Calidad']) expect(inteligencia.textContent).toContain(area);
+        expect(within(sidebar).getByRole('navigation', { name: 'Servicios y operaciones de campo', hidden: true }).textContent).toContain('Operación del día');
         expect(within(sidebar).getByRole('navigation', { name: 'Gestión comercial y clientes', hidden: true })).toBeTruthy();
-        expect(within(sidebar).getByRole('navigation', { name: 'Inteligencia y control', hidden: true })).toBeTruthy();
-        fireEvent.click(within(sidebar).getByRole('button', { name: 'IA y negocio', hidden: true }));
-        expect(onNavigate).toHaveBeenCalledWith('inteligencia');
+        fireEvent.click(within(sidebar).getByRole('button', { name: 'Operación del día', hidden: true }));
+        expect(onNavigate).toHaveBeenCalledWith('operacion');
     });
 
     it("marca la sección seleccionada y permite navegar a los catálogos", () => {

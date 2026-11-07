@@ -21,7 +21,7 @@ describe('H8 B2 pages', () => {
   beforeEach(() => { apiMock.mockReset(); window.history.replaceState(null, '', '/') })
   afterEach(cleanup)
   it('congela la versión y conserva la respuesta tras 409; el retry repite payload e idempotency key', async () => {
-    window.history.replaceState(null, '', '/inteligencia/origen/calidad?casoId=31')
+    window.history.replaceState(null, '', '/inteligencia/calidad/registros?casoId=31')
     let rejects: ((reason: unknown) => void) | undefined; let postCount = 0
     apiMock.mockImplementation(async (url, init) => {
       if (typeof url === 'string' && url.startsWith('/api/fuentes-gerenciales/calidad/casos?')) return page as never
@@ -47,7 +47,7 @@ describe('H8 B2 pages', () => {
     expect(await screen.findByText('EN ATENCION')).toBeTruthy()
   })
   it('registra hitos de calidad y bloquea el cierre mientras haya una correctiva abierta', async () => {
-    window.history.replaceState(null, '', '/inteligencia/origen/calidad?casoId=31')
+    window.history.replaceState(null, '', '/inteligencia/calidad/registros?casoId=31')
     let current = { ...detail }
     apiMock.mockImplementation(async (url, init) => {
       if (typeof url === 'string' && url.endsWith('/casos/31/responder') && init?.method === 'POST') {
@@ -100,7 +100,7 @@ describe('H8 B2 pages', () => {
     expect(apiMock).not.toHaveBeenCalledWith('/api/fuentes-gerenciales/calidad/casos/31/cerrar', expect.anything())
   })
   it('solo permite cerrar después del último hito y conserva la versión del caso', async () => {
-    window.history.replaceState(null, '', '/inteligencia/origen/calidad?casoId=31')
+    window.history.replaceState(null, '', '/inteligencia/calidad/registros?casoId=31')
     const resolved = {
       ...detail,
       estado: 'RESUELTO' as const,
@@ -128,7 +128,7 @@ describe('H8 B2 pages', () => {
     expect(await screen.findByText('CERRADO')).toBeTruthy()
   })
   it('valida que una resolución ocurra después de la respuesta y no en el futuro', async () => {
-    window.history.replaceState(null, '', '/inteligencia/origen/calidad?casoId=31')
+    window.history.replaceState(null, '', '/inteligencia/calidad/registros?casoId=31')
     const inAttention = { ...detail, estado: 'EN_ATENCION' as const, respondidaEn: '2025-10-20T15:24:00.000Z', version: 8 }
     const resolved = { ...inAttention, estado: 'RESUELTO' as const, resueltaEn: '2025-10-20T16:00:00.000Z', resultado: 'PROCEDE', causaRaiz: 'Sello desgastado', version: 9 }
     apiMock.mockImplementation(async (url, init) => {
@@ -152,7 +152,7 @@ describe('H8 B2 pages', () => {
     expect(await screen.findByText('RESUELTO')).toBeTruthy()
   })
   it('valida las fechas de creación y vencimiento y el responsable de una acción correctiva', async () => {
-    window.history.replaceState(null, '', '/inteligencia/origen/calidad?casoId=31')
+    window.history.replaceState(null, '', '/inteligencia/calidad/registros?casoId=31')
     apiMock.mockImplementation(async (url, init) => {
       if (typeof url === 'string' && url.endsWith('/casos/31/correctivas') && init?.method === 'POST') return { id: 15 } as never
       if (typeof url === 'string' && url.endsWith('/casos/31')) return detail as never
@@ -183,7 +183,7 @@ describe('H8 B2 pages', () => {
     expect(await screen.findByText('Los datos del caso se actualizaron.')).toBeTruthy()
   })
   it('cierra una acción correctiva usando su versión y mantiene enlace al caso', async () => {
-    window.history.replaceState(null, '', '/inteligencia/origen/calidad?correctivaId=9')
+    window.history.replaceState(null, '', '/inteligencia/calidad/registros?correctivaId=9')
     apiMock.mockImplementation(async (url, init) => {
       if (typeof url === 'string' && url.endsWith('/correctivas/9') && init?.method !== 'POST') return correctiva as never
       if (typeof url === 'string' && url.endsWith('/correctivas/9/cerrar') && init?.method === 'POST') return { ...correctiva, cerradaEn: '2026-10-20T16:30:00.000Z', resultado: 'Sellado verificado', version: 4 } as never
@@ -192,7 +192,7 @@ describe('H8 B2 pages', () => {
     })
     render(<CorrectivasGerencialesPage />)
     expect(await screen.findByText('Cambiar sello')).toBeTruthy()
-    expect((screen.getByRole('link', { name: /CAS-31/ }) as HTMLAnchorElement).getAttribute('href')).toBe('/inteligencia/origen/calidad?casoId=31')
+    expect((screen.getByRole('link', { name: /CAS-31/ }) as HTMLAnchorElement).getAttribute('href')).toBe('/inteligencia/calidad/registros?fuente=casos&casoId=31')
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar acción' }))
     fireEvent.change(screen.getByLabelText('Resultado del cierre'), { target: { value: 'Sellado verificado' } })
     fireEvent.change(screen.getByLabelText('Fecha de cierre'), { target: { value: '2026-10-20T10:30' } })

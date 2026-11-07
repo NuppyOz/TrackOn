@@ -77,7 +77,7 @@ export function ArticulosPage({ onBusyChange }: Props = {}) {
     { key: 'saldoValor', header: 'Valor de saldo (NIO)', render: item => groupDecimal(item.saldoValor), align: 'end' },
     { key: 'acciones', header: 'Acciones', render: item => <ActionMenu label={`Acciones de ${item.codigo}`}><button type="button" disabled={busy} onClick={() => void open(item.id)}>Ver artículo</button></ActionMenu> },
   ]
-  const header = <ModuleHeader breadcrumb="Fuentes gerenciales / Logística" title={detail ? detail.codigo : form ? 'Nuevo artículo' : 'Artículos'} description="Registros gerenciales de artículos y saldos, separados del inventario operativo." action={!form && !detail ? <Button variant="primary" disabled={busy} onClick={beginCreate}>Nuevo artículo</Button> : undefined} />
+  const header = <ModuleHeader breadcrumb="Inteligencia / Logístico" title={detail ? detail.codigo : form ? 'Nuevo artículo' : 'Artículos'} description="Registros gerenciales de artículos y saldos, separados del inventario operativo." action={!form && !detail ? <Button variant="primary" disabled={busy} onClick={beginCreate}>Nuevo artículo</Button> : undefined} />
   return <section className="fuentes-scope logistica" aria-label="Artículos">
     {header}{notice && <p role="status" className="logistica__notice">{notice}</p>}{error && <p role="alert" className="logistica__error">{error}</p>}
     {form && <ArticuloForm busy={busy} onSave={save} onCancel={() => { intent.current = null; setForm(false) }} />}

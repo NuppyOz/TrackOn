@@ -11,3 +11,7 @@ export type Cotizacion = CotizacionResumen & Readonly<{
   lineas: Array<{ id: number; posicion: number; conceptoId: number; descripcion: string; tipo: string; unidad: string; cantidad: string; precio: string; descuento: string; subtotal: string; total: string }>;
   notas: NotaCotizacion[]; accionesPermitidas: { editar: boolean; enviar: boolean; decidir: boolean; convertirVenta: boolean }; ventaId: number | null;
 }>
+
+/** Lo que el servidor calcula con las tarifas vigentes, sin guardar la cotización. */
+export type LineaPrevisualizada = Readonly<{ conceptoId: number; descripcion: string; unidad: string; cantidad: string; precio: string; descuento: string; subtotal: string; total: string }>
+export type PrevisualizacionCotizacion = Readonly<{ moneda: 'NIO'; subtotal: string; descuento: string; total: string; lineas: LineaPrevisualizada[] }>

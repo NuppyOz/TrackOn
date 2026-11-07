@@ -34,7 +34,7 @@ describe('Indicadores logísticos H.7', () => {
 
   it('conserva nueve decimales y distingue existencia media cero de dato sin base', async () => {
     render(<IndicadoresLogisticosPage />)
-    expect(await screen.findByText('C$ 0.000000167')).toBeTruthy()
+    expect(await screen.findByText('C$0.000000167')).toBeTruthy()
     expect(screen.getByText(/Existencia media 0\.000000 unidad/)).toBeTruthy()
     expect(screen.getByText(/El artículo aún no tenía historial al inicio del período/)).toBeTruthy()
     expect(screen.getByText(/Existencia media Sin base/)).toBeTruthy()
@@ -46,9 +46,9 @@ describe('Indicadores logísticos H.7', () => {
   it('filtra el dataset recibido y enlaza cada desglose al registro real', async () => {
     render(<IndicadoresLogisticosPage />)
     await screen.findByText('CMP-3 · ART-1')
-    expect(screen.getByRole('link', { name: 'ART-1 · Bomba' }).getAttribute('href')).toBe('/inteligencia/origen/logistica?articuloId=1')
-    expect(screen.getByRole('link', { name: 'REC-4 · CMP-3' }).getAttribute('href')).toBe('/inteligencia/origen/logistica?compraId=3')
-    expect(screen.getByRole('link', { name: 'HER-9 · Manómetro' }).getAttribute('href')).toBe('/inteligencia/origen/logistica?herramientaId=9')
+    expect(screen.getByRole('link', { name: 'ART-1 · Bomba' }).getAttribute('href')).toBe('/inteligencia/logistico/registros?fuente=articulos&articuloId=1')
+    expect(screen.getByRole('link', { name: 'REC-4 · CMP-3' }).getAttribute('href')).toBe('/inteligencia/logistico/registros?fuente=compras&compraId=3')
+    expect(screen.getByRole('link', { name: 'HER-9 · Manómetro' }).getAttribute('href')).toBe('/inteligencia/logistico/registros?fuente=herramientas&herramientaId=9')
     fireEvent.change(screen.getByLabelText('Filtrar por artículo'), { target: { value: '1' } })
     expect(screen.queryByRole('link', { name: 'ART-2 · Cable' })).toBeNull()
     expect(screen.getByText('HER-9 · Manómetro')).toBeTruthy()

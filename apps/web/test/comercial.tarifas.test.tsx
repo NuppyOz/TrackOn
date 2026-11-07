@@ -102,7 +102,7 @@ describe('TarifasPage FE02', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Resolver precio' }))
     fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: '5' } })
     fireEvent.click(screen.getByRole('button', { name: 'Consultar precio' }))
-    expect(await screen.findByText(/99,999,999,999,999\.99/)).toBeTruthy()
+    expect(await screen.findByText(/C\$99,999,999,999,999\.99/)).toBeTruthy()
   })
 
   it('conserva un conflicto de versión aunque la tabla se recargue', async () => {

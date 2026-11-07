@@ -1,12 +1,13 @@
 import { AsistenteIndicadores } from '../asistente'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../shared/ui'
+import { formatearMoneda } from '../../../shared/formato'
 import { DataTable, MetricSummary, ModuleHeader, SemanticBadge, type DataTableColumn } from '../../erp-ui/components'
 import { consultarTableroFinanciero } from './financiero.api'
 import type { DesgloseFinanciero, MetricaFinanciera, TableroFinanciero } from './financiero.types'
 import './financiero.css'
 
-const money = (value: string | null | undefined) => value == null ? '—' : `C$ ${value}`
+const money = (value: string | null | undefined) => formatearMoneda(value)
 const fmtDate = (value: string | null | undefined) => value ? new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(new Date(value)) : '—'
 const fmtDateTime = (value: string | null | undefined) => value ? new Intl.DateTimeFormat('es-NI', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Managua' }).format(new Date(value)) : '—'
 const metricDefs = [
@@ -40,10 +41,10 @@ function eventLabel(event: string | null, cutoff: string | undefined, verb: 'Anu
   return <><br /><SemanticBadge label={`${verb} ${afterCut ? 'después del corte' : 'antes del corte'}`} variant={afterCut ? 'warning' : 'neutral'} /> <small>{fmtDateTime(event)}</small></>
 }
 function sourceHref(row: DesgloseFinanciero) {
-  if (row.tipo === 'COMPROBANTE') return `/inteligencia/origen/finanzas?comprobanteId=${row.id}`
-  if (row.tipo === 'COBRO') return `/inteligencia/origen/finanzas?cobroId=${row.id}`
-  if (row.tipo === 'COSTO') return `/inteligencia/origen/finanzas?costoId=${row.id}`
-  if (row.tipo === 'FACTURABLE') return `/inteligencia/origen/finanzas?facturableId=${row.id}`
+  if (row.tipo === 'COMPROBANTE') return `/inteligencia/financiero/registros?fuente=comprobantes&comprobanteId=${row.id}`
+  if (row.tipo === 'COBRO') return `/inteligencia/financiero/registros?fuente=cobros&cobroId=${row.id}`
+  if (row.tipo === 'COSTO') return `/inteligencia/financiero/registros?fuente=costos&costoId=${row.id}`
+  if (row.tipo === 'FACTURABLE') return `/inteligencia/financiero/registros?fuente=servicios&facturableId=${row.id}`
   return undefined
 }
 function rowSearch(row: DesgloseFinanciero) { return Object.values(row).filter(value => value != null).join(' ').toLocaleLowerCase() }
@@ -88,7 +89,7 @@ export function IndicadoresFinancierosPage() {
   const apply = () => { if (valid) { setRange({ desde: localIso(from), hasta: localIso(until) }); setPage(1) } }
   const coverage = board?.cobertura.estado
   return <section className="h6-dashboard" aria-labelledby="financial-dashboard-title">
-    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores financieros" description="Facturación, cobros, saldos, costos y servicios pendientes capturados en TrackOn." action={<nav className="h6-source-links" aria-label="Fuentes financieras"><a href="/inteligencia/origen/finanzas">Comprobantes y cobros</a></nav>} />
+    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores financieros" description="Facturación, cobros, saldos, costos y servicios pendientes capturados en TrackOn." />
     <form className="h6-range" onSubmit={event => { event.preventDefault(); apply() }}><label>Desde<input type="datetime-local" step="1" value={from} onChange={event => setFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" step="1" value={until} onChange={event => setUntil(event.currentTarget.value)} /></label><Button type="submit" variant="primary" disabled={!valid || loading}>Consultar</Button></form>
     {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="financiero" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h6-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}

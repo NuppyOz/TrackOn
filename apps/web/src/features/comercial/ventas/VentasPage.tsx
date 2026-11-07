@@ -1,3 +1,4 @@
+import { formatearMoneda } from '../../../shared/formato'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { listarClientes } from '../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../clientes/clientes.types'
@@ -8,10 +9,7 @@ import type { VentaDetalle, VentaResumen } from './ventas.types'
 import './ventas.css'
 
 const LIMITE = 25
-const money = (value: string) => {
-  const [whole, fraction = ''] = value.split('.')
-  return `C$ ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction.padEnd(2, '0')}`
-}
+const money = (value: string) => formatearMoneda(value)
 const quantity = (value: string) => {
   const [whole, fraction = ''] = value.split('.')
   return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction.padEnd(3, '0')}`

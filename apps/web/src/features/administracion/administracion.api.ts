@@ -2,7 +2,7 @@ import { api } from '../../shared/api';
 import type { Rol } from '../roles/roles.types';
 
 export interface UsuarioAcceso {
-    id: number; identificador: string; activo: boolean; rol: Rol;
+    id: number; identificador: string; activo: boolean; rol: Rol; permisos?: string[];
     empleado: { id: number; codEmpleado: string; active: boolean; habilitadoComoTecnico: boolean;
         persona?: { firstName: string; firstLastName: string } };
 }

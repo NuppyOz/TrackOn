@@ -19,17 +19,17 @@ afterEach(cleanup);
 
 describe('Información operativa', () => {
     it('presenta el resumen ejecutivo con datos reales y abre la orden', async () => {
-        const onOrden = vi.fn(); render(<OperacionInteligentePage ruta="/inteligencia/operacion/resumen" onOrden={onOrden} />);
+        const onOrden = vi.fn(); render(<OperacionInteligentePage ruta="/operacion/resumen" onOrden={onOrden} />);
         expect(await screen.findByText('Órdenes activas')).toBeTruthy();
         expect(screen.getByText('4')).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: 'Abrir' }));
         expect(onOrden).toHaveBeenCalledWith(3);
     });
     it('usa nombres simples y navega al seguimiento', async () => {
-        render(<OperacionInteligentePage ruta="/inteligencia/operacion/indicadores" onOrden={vi.fn()} />);
+        render(<OperacionInteligentePage ruta="/operacion/indicadores" onOrden={vi.fn()} />);
         expect(await screen.findByText('Órdenes por estado')).toBeTruthy();
         expect(screen.queryByText(/H\.2|H\.3/)).toBeNull();
         fireEvent.click(screen.getByRole('button', { name: 'Seguimiento' }));
-        expect(mocks.irA).toHaveBeenCalledWith('/inteligencia/operacion/seguimiento');
+        expect(mocks.irA).toHaveBeenCalledWith('/operacion/seguimiento');
     });
 });

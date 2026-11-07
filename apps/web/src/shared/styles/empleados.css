@@ -7,8 +7,8 @@
 .tk-employees button { cursor: pointer; font-family: inherit; font-weight: 600; }
 .tk-employees button:disabled { cursor: not-allowed; opacity: .55; }
 .tk-employee-primary, .tk-employee-secondary { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 40px; border-radius: 6px; border: 1px solid transparent; padding: 8px 16px; white-space: nowrap; font-size: 13px; }
-.tk-employee-primary { background: var(--tk-blue, #129fdc); color: #fff; }
-.tk-employee-primary:hover:not(:disabled) { background: var(--tk-blue-dark, #087db5); }
+.tk-employee-primary { background: var(--tk-blue-cta, #0b7ab0); color: #fff; }
+.tk-employee-primary:hover:not(:disabled) { background: var(--tk-blue-cta-dark, #08658f); }
 .tk-employee-secondary { background: var(--tk-soft-purple, #f3f1f6); color: var(--tk-purple, #2f254d); border-color: var(--tk-border, #e6e2ec); }
 .tk-employee-secondary:hover:not(:disabled) { background: #eae6f0; }
 .tk-employee-panel, .tk-employee-filters, .tk-employee-stats > div { background: #fff; border: 1px solid var(--tk-border, #e6e2ec); border-radius: 10px; box-shadow: 0 2px 5px rgb(47 37 77 / 3%); }

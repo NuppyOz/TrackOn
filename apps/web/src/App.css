@@ -4,7 +4,7 @@
 :root {
     --color-primary-100: #eaf4f9;
     --color-primary-500: #129fdc;
-    --color-primary-600: #087db5;
+    --color-primary-600: #066a9c;
     --color-secondary-500: #665b82;
     --color-secondary-700: #2f254d;
     --color-neutral-0: #ffffff;
@@ -16,7 +16,8 @@
     --muted: var(--color-neutral-600);
     --line: #e6e2ec;
     --green: #129fdc;
-    --green-dark: #087db5;
+    /* 5,4:1 sobre blanco y 5,1:1 sobre el fondo de la píldora «Líder» */
+    --green-dark: #066a9c;
     --mint: #eaf4f9;
     --paper: #ffffff;
     --canvas: #f7f6fa;
@@ -358,6 +359,16 @@ button {
     font-size: 13px;
 }
 
+/* Las acciones de filtro no son la acción principal de la pantalla: no se
+   estiran a toda la fila (medido antes: 895 px en Usuarios, 785 px en Cuadrillas). */
+.filters > button,
+.filters > .erp-ui__button,
+.filters > a.primary-button,
+.filters > a.secondary-button {
+    justify-self: start;
+    width: auto;
+}
+
 .filters .secondary-button {
     padding: 8px 12px;
 }
@@ -569,7 +580,8 @@ td span {
 .member-actions button {
     border: 0;
     background: transparent;
-    color: var(--green);
+    /* usaba --green (#129fdc): 3,0:1 sobre blanco */
+    color: var(--green-dark);
     padding: 4px;
     font-size: 11px;
     white-space: nowrap;
@@ -590,6 +602,12 @@ td span {
     display: flex;
     gap: 10px;
     margin: 18px 0;
+}
+
+.member-add__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
 }
 
 .member-add select {

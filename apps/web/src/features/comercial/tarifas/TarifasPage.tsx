@@ -6,6 +6,7 @@ import {
   actualizarConcepto, cambiarEstadoTarifa, crearConcepto, crearTarifa, listarConceptos, listarTarifas, resolverPrecio,
   type ConceptoComercial, type EstadoCatalogo, type Pagina, type PrecioResuelto, type TarifaComercial, type TipoConcepto,
 } from './tarifas.api'
+import { formatearMoneda } from '../../../shared/formato'
 import './tarifas.css'
 
 type Seccion = 'conceptos' | 'tarifas'
@@ -15,11 +16,7 @@ const tipos: Array<{ value: TipoConcepto; label: string }> = [
   { value: 'SERVICIO', label: 'Servicio' }, { value: 'MANO_OBRA', label: 'Mano de obra' }, { value: 'EQUIPO', label: 'Equipo' },
   { value: 'REPUESTO', label: 'Repuesto' }, { value: 'INSUMO', label: 'Insumo' },
 ]
-const precioNio = (value: string) => {
-  const [integer, decimal = ''] = value.split('.')
-  const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-  return `C$ ${grouped}.${decimal.padEnd(2, '0')}`
-}
+const precioNio = (value: string) => formatearMoneda(value)
 const fecha = (value: string) => {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(date)

@@ -6,61 +6,48 @@ El dashboard usa métricas del servidor y el día de Managua. La agenda muestra
 visitas programadas; la duración de visitas y detección de solapamientos todavía
 requieren un modelo de horarios antes de poder ofrecer disponibilidad fiable.
 
-## Datos demo
+## Datos de prueba
 
-El cargador `apps/api/prisma/seed-demo.ts` crea cuentas `demo.admin`,
-`demo.gerente` y `demo.tecnico`, un cliente con ubicación, equipo, cuadrilla,
-servicio, material y cinco órdenes con solicitudes `[DEMO-*]`.
-Cada cuenta recibe avisos para abrir las órdenes y comprobar su lectura.
-Las contraseñas aleatorias están únicamente en `.demo/accesos.json`, con permisos
-600, excluido de Git y del contexto de Docker. No se muestran en la consola.
+Los datos salen de `apps/api/prisma/seed-nicaragua.ts`: 20 empresas nicaragüenses reales
+(SEVASA, Comtech, Conico, SICSA, eTech, Telmovil, CLIMERSA, Climatec, La Colonia,
+PriceSmart, Vivian Pellas, Bautista, InterContinental, Colonial Granada, Selva Negra,
+Nuevo Carnic, Centrolac, Eskimo, Tip Top y CCN) con sus ubicaciones, equipos e historia
+operativa. Detalle, fuentes y límites en [datos de prueba](datos-prueba-nicaragua.md).
 
-El cargador conserva los registros existentes y las modificaciones hechas a la
-demo. Repetirlo no restablece las contraseñas ni duplica las órdenes. No se ejecuta
-automáticamente al iniciar la aplicación y rechaza `NODE_ENV=production`.
-Primero deben existir los roles y estados del seed base.
-
-Para una API de desarrollo con `DATABASE_URL` accesible:
+El cargador reinicia la base de negocio y conserva las cuentas locales con su contraseña
+actual. Rechaza `NODE_ENV=production` y una base que no sea local.
 
 ```bash
-NODE_ENV=development TRACKON_ALLOW_DEMO_DATA=true pnpm seed:demo
+TRACKON_ALLOW_SEED_DATA=true pnpm seed:datos
 ```
 
-Con la base local dentro de Docker, desde la raíz del repositorio:
-
-```bash
-mkdir -p .demo
-docker compose run --rm --no-deps \
-  -e NODE_ENV=development -e TRACKON_ALLOW_DEMO_DATA=true \
-  -e TRACKON_DEMO_OUTPUT=/demo \
-  -v "$PWD/.demo:/demo" \
-  -v "$PWD/apps/api/prisma/seed-demo.ts:/workspace/apps/api/prisma/seed-demo.ts:ro" \
-  migrate pnpm exec tsx prisma/seed-demo.ts
-```
+Para las pruebas de notificaciones de esta guía usa `administrador` y `tecnico` en dos
+sesiones privadas; si necesitás un tercer perfil, creá el usuario desde
+**Administración → Usuarios y permisos**.
 
 ## Prueba de notificaciones y ejecución
 
-1. Abre `http://localhost:8080` e inicia sesión como `demo.admin` con el archivo local.
+1. Abre `http://localhost:8080` e inicia sesión como `administrador` con el archivo local.
    Después de actualizar los contenedores, recarga con `Ctrl+Shift+R`.
 2. En Órdenes, pulsa **Nueva orden** y crea una solicitud de prueba del cliente
-   demo. Cada fila muestra los iconos **Ver, Editar, Asignar y Desactivar**, con
+   del listado. Cada fila muestra los iconos **Ver, Editar, Asignar y Desactivar**, con
    su nombre visible y ayuda al pasar el cursor.
    Estas acciones abren ventanas sobre el listado y conservan sus filtros.
    Editar cambia solicitud, prioridad y programación. Las órdenes en revisión
    o finalizadas no admiten edición; Asignar requiere una orden pendiente.
-3. En otra sesión privada entra como `demo.gerente`. Edita la solicitud como
-   administrador. En la sesión del gerente, abre la campana y pulsa **Actualizar**:
+3. En otra sesión privada entra como `tecnico` (o el usuario que crees). Edita la solicitud como
+   administrador. En esa otra sesión, abre la campana y pulsa **Actualizar**:
    debe aparecer el aviso de edición. Al pulsarlo baja el contador, se abre
    **Ver** de esa orden y la lectura permanece después de recargar.
-4. En otra sesión entra como `demo.tecnico`. Como administrador, usa
-   el icono **Asignar** y selecciona la cuadrilla demo. Como técnico, abre la
+4. En otra sesión entra como `tecnico`. Como administrador, usa
+   el icono **Asignar** y selecciona una cuadrilla. Como técnico, abre la
    campana, pulsa **Actualizar** y abre el aviso de asignación. Desde **Ver**,
    indica un motivo y pulsa **Iniciar trabajo**. El administrador recibe
    el nuevo aviso. El usuario que realiza la operación no recibe su propio aviso.
 5. Para probar el flujo completo, registra diagnóstico y resultado, un servicio
    y consumo de material. Adjunta JPG, PNG, WebP o PDF hasta 8 MB. Espera el estado
    DISPONIBLE antes de enviar a revisión. Una carga fallida permite reintentar.
-6. Como gerente, abre EN_REVISION, acepta cada evidencia vigente, indica un
+6. Como administrador, abre EN_REVISION, acepta cada evidencia vigente, indica un
    motivo y pulsa **Cerrar orden**.
    Si una evidencia requiere corrección, recházala con motivo y devuelve la orden
    a ejecución. El técnico puede cargar un reemplazo conservando el historial.
@@ -142,7 +129,7 @@ que el token esté disponible.
   Devolver a ejecución y Cerrar orden. Edición con control de versión;
   desactivación con motivo e historial.
 - Notificaciones: prueba real con administrador, gerente y técnico sobre la
-  nueva OT-10 del cliente demo; edición, asignación, ejecución, lectura persistente
+  nueva OT-10 del cliente del listado; edición, asignación, ejecución, lectura persistente
   y cancelación comprobadas. La OT-10 quedó CANCELADA, sin asignación activa.
   Ocho comprobaciones de navegador y cuatro de revisión final aprobadas,
   incluyendo las acciones en móvil, ventanas centradas, devolución del foco

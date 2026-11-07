@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActionMenu, Button } from '../../../shared/ui'
 import { createIdempotencyKey } from '../../../shared/idempotency'
+import { formatearMoneda } from '../../../shared/formato'
 import { listarClientes } from '../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../clientes/clientes.types'
 import { DataTable, ModuleHeader, SemanticBadge, type DataTableColumn } from '../../erp-ui/components'
@@ -10,7 +11,7 @@ import '../procedencia/h5-sources.css'
 
 const LIMITE = 25
 const when = (value: string) => new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(new Date(value))
-const money = (value: string) => `C$ ${value}`
+const money = (value: string) => formatearMoneda(value)
 const err = (cause: unknown) => cause instanceof Error ? cause.message : 'No se pudo completar la operación.'
 const newDraft = () => ({ clienteId: '', referencia: '', inicio: '', fin: '', importe: '', observacion: '', terminadoEn: '' })
 type Mode = 'create' | 'renew' | 'terminate' | null
@@ -65,7 +66,7 @@ export function ContratosFuentesPage() {
   ]
   const isFormValid = mode === 'terminate' ? Boolean(draft.observacion.trim() && draft.terminadoEn && managuaIso(draft.terminadoEn) >= (detail?.inicio ?? '') && managuaIso(draft.terminadoEn) <= (detail?.fin ?? '') && managuaIso(draft.terminadoEn) <= new Date().toISOString()) : Boolean(draft.referencia.trim() && draft.inicio && draft.fin && managuaIso(draft.inicio) < managuaIso(draft.fin) && /^\d{1,14}(\.\d{1,2})?$/.test(draft.importe) && Number(draft.importe) >= 0 && (mode === 'renew' || draft.clienteId))
   return <section className="h5-source" aria-labelledby="contracts-title">
-    <ModuleHeader breadcrumb="Inteligencia / Registros de origen" title="Contratos" description="Fichas contractuales registradas. Una renovación crea un contrato sucesor y conserva el vínculo con el anterior." action={<Button variant="primary" onClick={openCreate} disabled={Boolean(mode) || saving}>Nuevo contrato</Button>} />
+    <ModuleHeader breadcrumb="Inteligencia / Comercial" title="Contratos" description="Fichas contractuales registradas. Una renovación crea un contrato sucesor y conserva el vínculo con el anterior." action={<Button variant="primary" onClick={openCreate} disabled={Boolean(mode) || saving}>Nuevo contrato</Button>} />
     {error && <p role="alert" className="h5-error">{error}</p>}
     {!mode && (detail ? <section className="h5-detail"><div className="h5-detail-head"><h2>{detail.referencia} · {detail.clienteNombre}</h2><Button onClick={() => setDetail(null)} disabled={saving}>Volver al listado</Button></div><dl><div><dt>Vigencia</dt><dd>{when(detail.inicio)} – {when(detail.fin)}</dd></div><div><dt>Importe</dt><dd>{money(detail.importe)} NIO</dd></div><div><dt>Registrado</dt><dd>{when(detail.registradoEn)}</dd></div><div><dt>Terminado</dt><dd>{detail.terminadoEn ? when(detail.terminadoEn) : 'No terminado'}</dd></div><div><dt>Contrato anterior</dt><dd>{detail.anteriorId ? <button type="button" className="h5-link" onClick={() => void view(detail.anteriorId!)}>#{detail.anteriorId}</button> : '—'}</dd></div><div><dt>Sucesor</dt><dd>{detail.siguienteId ? <button type="button" className="h5-link" onClick={() => void view(detail.siguienteId!)}>#{detail.siguienteId}</button> : '—'}</dd></div><div><dt>Observación</dt><dd>{detail.observacion || 'Sin observación'}</dd></div></dl>{!detail.terminadoEn && !detail.siguienteId && <div className="h5-detail-actions"><Button onClick={() => openRenew(detail)} disabled={saving}>Renovar contrato</Button><Button disabled={saving} onClick={() => { resetKey(); const now = new Date(); const effective = now > new Date(detail.fin) ? new Date(detail.fin) : now; setDraft({ ...newDraft(), observacion: '', terminadoEn: managuaInput(effective.toISOString()) }); setMode('terminate') }}>Terminar contrato</Button></div>}</section> : <>
       <div className="h5-filters"><label>Cliente<select value={clienteId} onChange={event => { setClienteId(event.currentTarget.value); setPage(1) }}><option value="">Todos los clientes</option>{clientes.map(client => <option key={client.id} value={client.id}>{nombreCliente(client)}</option>)}</select></label></div>

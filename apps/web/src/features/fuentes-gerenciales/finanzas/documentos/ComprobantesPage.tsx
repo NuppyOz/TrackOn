@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActionMenu, Button } from '../../../../shared/ui'
+import { formatearMoneda } from '../../../../shared/formato'
 import { createIdempotencyKey } from '../../../../shared/idempotency'
 import { listarClientes } from '../../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../../clientes/clientes.types'
@@ -17,7 +18,7 @@ const LIMIT = 25
 const localDate = (value: string) => new Date(new Date(value).getTime() - 6 * 60 * 60 * 1000).toISOString().slice(0, 16)
 const isoDate = (value: string) => new Date(`${value}:00-06:00`).toISOString()
 const date = (value: string) => new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(new Date(value))
-const money = (value: string) => `C$ ${value}`
+const money = (value: string) => formatearMoneda(value)
 const errorText = (error: unknown) => error instanceof Error ? error.message : 'No se pudo completar la operación.'
 const randomKey = createIdempotencyKey
 const cents = (value: string) => { const [whole, fraction = ''] = value.split('.'); return BigInt(whole || '0') * 100n + BigInt(fraction.padEnd(2, '0')) }
@@ -95,14 +96,15 @@ export function ComprobantesPage({ onBusyChange }: ComprobantesPageProps = {}) {
     { key: 'clienteNombre', header: 'Cliente', render: row => row.clienteNombre },
     { key: 'emisor', header: 'Emisor', render: row => row.emisor },
     { key: 'emitidaEn', header: 'Emisión', render: row => date(row.emitidaEn) },
-    { key: 'saldo', header: 'Saldo', render: row => money(row.saldo) },
+    { key: 'importeFinal', header: 'Importe', render: row => money(row.importeFinal), align: 'end' },
+    { key: 'saldo', header: 'Saldo', render: row => money(row.saldo), align: 'end' },
     { key: 'estado', header: 'Estado', render: row => <SemanticBadge label={row.anuladaEn ? 'Anulado' : 'Vigente'} variant={row.anuladaEn ? 'neutral' : 'success'} /> },
     { key: 'acciones', header: 'Acciones', render: row => <ActionMenu label={`Acciones de ${row.referencia}`}><button type="button" onClick={() => void view(row.id)}>Ver detalle</button></ActionMenu> },
   ]
   const validCreate = Boolean(draft.clienteId && draft.referencia.trim() && draft.emisor.trim() && draft.emitidaEn && draft.venceEn && isoDate(draft.venceEn) >= isoDate(draft.emitidaEn) && /^(0|[1-9]\d{0,13})(\.\d{1,2})?$/.test(draft.importeFinal) && cents(draft.importeFinal) > 0n && draft.lineas.length > 0 && draft.lineas.every(line => line.descripcion.trim() && /^(0|[1-9]\d{0,13})(\.\d{1,2})?$/.test(line.importe)) && draft.lineas.reduce((sum, line) => sum + cents(line.importe || '0'), 0n) === cents(draft.importeFinal || '0'))
   const canAnnul = Boolean(detail && !detail.anuladaEn && detail.saldo === detail.importeFinal)
   return <section className="h5-source" aria-labelledby="comprobantes-title">
-    <ModuleHeader breadcrumb="Inteligencia / Registros financieros" title="Comprobantes" description="Registro de comprobantes externos con sus líneas y saldo. No emite facturas fiscales." action={!mode && !detail ? <Button variant="primary" onClick={openCreate}>Registrar comprobante</Button> : undefined} />
+    <ModuleHeader breadcrumb="Inteligencia / Financiero" title="Comprobantes" description="Registro de comprobantes externos con sus líneas y saldo. No emite facturas fiscales." action={!mode && !detail ? <Button variant="primary" onClick={openCreate}>Registrar comprobante</Button> : undefined} />
     {error && <p role="alert" className="h5-error">{error}</p>}
     {!mode && (detail ? <section className="h5-detail"><div className="h5-detail-head"><div><h2>{detail.referencia} · {detail.clienteNombre}</h2><SemanticBadge label={detail.anuladaEn ? 'Anulado' : 'Vigente'} variant={detail.anuladaEn ? 'neutral' : 'success'} /></div><Button onClick={() => setDetail(null)}>Volver al listado</Button></div>
       <dl><div><dt>Emisor</dt><dd>{detail.emisor}</dd></div><div><dt>Emisión</dt><dd>{date(detail.emitidaEn)}</dd></div><div><dt>Vencimiento</dt><dd>{date(detail.venceEn)}</dd></div><div><dt>Importe final</dt><dd>{money(detail.importeFinal)} NIO</dd></div><div><dt>Saldo</dt><dd>{money(detail.saldo)} NIO</dd></div><div><dt>Registrado</dt><dd>{date(detail.registradoEn)}</dd></div><div><dt>Observación</dt><dd>{detail.observacion || 'Sin observación'}</dd></div>{detail.anuladaEn && <div><dt>Anulado</dt><dd>{date(detail.anuladaEn)} · {detail.motivoAnulacion}</dd></div>}</dl>

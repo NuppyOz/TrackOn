@@ -129,7 +129,7 @@ export function MovimientosPage({ onBusyChange }: Props = {}) {
   ]
   const chosenArticles = chosenArticle && !articles.some(item => item.id === chosenArticle.id) ? [chosenArticle, ...articles] : articles
   const chosenOrigins = chosenOrigin && !origins.some(item => item.id === chosenOrigin.id) ? [chosenOrigin, ...origins] : origins
-  const header = <ModuleHeader breadcrumb="Fuentes gerenciales / Logística" title={detail ? `Movimiento ${detail.referencia}` : mode === 'create' ? 'Nuevo movimiento' : mode === 'reverse' ? 'Revertir movimiento' : 'Movimientos'} description="Historial de entradas, salidas y correcciones de artículos." action={!mode && !detail ? <Button variant="primary" disabled={busy} onClick={beginCreate}>Registrar movimiento</Button> : undefined} />
+  const header = <ModuleHeader breadcrumb="Inteligencia / Logístico" title={detail ? `Movimiento ${detail.referencia}` : mode === 'create' ? 'Nuevo movimiento' : mode === 'reverse' ? 'Revertir movimiento' : 'Movimientos'} description="Historial de entradas, salidas y correcciones de artículos." action={!mode && !detail ? <Button variant="primary" disabled={busy} onClick={beginCreate}>Registrar movimiento</Button> : undefined} />
   return <section className="fuentes-scope logistica" aria-label="Movimientos logísticos">
     {header}{notice && <p role="status" className="logistica__notice">{notice}</p>}{error && <p role="alert" className="logistica__error">{error}</p>}
     {mode === 'create' && <section className="logistica__panel"><h2>Registrar movimiento</h2><form aria-label="Nuevo movimiento" onSubmit={event => { event.preventDefault(); void submitCreate() }}>

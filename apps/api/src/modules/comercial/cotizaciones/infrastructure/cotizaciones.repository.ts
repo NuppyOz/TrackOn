@@ -46,7 +46,7 @@ export async function crearEn(tx: Prisma.TransactionClient, datos: CrearCotizaci
     }, select: { id: true } });
     return { tipo: 'creada' as const, cotizacion: await detalle(creado.id, tx) };
 }
-async function prepararLineas(clienteId: number, entradas: CrearCotizacionInput['lineas'], tx: Prisma.TransactionClient) {
+export async function prepararLineas(clienteId: number, entradas: CrearCotizacionInput['lineas'], tx: Prisma.TransactionClient) {
   const result: { posicion: number; conceptoId: number; descripcion: string; tipo: string; unidad: string; cantidad: string; precio: string; descuento: string; subtotal: string; total: string }[] = [];
   for (let i = 0; i < entradas.length; i++) {
     const input = entradas[i]!;
@@ -57,8 +57,18 @@ async function prepararLineas(clienteId: number, entradas: CrearCotizacionInput[
   }
   return result;
 }
-function totalizar(lineas: {subtotal:string; descuento:string; total:string}[]) {
+export function totalizar(lineas: {subtotal:string; descuento:string; total:string}[]) {
   return { subtotal: sumarTotalesCotizacion(lineas.map(x => x.subtotal)), descuento: sumarTotalesCotizacion(lineas.map(x => x.descuento)), total: sumarTotalesCotizacion(lineas.map(x => x.total)) };
+}
+
+/**
+ * Cálculo previo: resuelve las tarifas vigentes y devuelve los mismos importes
+ * que guardaría `crearEn`. La pantalla no calcula dinero por su cuenta.
+ */
+export async function previsualizar(clienteId: number, entradas: CrearCotizacionInput['lineas']) {
+  const lineas = await prepararLineas(clienteId, entradas, prisma);
+  const totales = totalizar(lineas);
+  return { moneda: 'NIO' as const, ...totales, lineas };
 }
 
 export async function actualizar(id: number, datos: ActualizarCotizacionInput) {

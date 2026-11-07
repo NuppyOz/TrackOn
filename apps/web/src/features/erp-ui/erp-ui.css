@@ -167,3 +167,12 @@
   .inteligencia-scope .erp-ui__pagination,
   .portal-scope .erp-ui__pagination { align-items: flex-start; flex-direction: column; }
 }
+
+/* En móvil la tabla no se desplazaba: la tarjeta que la contiene crecía hasta el
+   ancho de la tabla (ítem de grid con min-width:auto) y .workspace, que recorta
+   en horizontal, se comía las últimas columnas. Con min-width:0 el contenedor se
+   queda en el ancho disponible y el desplazamiento ocurre dentro de la tabla. */
+.erp-ui__table-section,
+.fuentes-scope > *,
+.inteligencia-scope > *,
+.comercial-scope > * { min-width: 0; }

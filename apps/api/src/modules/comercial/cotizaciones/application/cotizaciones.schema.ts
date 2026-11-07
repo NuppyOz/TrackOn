@@ -18,6 +18,10 @@ export const actualizarCotizacionSchema = z.strictObject({
   lineas: z.array(z.strictObject({ conceptoId: id, cantidad: cantidad3, descuento: decimal2 })).max(100).optional(),
   nota: textoPlano(2000).nullable().optional(),
 }).refine(v => Object.keys(v).some(k => k !== 'version'), 'Indica al menos un campo para actualizar.');
+export const previsualizarCotizacionSchema = z.strictObject({
+  clienteId: id,
+  lineas: z.array(z.strictObject({ conceptoId: id, cantidad: cantidad3, descuento: decimal2 })).max(100),
+});
 export const enviarCotizacionSchema = z.strictObject({ version });
 export const decisionCotizacionSchema = z.strictObject({ version, decision: z.enum(['APROBADA', 'RECHAZADA']), comentario: textoPlano(1000).optional() });
 export const notaCotizacionSchema = z.strictObject({ texto: textoPlano(2000, 1) });
@@ -28,5 +32,6 @@ export const listarCotizacionesSchema = z.strictObject({
   sortBy: z.enum(['id', 'creadaEn', 'venceEn']).default('creadaEn'), sortDir: z.enum(['asc', 'desc']).default('desc'),
 });
 export type CrearCotizacionInput = z.infer<typeof crearCotizacionSchema>;
+export type PrevisualizarCotizacionInput = z.infer<typeof previsualizarCotizacionSchema>;
 export type ActualizarCotizacionInput = z.infer<typeof actualizarCotizacionSchema>;
 export type ListarCotizacionesInput = z.infer<typeof listarCotizacionesSchema>;
