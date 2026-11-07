@@ -1,3 +1,4 @@
+import { formatearMoneda } from '../../../shared/formato'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { listarClientes } from '../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../clientes/clientes.types'
@@ -14,10 +15,7 @@ import type { VentaResumen } from '../ventas/ventas.types'
 import './cotizaciones.css'
 
 const LIMITE = 25
-const money = (value: string) => {
-  const [whole, fraction = ''] = value.split('.')
-  return `C$ ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction.padEnd(2, '0')}`
-}
+const money = (value: string) => formatearMoneda(value)
 const date = (value: string) => {
   const parsed = new Date(value)
   return Number.isNaN(parsed.getTime()) ? 'Fecha no válida' : new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(parsed)

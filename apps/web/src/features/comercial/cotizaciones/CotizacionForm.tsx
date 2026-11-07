@@ -2,7 +2,9 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { listarContactos, type ContactoComercial } from '../crm/crm.api'
 import { listarConceptos, type ConceptoComercial } from '../tarifas/tarifas.api'
 import { Button } from '../../../shared/ui'
-import type { Cotizacion, CotizacionDraft, CotizacionPatch, LineaCotizacionInput } from './cotizaciones.types'
+import type { Cotizacion, CotizacionDraft, CotizacionPatch, LineaCotizacionInput, PrevisualizacionCotizacion } from './cotizaciones.types'
+import { previsualizarCotizacion } from './cotizaciones.api'
+import { formatearMoneda } from '../../../shared/formato'
 import { nombreCliente, type Cliente } from '../../clientes/clientes.types'
 
 const LIMITE = 25
@@ -28,6 +30,11 @@ export function CotizacionForm({ quote, clients, busy, onSave, onCancel }: Reado
   const [replaceLines, setReplaceLines] = useState(false); const [error, setError] = useState('')
   const [venceEn, setVenceEn] = useState(quote ? fechaLocal(quote.venceEn) : '')
   const [nota, setNota] = useState(quote?.nota ?? '')
+  // Importes calculados por el servidor con las tarifas vigentes (no se
+  // escriben ni se estiman en la pantalla).
+  const [preview, setPreview] = useState<PrevisualizacionCotizacion | null>(null)
+  const [previewError, setPreviewError] = useState('')
+  const [calculando, setCalculando] = useState(false)
 
   useEffect(() => {
     if (!clientId) return
@@ -44,6 +51,21 @@ export function CotizacionForm({ quote, clients, busy, onSave, onCancel }: Reado
       .catch(cause => { if (live) setError(cause instanceof Error ? cause.message : 'No se pudieron cargar los conceptos.') })
     return () => { live = false }
   }, [conceptQ, conceptPage])
+
+  const lineasCompletas = lines.length > 0 && lines.every(line => Number.isInteger(Number(line.conceptoId)) && Number(line.conceptoId) > 0 && cantidadValida(line.cantidad) && descuentoValido(line.descuento))
+  useEffect(() => {
+    const cliente = Number(clientId)
+    if (!cliente || !lineasCompletas) { setPreview(null); setPreviewError(''); setCalculando(false); return }
+    let live = true
+    setCalculando(true)
+    const timer = setTimeout(() => {
+      previsualizarCotizacion(cliente, lines.map(line => ({ conceptoId: Number(line.conceptoId), cantidad: line.cantidad, descuento: line.descuento })))
+        .then(result => { if (live) { setPreview(result); setPreviewError('') } })
+        .catch(cause => { if (live) { setPreview(null); setPreviewError(cause instanceof Error ? cause.message : 'No se pudo calcular la cotización.') } })
+        .finally(() => { if (live) setCalculando(false) })
+    }, 350)
+    return () => { live = false; clearTimeout(timer) }
+  }, [clientId, lineasCompletas, lines])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); if (busy) return
@@ -82,7 +104,32 @@ export function CotizacionForm({ quote, clients, busy, onSave, onCancel }: Reado
       <label>Cantidad<input aria-label={`Cantidad línea ${index + 1}`} value={line.cantidad} inputMode="decimal" onChange={event => setLines(value => value.map((current, i) => i === index ? { ...current, cantidad: event.target.value } : current))} /></label>
       <label>Descuento NIO<input aria-label={`Descuento línea ${index + 1}`} value={line.descuento} inputMode="decimal" onChange={event => setLines(value => value.map((current, i) => i === index ? { ...current, descuento: event.target.value } : current))} /></label>
       <button type="button" onClick={() => setLines(value => value.filter((_, i) => i !== index))}>Quitar línea</button>
-    </div>)}{conceptMore && <Button type="button" onClick={() => setConceptPage(value => value + 1)}>Más conceptos</Button>}{lines.length < 100 && <Button type="button" onClick={() => setLines(value => [...value, { conceptoId: '', cantidad: '1', descuento: '0' }])}>Agregar línea</Button>}<p>Al guardar se aplicarán las tarifas vigentes y se actualizarán los totales.</p></fieldset>}
+    </div>)}{conceptMore && <Button type="button" onClick={() => setConceptPage(value => value + 1)}>Más conceptos</Button>}{lines.length < 100 && <Button type="button" onClick={() => setLines(value => [...value, { conceptoId: '', cantidad: '1', descuento: '0' }])}>Agregar línea</Button>}</fieldset>}
+    {(!quote || replaceLines) && clientId && lines.length > 0 && <section className="cotizaciones__preview" aria-live="polite">
+      <h3>Cálculo con las tarifas vigentes</h3>
+      {calculando && <p role="status">Calculando importes…</p>}
+      {previewError && <p role="status" className="cotizaciones__preview-note">{previewError}</p>}
+      {preview && !previewError && <>
+        <div className="cotizaciones__table-wrap"><table>
+          <caption className="sr-only">Importes calculados por el servidor para las líneas de la cotización</caption>
+          <thead><tr><th>Concepto</th><th>Cantidad</th><th>Precio</th><th>Descuento</th><th>Subtotal</th><th>Total</th></tr></thead>
+          <tbody>{preview.lineas.map((linea, index) => <tr key={index}>
+            <td>{linea.descripcion}</td>
+            <td>{linea.cantidad} {linea.unidad}</td>
+            <td>{formatearMoneda(linea.precio)}</td>
+            <td>{formatearMoneda(linea.descuento)}</td>
+            <td>{formatearMoneda(linea.subtotal)}</td>
+            <td>{formatearMoneda(linea.total)}</td>
+          </tr>)}</tbody>
+        </table></div>
+        <dl className="cotizaciones__preview-totales">
+          <div><dt>Subtotal</dt><dd>{formatearMoneda(preview.subtotal)}</dd></div>
+          <div><dt>Descuentos</dt><dd>{formatearMoneda(preview.descuento)}</dd></div>
+          <div><dt>Total</dt><dd>{formatearMoneda(preview.total)}</dd></div>
+        </dl>
+        <p className="cotizaciones__preview-note">Importes calculados por el servidor con las tarifas vigentes del cliente. Al guardar, la cotización se crea con estos mismos valores.</p>
+      </>}
+    </section>}
     {quote && <label className="cotizaciones__warning"><input type="checkbox" checked={replaceLines} onChange={event => setReplaceLines(event.target.checked)} /> Reemplazar líneas y volver a resolver las tarifas. Esta acción actualiza sus precios.</label>}
     </fieldset><div className="cotizaciones__buttons"><Button variant="primary" type="submit" loading={busy}>{quote ? 'Guardar cambios' : 'Crear borrador'}</Button><Button type="button" disabled={busy} onClick={onCancel}>Cancelar</Button></div>
   </form></section>

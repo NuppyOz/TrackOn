@@ -2,7 +2,7 @@ import { Router, type Request } from 'express';
 import { AppError } from '../../../../errors/AppError.js';
 import { claveIdempotencia } from '../../../../infrastructure/idempotencia.js';
 import * as service from '../application/cotizaciones.service.js';
-import { actualizarCotizacionSchema, crearCotizacionSchema, decisionCotizacionSchema, enviarCotizacionSchema, idParamsSchema, listarCotizacionesSchema, notaCotizacionSchema } from '../application/cotizaciones.schema.js';
+import { actualizarCotizacionSchema, crearCotizacionSchema, decisionCotizacionSchema, enviarCotizacionSchema, idParamsSchema, listarCotizacionesSchema, notaCotizacionSchema, previsualizarCotizacionSchema } from '../application/cotizaciones.schema.js';
 
 export const cotizacionesRouter = Router();
 function usuario(req: Request) {
@@ -18,6 +18,10 @@ cotizacionesRouter.get('/cotizaciones', async (req, res) => {
 cotizacionesRouter.post('/cotizaciones', async (req, res) => {
   const datos = crearCotizacionSchema.parse(req.body);
   res.status(201).json({ data: await service.crearCotizacion(datos, usuario(req), clave(req)) });
+});
+cotizacionesRouter.post('/cotizaciones/previsualizar', async (req, res) => {
+  const datos = previsualizarCotizacionSchema.parse(req.body);
+  res.json({ data: await service.previsualizarCotizacion(datos) });
 });
 cotizacionesRouter.get('/cotizaciones/:id', async (req, res) => {
   const { id } = idParamsSchema.parse(req.params);

@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { CotizacionesPage } from '../src/features/comercial/cotizaciones/CotizacionesPage'
 
 const mocks = vi.hoisted(() => ({
-  listarCotizaciones: vi.fn(), obtenerCotizacion: vi.fn(), crearCotizacion: vi.fn(), actualizarCotizacion: vi.fn(), enviarCotizacion: vi.fn(), decidirCotizacion: vi.fn(), agregarNotaCotizacion: vi.fn(), convertirCotizacionEnVenta: vi.fn(),
+  listarCotizaciones: vi.fn(), obtenerCotizacion: vi.fn(), crearCotizacion: vi.fn(), actualizarCotizacion: vi.fn(), enviarCotizacion: vi.fn(), decidirCotizacion: vi.fn(), agregarNotaCotizacion: vi.fn(), convertirCotizacionEnVenta: vi.fn(), previsualizarCotizacion: vi.fn(),
   listarClientes: vi.fn(), listarContactos: vi.fn(), listarConceptos: vi.fn(),
 }))
 vi.mock('../src/features/comercial/cotizaciones/cotizaciones.api', () => mocks)
@@ -27,6 +27,11 @@ describe('CotizacionesPage FE03', () => {
     mocks.actualizarCotizacion.mockResolvedValue(quote); mocks.enviarCotizacion.mockResolvedValue(quote); mocks.decidirCotizacion.mockResolvedValue(quote); mocks.agregarNotaCotizacion.mockResolvedValue(quote)
     mocks.listarClientes.mockResolvedValue([{ id: 5, codigo: 'C-05', activo: true, telefonoComercial: null, correoComercial: null, persona: null, organizacion: { razonSocial: 'Taller Central', nombreComercial: null, identificacionTributaria: null } }])
     mocks.listarContactos.mockResolvedValue(page([])); mocks.listarConceptos.mockResolvedValue(page([{ id: 10, codigo: 'MANT-1', nombre: 'Mantenimiento', unidad: 'servicio', activo: true }]))
+    mocks.previsualizarCotizacion.mockImplementation((_clienteId: number, lineas: { capacidad?: string; cantidad: string }[]) => Promise.resolve(
+      lineas[0]?.cantidad === '3.5'
+        ? { moneda: 'NIO', subtotal: '3958.50', descuento: '100.00', total: '3858.50', lineas: [{ conceptoId: 10, descripcion: 'Mantenimiento', unidad: 'servicio', cantidad: '3.5', precio: '1131.00', descuento: '100.00', subtotal: '3958.50', total: '3858.50' }] }
+        : { moneda: 'NIO', subtotal: '125.00', descuento: '0.00', total: '125.00', lineas: [{ conceptoId: 10, descripcion: 'Mantenimiento', unidad: 'servicio', cantidad: '1', precio: '125.00', descuento: '0.00', subtotal: '125.00', total: '125.00' }] },
+    ))
   })
   afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
@@ -71,7 +76,7 @@ describe('CotizacionesPage FE03', () => {
 
   it('edita sin líneas por defecto y permite reemplazo explícito con aviso de reprecificación', async () => {
     render(<CotizacionesPage />); await screen.findByRole('cell', { name: 'Taller Central' }); fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' }))
-    await screen.findByText('Total: C$ 125.00'); fireEvent.click(screen.getByRole('button', { name: 'Editar borrador' }))
+    await screen.findByText('Total: C$125.00'); fireEvent.click(screen.getByRole('button', { name: 'Editar borrador' }))
     fireEvent.change(screen.getByLabelText('Nota interna'), { target: { value: 'Ajuste solicitado' } })
     fireEvent.submit(screen.getByRole('form', { name: 'Editar cotización' }))
     await waitFor(() => expect(mocks.actualizarCotizacion).toHaveBeenCalledWith(41, expect.not.objectContaining({ lineas: expect.anything() })))
@@ -97,7 +102,7 @@ describe('CotizacionesPage FE03', () => {
     mocks.agregarNotaCotizacion.mockRejectedValueOnce(new Error('Conflicto, vuelve a intentar.'))
       .mockResolvedValueOnce({ ...quote, notas: [{ id: 7, texto: 'Validar precio con ventas', autor: { id: 1, nombre: 'Ana' }, creadaEn: '2026-10-20T12:00:00Z' }] })
     render(<CotizacionesPage />); await screen.findByRole('cell', { name: 'Taller Central' })
-    fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' })); await screen.findByText('Total: C$ 125.00')
+    fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' })); await screen.findByText('Total: C$125.00')
     fireEvent.click(screen.getByRole('button', { name: 'Añadir nota interna' }))
     fireEvent.change(screen.getByLabelText('Agregar nota interna'), { target: { value: 'Validar precio con ventas' } })
     fireEvent.click(screen.getByRole('button', { name: 'Guardar nota' }))
@@ -117,7 +122,7 @@ describe('CotizacionesPage FE03', () => {
     render(<CotizacionesPage />)
     await screen.findByRole('cell', { name: 'Taller Central' })
     fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' }))
-    await screen.findByText('Total: C$ 125.00')
+    await screen.findByText('Total: C$125.00')
     fireEvent.click(screen.getByRole('button', { name: 'Enviar cotización' }))
     expect(mocks.enviarCotizacion).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'Enviar cotización' }))
@@ -137,10 +142,32 @@ describe('CotizacionesPage FE03', () => {
     render(<CotizacionesPage />)
     await screen.findByRole('cell', { name: 'Taller Central' })
     fireEvent.click(screen.getByRole('button', { name: 'Ver detalle' }))
-    await screen.findByText('Total: C$ 125.00')
+    await screen.findByText('Total: C$125.00')
     fireEvent.click(screen.getByRole('button', { name: 'Convertir a venta' }))
     expect(await screen.findByText('Venta registrada. La facturación se registra por separado.')).toBeTruthy()
     expect(mocks.convertirCotizacionEnVenta).toHaveBeenCalledWith(41, 2, 'uuid-intencion')
     expect(screen.getByRole('button', { name: 'Ventas' }).getAttribute('aria-current')).toBe('page')
+  })
+  it('muestra los importes que calcula el servidor al armar las líneas', async () => {
+    render(<CotizacionesPage />); await screen.findByRole('cell', { name: 'Taller Central' })
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva cotización' }))
+    await screen.findByRole('option', { name: 'MANT-1 · Mantenimiento (servicio)' })
+    fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: '5' } })
+    fireEvent.change(screen.getByLabelText('Concepto línea 1'), { target: { value: '10' } })
+    fireEvent.change(screen.getByLabelText('Cantidad línea 1'), { target: { value: '3.5' } })
+    await waitFor(() => expect(mocks.previsualizarCotizacion).toHaveBeenCalledWith(5, [{ conceptoId: 10, cantidad: '3.5', descuento: '0' }]), { timeout: 3000 })
+    expect(await screen.findByText('Cálculo con las tarifas vigentes')).toBeTruthy()
+    expect(screen.getAllByText('C$3,958.50').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('C$3,858.50').length).toBeGreaterThan(0)
+  })
+
+  it('muestra el rechazo del servidor cuando el descuento supera el subtotal', async () => {
+    mocks.previsualizarCotizacion.mockRejectedValueOnce(new Error('El descuento no puede superar el subtotal de la línea'))
+    render(<CotizacionesPage />); await screen.findByRole('cell', { name: 'Taller Central' })
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva cotización' }))
+    await screen.findByRole('option', { name: 'MANT-1 · Mantenimiento (servicio)' })
+    fireEvent.change(screen.getByLabelText('Cliente'), { target: { value: '5' } })
+    fireEvent.change(screen.getByLabelText('Concepto línea 1'), { target: { value: '10' } })
+    expect(await screen.findByText(/no puede superar el subtotal/, undefined, { timeout: 3000 })).toBeTruthy()
   })
 })
