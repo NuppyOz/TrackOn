@@ -1,6 +1,6 @@
 # Plan — navegación de Inteligencia
 
-**Estado:** propuesta para aprobación · **Base:** `dev` @ 418b121 + `fix/ux-tanda-a-c`
+**Estado:** propuesta para aprobación · decisión 2 resuelta (mover Operación del día) · **Base:** `dev` @ 418b121 + `fix/ux-tanda-a-c`
 **Origen:** hallazgo P1-2 de `docs/odd/audits/UX-2026-11-07-menu-final.md`
 
 ---
@@ -38,8 +38,9 @@ Y un costo de mantenimiento: hay **30 enlaces a `/inteligencia/origen/*` reparti
 
 ```
 Menú lateral
+├─ Servicios y operaciones de campo
+│  └─ Operación del día  → /operacion            (decisión 2: se mueve aquí)
 └─ Inteligencia y control
-   ├─ Operación del día   → /operacion            (ver decisión 2)
    ├─ Comercial           → /inteligencia/comercial
    ├─ Financiero          → /inteligencia/financiero
    ├─ Logístico           → /inteligencia/logistico
@@ -60,7 +61,7 @@ Así, el peor caso pasa de **4 filas / 335 px a 1 fila / ~48 px**, y el menú si
 
 | Hoy | Después |
 | --- | --- |
-| Pestaña «Operación» | Sale del workspace: `/operacion`, en el grupo de operaciones (decisión 2) |
+| Pestaña «Operación» | Sale del workspace: `/operacion`, dentro de «Servicios y operaciones de campo» (**decidido**) |
 | Pestaña «Indicadores de negocio» | Desaparece: el área ya la elige el menú |
 | Pestaña «Registros de origen» | Pasa a ser la segunda pestaña del área: **Registros** |
 | Pestaña «Cobertura de los datos» | Deja de ser global. El sello de cobertura de cada tablero enlaza a `/inteligencia/cobertura` |
@@ -124,7 +125,7 @@ Migrar los 30 enlaces de los 10 archivos, poner los chips de fuente con URL y el
 1. **¿«Finanzas y rentabilidad» y «Compras, inventario y logística» conservan su ítem de registros** apuntando a la ruta canónica, o el menú se queda sólo con «Inteligencia y control» y esos grupos pierden el ítem?
    *Recomendación:* conservarlos apuntando a la ruta canónica. Dos puertas al mismo destino no molestan; dos pantallas distintas para el mismo dato, sí.
 2. **¿«Operación del día» se mueve al grupo de operaciones** (`/operacion`) o se queda colgando de Inteligencia?
-   *Recomendación:* moverlo. Es operación, no indicador, y así Inteligencia queda con cuatro áreas y una sola fila.
+   **Decidido: se mueve** a «Servicios y operaciones de campo» con la ruta `/operacion`. Inteligencia queda con cuatro áreas y una sola fila.
 
 ---
 
