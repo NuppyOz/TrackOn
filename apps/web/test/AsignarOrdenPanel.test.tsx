@@ -83,7 +83,9 @@ describe('Asignación visual de órdenes según Figma', () => {
         render(<AsignarOrdenPanel orden={orden} onCancel={vi.fn()} onAssigned={vi.fn()} />);
         await screen.findByRole('option', { name: 'Cuadrilla Norte' });
         fireEvent.change(screen.getByRole('combobox', { name: 'Cuadrilla para asignación' }), { target: { value: '4' } });
+        fireEvent.change(screen.getByLabelText('Programación de asignación'), { target: { value: '2026-11-09T10:30' } });
         fireEvent.click(screen.getByRole('button', { name: 'Confirmar asignación' }));
+        await waitFor(() => expect(mocks.asignarOrden).toHaveBeenCalledOnce());
         expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Orden modificada por otro administrador');
     });
 
