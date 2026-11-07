@@ -575,3 +575,109 @@ body, #root { min-width: 0; max-width: 100%; }
   .tk-orders .tk-order-icon-action { min-height: 44px; }
   .tk-diagnostico-cta { width: 100%; }
 }
+
+
+/* PR31 | Corrección de acciones y tablas observada en QA manual.
+ * Se aplica también en escritorio: el defecto no era exclusivo de móvil.
+ * Botones de órdenes compactos en fila y sin palabras cortadas.
+ */
+.workspace .tk-orders .tk-orders-table th:last-child,
+.workspace .tk-orders .tk-orders-table td[data-align="actions"] {
+  min-width: 280px;
+  width: 280px;
+  max-width: none;
+}
+.workspace .tk-orders .tk-orders-table td[data-align="actions"] {
+  white-space: normal;
+}
+.workspace .tk-orders .tk-order-actions.row-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-content: end;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+.workspace .tk-orders .tk-order-icon-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 7px 3px;
+  border: 1px solid var(--tk-border);
+  border-radius: 6px;
+  text-align: center;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.workspace .tk-orders .tk-order-icon-action svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+.workspace .tk-orders .tk-order-icon-action span {
+  display: block;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.workspace .tk-dashboard .tk-attention-table th:last-child,
+.workspace .tk-dashboard .tk-attention-table td.tk-attention-action {
+  width: 116px;
+  min-width: 116px;
+  max-width: none;
+}
+.workspace .tk-dashboard .tk-attention-table td.tk-attention-action {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.workspace .tk-dashboard .tk-attention-action .button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  min-width: 90px;
+  max-width: none;
+  min-height: 36px;
+  padding-inline: 12px;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+@media (max-width: 1199px) {
+  /* Tarjetas bajo el ancho de tableta: evitar que las columnas forzadas
+     en el modo escritorio anulen el diseño de tarjeta. */
+  .workspace .tk-orders .tk-orders-table tbody td[data-align="actions"],
+  .workspace .tk-dashboard .tk-attention-table tbody td.tk-attention-action {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .workspace .tk-orders .tk-order-actions.row-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 6px;
+  }
+  .workspace .tk-dashboard .tk-attention-action .button {
+    width: auto;
+    max-width: 100%;
+    min-width: 90px;
+  }
+}
+@media (max-width: 420px) {
+  .workspace .tk-orders .tk-order-actions.row-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .workspace .tk-dashboard .tk-attention-action .button {
+    width: 100%;
+  }
+}
