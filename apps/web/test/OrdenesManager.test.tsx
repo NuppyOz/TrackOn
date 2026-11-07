@@ -294,6 +294,35 @@ describe('Gestión web de órdenes de trabajo', () => {
         await waitFor(() => expect(mocks.cambiarEstadoOrden).toHaveBeenCalledWith(14, estado, 'Revisión realizada por gerencia'));
     });
 
+    it('no ofrece devolver a ejecución ni cerrar a un técnico en revisión', async () => {
+        mocks.obtenerOrden.mockResolvedValue({ ...detalle, estadoCodigo: 'EN_REVISION' });
+        render(<OrdenesManager puedeGestionar={false} />);
+        await esperarListado();
+        fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
+        await screen.findByText('Historial de estados');
+        expect(screen.queryByRole('button', { name: 'Devolver a ejecución' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Cerrar orden' })).toBeNull();
+        expect(mocks.cambiarEstadoOrden).not.toHaveBeenCalled();
+    });
+
+    it('conserva iniciar trabajo para un técnico con orden asignada', async () => {
+        mocks.obtenerOrden.mockResolvedValue({ ...detalle, estadoCodigo: 'ASIGNADA' });
+        render(<OrdenesManager puedeGestionar={false} />);
+        await esperarListado();
+        fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
+        await screen.findByRole('button', { name: 'Iniciar trabajo' });
+    });
+
+    it('conserva enviar a revisión para un técnico en ejecución', async () => {
+        mocks.obtenerOrden.mockResolvedValue({ ...detalle, estadoCodigo: 'EN_EJECUCION' });
+        render(<OrdenesManager puedeGestionar={false} />);
+        await esperarListado();
+        await screen.findByRole('button', { name: 'Ver OT-140' });
+        fireEvent.click(screen.getByRole('button', { name: 'Ver OT-140' }));
+        await screen.findByRole('button', { name: 'Enviar a revisión' });
+        expect(screen.queryByRole('button', { name: 'Devolver a ejecución' })).toBeNull();
+    });
+
     it('permite avanzar y retroceder páginas', async () => {
         mocks.listarOrdenes.mockResolvedValue(pagina([orden], true));
         render(<OrdenesManager />);
