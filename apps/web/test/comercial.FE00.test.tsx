@@ -1,15 +1,13 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
 import { ComercialModule } from '../src/features/comercial/ComercialModule';
 
 describe('ComercialModule FE00', () => {
   afterEach(cleanup);
-  it('muestra secciones disponibles y navega por callback', () => {
-    const onNavigate = vi.fn();
-    render(<ComercialModule section="crm" availableSections={['crm', 'cotizaciones-ventas']} onNavigate={onNavigate} />);
-    fireEvent.change(screen.getByLabelText('Área comercial'), { target: { value: 'cotizaciones-ventas' } });
-    expect(onNavigate).toHaveBeenCalledWith('cotizaciones-ventas');
-    expect(screen.queryByRole('button', { name: 'Catálogo y tarifas' })).toBeNull();
+  it('no duplica la navegación que ya ofrece el sidebar', () => {
+    render(<ComercialModule section="crm" />);
+    expect(screen.queryByLabelText('Área comercial')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Clientes y CRM' })).toBeTruthy();
   });
   it('usa un estado informativo cuando la pantalla aún no está integrada', () => {
     render(<ComercialModule section="crm" />);

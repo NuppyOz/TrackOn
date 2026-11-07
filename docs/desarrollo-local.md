@@ -65,6 +65,13 @@ pnpm --filter web dev
 Abre `http://localhost:5173`. Vite reenvía las solicitudes `/api` al backend
 en `http://localhost:3000`.
 
+Vite reenvía `/api` a `http://127.0.0.1:3000` por defecto. Si la API usa otro host
+o puerto, configura `TRACKON_API_PROXY_TARGET` antes de iniciar Vite. Un `502`
+en `/api/auth/login` indica que Vite no logró conectar con la API; comprueba
+`curl http://localhost:3000/api/ready` y confirma que la API esté iniciada antes
+de volver a probar el login. La API mantiene la validación y los errores de
+autenticación normales.
+
 ## Migraciones y comprobación
 
 Con `DATABASE_URL` exportada como en la terminal de la API, aplica migraciones

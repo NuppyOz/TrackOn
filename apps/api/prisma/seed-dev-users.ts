@@ -72,9 +72,22 @@ async function prepararCuenta(cuenta: DevUser) {
         create: cuenta.rol,
     });
 
-    let empleado = await prisma.empleado.findUnique({
-        where: { codEmpleado: cuenta.codEmpleado },
+    const usuarioExistente = await prisma.usuario.findUnique({
+        where: { identificador: cuenta.identificador },
+        select: { empleadoId: true },
     });
+
+    let empleado = usuarioExistente
+        ? await prisma.empleado.update({
+            where: { id: usuarioExistente.empleadoId },
+            data: {
+                active: true,
+                habilitadoComoTecnico: cuenta.habilitadoComoTecnico,
+            },
+        })
+        : await prisma.empleado.findUnique({
+            where: { codEmpleado: cuenta.codEmpleado },
+        });
 
     if (!empleado) {
         empleado = await prisma.empleado.create({
@@ -90,7 +103,7 @@ async function prepararCuenta(cuenta: DevUser) {
                 },
             },
         });
-    } else {
+    } else if (!usuarioExistente) {
         empleado = await prisma.empleado.update({
             where: { id: empleado.id },
             data: {
@@ -101,9 +114,8 @@ async function prepararCuenta(cuenta: DevUser) {
     }
 
     await prisma.usuario.upsert({
-        where: { empleadoId: empleado.id },
+        where: { identificador: cuenta.identificador },
         update: {
-            identificador: cuenta.identificador,
             rolId: rol.id,
             passwordHash: await hashPassword(password),
             activo: true,

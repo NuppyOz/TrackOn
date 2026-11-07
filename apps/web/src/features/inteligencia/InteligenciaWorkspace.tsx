@@ -1,5 +1,5 @@
 import { InteligenciaModule } from './InteligenciaModule';
-import { irA } from '../../shared/navigation';
+import { irA, RUTAS } from '../../shared/navigation';
 import { seccionesInteligencia, type SeccionInteligencia } from './contracts';
 import { FuentesGerencialesModule } from '../fuentes-gerenciales';
 import { seccionesFuentesGerenciales, type SeccionFuenteGerencial } from '../fuentes-gerenciales/contracts';
@@ -22,6 +22,12 @@ const origenPorTablero: Record<SeccionInteligencia, SeccionFuenteGerencial> = {
 const tableroPorOrigen: Record<SeccionFuenteGerencial, SeccionInteligencia> = {
     contratos: 'comercial', finanzas: 'financiero', logistica: 'logistico', calidad: 'calidad',
 };
+const rutaPorTablero: Record<SeccionInteligencia, string> = {
+    comercial: RUTAS.inteligencia.comercial,
+    financiero: RUTAS.inteligencia.financiero,
+    logistico: RUTAS.inteligencia.logistico,
+    calidad: RUTAS.inteligencia.calidad,
+};
 
 export function InteligenciaWorkspace({ ruta, onOrden }: Readonly<{ ruta: string; onOrden?: (id: number) => void }>) {
     const segmentos = ruta.split('/');
@@ -39,14 +45,14 @@ export function InteligenciaWorkspace({ ruta, onOrden }: Readonly<{ ruta: string
             { value: 'origen', label: 'Registros de origen' },
             { value: 'cobertura', label: 'Cobertura de datos' },
         ]} onChange={value => {
-            if (value === 'operacion') irA('/inteligencia/operacion/resumen');
-            else if (value === 'indicadores') irA(`/inteligencia/${tablero}`);
-            else if (value === 'origen') irA(`/inteligencia/origen/${origenPorTablero[tablero]}`);
-            else irA('/inteligencia/cobertura');
+            if (value === 'operacion') irA(RUTAS.inteligencia.operacion.resumen);
+            else if (value === 'indicadores') irA(rutaPorTablero[tablero]);
+            else if (value === 'origen') irA(RUTAS.inteligencia.origen[origenPorTablero[tablero]]);
+            else irA(RUTAS.inteligencia.cobertura);
         }} />
-        {esOperacion ? <OperacionInteligentePage ruta={ruta} onOrden={onOrden ?? (() => undefined)} /> : esCobertura ? <CoberturaPage /> : esOrigen ? <FuentesGerencialesModule section={origen} showHeading={false} availableSections={['contratos', 'finanzas', 'logistica', 'calidad']} onNavigate={destino => irA(`/inteligencia/origen/${destino}`)}>
+        {esOperacion ? <OperacionInteligentePage ruta={ruta} onOrden={onOrden ?? (() => undefined)} /> : esCobertura ? <CoberturaPage /> : esOrigen ? <FuentesGerencialesModule section={origen} showHeading={false} availableSections={['contratos', 'finanzas', 'logistica', 'calidad']} onNavigate={destino => irA(RUTAS.inteligencia.origen[destino])}>
             {origen === 'contratos' ? <ContratosFuentesPage /> : origen === 'finanzas' ? <FinanzasFuentesPage /> : origen === 'logistica' ? <LogisticaFuentesPage /> : <CalidadFuentesPage />}
-        </FuentesGerencialesModule> : <InteligenciaModule section={section} showHeading={false} availableSections={['comercial', 'financiero', 'logistico', 'calidad']} onNavigate={destino => irA(`/inteligencia/${destino}`)}>
+        </FuentesGerencialesModule> : <InteligenciaModule section={section} showHeading={false} availableSections={['comercial', 'financiero', 'logistico', 'calidad']} onNavigate={destino => irA(rutaPorTablero[destino])}>
             {section === 'comercial' ? <IndicadoresComercialesPage /> : section === 'financiero' ? <IndicadoresFinancierosPage /> : section === 'logistico' ? <IndicadoresLogisticosPage /> : <IndicadoresCalidadPage />}
         </InteligenciaModule>}
     </div>;

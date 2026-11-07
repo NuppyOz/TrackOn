@@ -1,11 +1,20 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
+const apiProxyTarget = process.env.TRACKON_API_PROXY_TARGET ?? "http://127.0.0.1:3000";
+
 export default defineConfig({
     plugins: [react()],
     server: {
         proxy: {
-            "/api": "http://localhost:3000",
+            "/api": {
+                target: apiProxyTarget,
+                configure(proxy) {
+                    proxy.on("error", (error) => {
+                        console.error(`[Vite proxy] No se pudo conectar con la API (${apiProxyTarget}): ${error.message}`);
+                    });
+                },
+            },
         },
     },
     test: {

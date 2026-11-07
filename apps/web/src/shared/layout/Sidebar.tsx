@@ -10,7 +10,7 @@ import {
     ShieldCheckIcon,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
-import { irA } from '../navigation';
+import { irA, RUTAS } from '../navigation';
 export type Seccion =
     | 'agenda'
     | 'administracion'
@@ -43,28 +43,35 @@ export function Sidebar({
     puedeAdministrar = false,
 }: Readonly<SidebarProps>) {
     function enlaces(items: Enlace[]) {
-        return items.map((item) => (
-            <button
+        return items.map((item) => {
+            const path = window.location.pathname;
+            const activo = item.ruta
+                ? path === item.ruta
+                    || (item.ruta === RUTAS.comercial.crm && path === RUTAS.comercial.inicio)
+                    || (item.ruta === RUTAS.inteligencia.operacion.resumen && path === RUTAS.inteligencia.inicio)
+                : seccion === item.id;
+            return <button
                 key={item.ruta ?? item.id}
                 type="button"
-                className={`figma-nav-link ${(item.ruta ? window.location.pathname === item.ruta : seccion === item.id) ? 'selected' : ''}`}
-                aria-current={
-                    (item.ruta ? window.location.pathname === item.ruta : seccion === item.id)
-                        ? 'page'
-                        : undefined
-                }
+                className={`figma-nav-link ${activo ? 'selected' : ''}`}
+                aria-current={activo ? 'page' : undefined}
                 onClick={() => {
                     onNavigate(item.id);
                     if (item.ruta) irA(item.ruta);
                 }}
             >
                 {item.etiqueta}
-            </button>
-        ));
+            </button>;
+        });
     }
     function grupo(titulo: string, icono: Icon, items: Enlace[]) {
         const Icono = icono;
-        const activo = items.some((item) => item.id === seccion || Boolean(item.ruta && window.location.pathname.startsWith(item.ruta)));
+        const activo = items.some((item) => item.id === seccion || Boolean(item.ruta && (
+            window.location.pathname === item.ruta
+            || window.location.pathname.startsWith(`${item.ruta}/`)
+            || (item.ruta === RUTAS.comercial.crm && window.location.pathname === RUTAS.comercial.inicio)
+            || (item.ruta === RUTAS.inteligencia.operacion.resumen && window.location.pathname === RUTAS.inteligencia.inicio)
+        )));
         return (
             <details className="erp-nav-group" key={titulo} open={activo || undefined}>
                 <summary>
@@ -80,7 +87,7 @@ export function Sidebar({
         <aside className={`sidebar figma-sidebar ${abierto ? 'sidebar--open' : ''}`}>
             <a
                 className="erp-sidebar-brand"
-                href={puedeGestionarCuadrillas ? '/dashboard' : '/field'}
+                href={puedeGestionarCuadrillas ? RUTAS.dashboard : RUTAS.field.misOrdenes}
                 onClick={(e) => {
                     e.preventDefault();
                     onNavigate(puedeGestionarCuadrillas ? 'dashboard' : 'field');
@@ -112,25 +119,25 @@ export function Sidebar({
                             {
                                 id: 'comercial' as Seccion,
                                 etiqueta: 'CRM',
-                                ruta: '/comercial/crm',
+                                ruta: RUTAS.comercial.crm,
                             },
                             { id: 'clientes' as Seccion, etiqueta: 'Clientes' },
                             {
                                 id: 'comercial' as Seccion,
                                 etiqueta: 'Ventas y cotizaciones',
-                                ruta: '/comercial/cotizaciones-ventas',
+                                ruta: RUTAS.comercial['cotizaciones-ventas'],
                             },
                             {
                                 id: 'comercial' as Seccion,
                                 etiqueta: 'Catálogo y tarifas',
-                                ruta: '/comercial/catalogo-tarifas',
+                                ruta: RUTAS.comercial['catalogo-tarifas'],
                             },
                             {
                                 id: 'comercial' as Seccion,
                                 etiqueta: 'Portal del cliente',
-                                ruta: '/comercial/portal-cuentas',
+                                ruta: RUTAS.comercial['portal-cuentas'],
                             },
-                        ].filter((item) => puedeAdministrar || item.ruta !== '/comercial/portal-cuentas'),
+                        ].filter((item) => puedeAdministrar || item.ruta !== RUTAS.comercial['portal-cuentas']),
                     )}
                 {grupo('Operaciones', ToolboxIcon, [
                     ...(puedeGestionarCuadrillas
@@ -165,7 +172,7 @@ export function Sidebar({
                         {
                             id: 'inteligencia',
                             etiqueta: 'IA y negocio',
-                            ruta: '/inteligencia/operacion/resumen',
+                            ruta: RUTAS.inteligencia.operacion.resumen,
                         },
                     ])}
             </div>

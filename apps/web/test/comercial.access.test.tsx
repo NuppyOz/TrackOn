@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import App from '../src/App';
 
 const mocks = vi.hoisted(() => ({ renovarSesion: vi.fn() }));
@@ -9,6 +9,7 @@ vi.mock('../src/features/auth/auth.api', () => ({
     puedeAdministrarCatalogos: (rol: string) => rol === 'ADMIN' || rol === 'GTE_OPE',
 }));
 vi.mock('../src/features/notificaciones/NotificationsBell', () => ({ default: () => null }));
+vi.mock('../src/features/auth/LoginPage', () => ({ default: ({ onLogin }: { onLogin: (account: unknown) => void }) => <button type="button" onClick={() => onLogin({ id: 5, identificador: 'admin', rol: { cod: 'ADMIN', nombre: 'Administrador' }, empleado: {} })}>Entrar en prueba</button> }));
 
 afterEach(() => { cleanup(); window.history.replaceState(null, '', '/'); vi.clearAllMocks(); });
 
@@ -26,6 +27,14 @@ describe('Acceso a las nuevas áreas', () => {
         mocks.renovarSesion.mockResolvedValue({ id: 2, identificador: 'admin', rol: { cod: 'ADMIN', nombre: 'Administrador' }, empleado: {} });
         render(<App />);
         expect(await screen.findByRole('heading', { name: 'Clientes y CRM' })).toBeTruthy();
+    });
+
+    it('conserva la ruta comercial directa después del inicio de sesión', async () => {
+        window.history.replaceState(null, '', '/comercial/cotizaciones-ventas');
+        mocks.renovarSesion.mockResolvedValue(null);
+        render(<App />);
+        fireEvent.click(await screen.findByRole('button', { name: 'Entrar en prueba' }));
+        expect(window.location.pathname).toBe('/comercial/cotizaciones-ventas');
     });
 
     it('reserva la administración de cuentas de portal al administrador', async () => {

@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { InteligenciaWorkspace } from '../src/features/inteligencia/InteligenciaWorkspace'
 import { irA } from '../src/shared/navigation'
 
-vi.mock('../src/shared/navigation', () => ({ irA: vi.fn() }))
+vi.mock('../src/shared/navigation', async importOriginal => ({
+  ...(await importOriginal<typeof import('../src/shared/navigation')>()),
+  irA: vi.fn(),
+}))
 vi.mock('../src/features/inteligencia/InteligenciaModule', () => ({ InteligenciaModule: ({ children }: { children: unknown }) => <section>{children as never}</section> }))
 vi.mock('../src/features/fuentes-gerenciales', () => ({ FuentesGerencialesModule: ({ children }: { children: unknown }) => <section>{children as never}</section> }))
 vi.mock('../src/features/fuentes-gerenciales/procedencia/CoberturaPage', () => ({ CoberturaPage: () => <p>cobertura</p> }))
