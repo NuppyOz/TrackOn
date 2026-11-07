@@ -3,6 +3,10 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ asignar: vi.fn(), rol: 'ADMIN', autenticado: true }));
+// El middleware de acceso a órdenes importa Prisma; esta prueba HTTP no usa ninguna base real.
+vi.mock('../src/infrastructure/prisma.js', () => ({
+    prisma: { ordenTrabajo: { findFirst: vi.fn() } },
+}));
 vi.mock('../src/modules/ordenes/ordenes.asignacion.service.js', () => ({ asignar: mocks.asignar }));
 vi.mock('../src/middlewares/authenticate.js', () => ({
     authenticate: (req: Request, _res: Response, next: NextFunction) => {
