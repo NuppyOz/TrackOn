@@ -36,8 +36,8 @@ export async function crear(datos: CrearOrdenInput, usuarioId: number) {
     return normalizarNumero(orden);
 }
 
-export async function listar(filtros: ListarOrdenesInput) {
-    const pagina = await repository.listar(filtros);
+export async function listar(filtros: ListarOrdenesInput, actor?: ActorOrden) {
+    const pagina = await repository.listar(filtros, actor);
     return { ...pagina, items: pagina.items.map(normalizarNumero) };
 }
 
