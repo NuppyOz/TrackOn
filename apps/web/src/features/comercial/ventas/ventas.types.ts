@@ -1,4 +1,4 @@
-export type PaginaVentas = Readonly<{ items: VentaResumen[]; pagina: number; limite: number; hayMas: boolean }>
+export type PaginaVentas = Readonly<{ items: VentaResumen[]; pagina: number; limite: number; hayMas: boolean; total?: number }>
 export type VentaResumen = Readonly<{
   id: number
   cotizacionId: number

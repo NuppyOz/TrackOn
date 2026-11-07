@@ -29,7 +29,7 @@ describe('Información operativa', () => {
         render(<OperacionInteligentePage ruta="/inteligencia/operacion/indicadores" onOrden={vi.fn()} />);
         expect(await screen.findByText('Órdenes por estado')).toBeTruthy();
         expect(screen.queryByText(/H\.2|H\.3/)).toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: 'Seguimiento' }));
+        fireEvent.change(screen.getByLabelText('Vista operativa'), { target: { value: 'seguimiento' } });
         expect(mocks.irA).toHaveBeenCalledWith('/inteligencia/operacion/seguimiento');
     });
 });

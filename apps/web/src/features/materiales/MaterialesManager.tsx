@@ -1,14 +1,16 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { cambiarEstadoMaterial, crearMaterial, editarMaterial, listarMateriales, type EstadoMaterial, type Material, type MaterialInput } from './materiales.api';
-import { Button, StatePanel, StatusBadge } from '../../shared/ui';
+import { AccionesFila, Button, IconButton, StatePanel, StatusBadge } from '../../shared/ui';
+import { CheckCircleIcon, PencilSimpleIcon, ProhibitIcon } from '@phosphor-icons/react';
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
+import { Paginacion } from '../../shared/Paginacion';
 
 const vacio: MaterialInput = { codigo: '', nombre: '', unidadMedida: '' };
-const filtrosIniciales = { estado: 'activos' as EstadoMaterial, buscar: '', pagina: 1 };
+const filtrosIniciales = { estado: 'activos' as EstadoMaterial, buscar: '', pagina: 1, limite: 10 };
 
 export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGestionar: boolean }>) {
     const { filtros, aplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales);
-    const [datos, setDatos] = useState<{ items: Material[]; hayMas: boolean }>({ items: [], hayMas: false });
+    const [datos, setDatos] = useState<{ items: Material[]; hayMas: boolean; total?: number }>({ items: [], hayMas: false });
     const [consultando, setCargando] = useState(true);
     const cargando = consultando || pendiente;
     const [recarga, setRecarga] = useState(0);
@@ -20,7 +22,7 @@ export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGe
 
     useEffect(() => {
         let vigente = true;
-        void listarMateriales(aplicados.estado, aplicados.buscar, aplicados.pagina)
+        void listarMateriales(aplicados.estado, aplicados.buscar, aplicados.pagina, aplicados.limite)
             .then(resultado => { if (vigente) setDatos(resultado); })
             .catch(error => { if (vigente) { setDatos({ items: [], hayMas: false }); setMensaje({ error: true, texto: error instanceof Error ? error.message : 'No se pudieron cargar los materiales.' }); } })
             .finally(() => { if (vigente) setCargando(false); });
@@ -80,13 +82,14 @@ export default function MaterialesManager({ puedeGestionar }: Readonly<{ puedeGe
                 <div className="table-wrap"><table><thead><tr><th>Material</th><th>Unidad de medida</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
                     {datos.items.map(material => <tr key={material.id}>
                         <td data-label="Material"><strong>{material.nombre}</strong><small>{material.codigo}</small></td><td data-label="Unidad">{material.unidadMedida}</td>
-                        <td data-label="Estado"><StatusBadge active={material.activo} /></td><td data-label="Acciones" className="actions">{puedeGestionar && <>
-                            <Button onClick={() => { setEditando(material.id); setFormulario({ codigo: material.codigo, nombre: material.nombre, unidadMedida: material.unidadMedida }); }}>Editar</Button>
-                            <Button onClick={() => setConfirmacion(material)}>{material.activo ? 'Desactivar' : 'Activar'}</Button>
-                        </>}</td></tr>)}
+                        <td data-label="Estado"><StatusBadge active={material.activo} /></td><td data-label="Acciones">{puedeGestionar && <AccionesFila>
+                            <IconButton icon={PencilSimpleIcon} label="Editar" onClick={() => { setEditando(material.id); setFormulario({ codigo: material.codigo, nombre: material.nombre, unidadMedida: material.unidadMedida }); }} />
+                            <IconButton icon={material.activo ? ProhibitIcon : CheckCircleIcon} variant={material.activo ? 'danger' : 'secondary'} label={material.activo ? 'Desactivar' : 'Activar'} onClick={() => setConfirmacion(material)} />
+                        </AccionesFila>}</td></tr>)}
                 </tbody></table></div>}
-            <div className="pagination"><Button disabled={cargando || aplicados.pagina === 1} onClick={() => { setCargando(true); aplicarFiltros({ ...aplicados, pagina: aplicados.pagina - 1 }); }}>Anterior</Button>
-                <span>Página {aplicados.pagina}</span><Button disabled={cargando || !datos.hayMas} onClick={() => { setCargando(true); aplicarFiltros({ ...aplicados, pagina: aplicados.pagina + 1 }); }}>Siguiente</Button></div>
+            <Paginacion pagina={aplicados.pagina} limite={aplicados.limite} hayMas={datos.hayMas} total={datos.total} cargando={cargando} etiqueta="Paginación de materiales"
+                onPagina={pagina => { setCargando(true); aplicarFiltros({ ...aplicados, pagina }); }}
+                onLimite={limite => { setCargando(true); aplicarFiltros({ ...aplicados, limite, pagina: 1 }); }} />
         </div>}
         {confirmacion && <div className="card form-card" role="dialog" aria-modal="false" aria-labelledby="material-confirmar">
             <h3 id="material-confirmar">{confirmacion.activo ? 'Desactivar' : 'Activar'} {confirmacion.nombre}</h3>

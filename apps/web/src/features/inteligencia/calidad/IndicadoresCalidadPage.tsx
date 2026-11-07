@@ -7,7 +7,7 @@ import { fechaHora, initialRange, isoManagua, managuaLocal } from './fechas'
 import type { DesgloseCalidad, MetricaCalidad, TableroCalidad, TipoDesgloseCalidad } from './calidad.types'
 import './calidad.css'
 
-const PAGE = 25
+const PAGE = 10
 const metricsDefinition = [
   ['garantias_vigentes', 'Garantías vigentes'], ['reclamos_abiertos', 'Reclamos abiertos'], ['reincidencias', 'Reincidencias'], ['retrabajos', 'Retrabajos'],
   ['fallas_repetidas_grupos', 'Grupos de fallas repetidas'], ['sla_respuesta_porcentaje', 'SLA de respuesta'], ['sla_resolucion_porcentaje', 'SLA de resolución'],

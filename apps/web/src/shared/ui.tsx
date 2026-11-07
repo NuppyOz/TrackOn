@@ -1,4 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { Icon } from '@phosphor-icons/react'
+import './styles/acciones.css'
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
 export function Button({ variant = 'secondary', loading, className = '', children, disabled, ...props }: Readonly<ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; loading?: boolean }>) {
@@ -19,4 +21,15 @@ export function StatePanel({ type, title, description, action }: Readonly<{ type
 
 export function ActionMenu({ children, label = 'Más acciones' }: Readonly<{ children: ReactNode; label?: string }>) {
   return <details className="action-menu"><summary aria-label={label}>⋮</summary><div className="action-menu__content">{children}</div></details>
+}
+
+/** Acción de fila al estilo SMSC: un icono por acción, con el nombre como tooltip y etiqueta accesible. */
+export function IconButton({ icon: Icono, label, variant = 'primary', className = '', ...rest }: Readonly<ButtonHTMLAttributes<HTMLButtonElement> & { icon: Icon; label: string; variant?: 'primary' | 'secondary' | 'danger' }>) {
+  return <button type="button" aria-label={label} title={label} className={`tk-icon-button${variant === 'primary' ? '' : ` tk-icon-button--${variant}`} ${className}`.trim()} {...rest}>
+    <Icono size={16} weight="bold" aria-hidden="true" />
+  </button>
+}
+
+export function AccionesFila({ children }: Readonly<{ children: ReactNode }>) {
+  return <div className="tk-acciones-fila">{children}</div>
 }

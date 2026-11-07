@@ -51,7 +51,7 @@ export function IndicadoresComercialesPage() {
   const load = useCallback(async (from: string, until: string) => { const request = ++boardRequest.current; setLoading(true); setError(''); try { const value = await consultarTableroComercial(from, until); if (request === boardRequest.current) setBoard(value) } catch (cause) { if (request === boardRequest.current) setError(message(cause)) } finally { if (request === boardRequest.current) setLoading(false) } }, [])
   useEffect(() => { let active = true; queueMicrotask(() => { if (active) void load(range.desde, range.hasta) }); return () => { active = false; boardRequest.current += 1 } }, [load, range])
   const filtered = useMemo(() => (board?.desgloses ?? []).filter(row => (kind === 'TODOS' || row.tipo === kind) && `${row.referencia} ${row.clienteId} ${row.id} ${row.estado ?? ''}`.toLocaleLowerCase().includes(q.toLocaleLowerCase())), [board, kind, q])
-  const PAGE = 25
+  const PAGE = 10
   const pageItems = filtered.slice((page - 1) * PAGE, page * PAGE)
   const metrics = DEFAULT_METRICS.map(([key, label]) => ({ metric: board?.metricas.find(metric => metric.clave === key), key, label }))
   const missingMetrics = board ? metrics.filter(item => !item.metric).map(item => item.label) : []
@@ -72,7 +72,7 @@ export function IndicadoresComercialesPage() {
   const apply = () => { if (validRange) { const toIso = (value: string) => new Date(`${value}:00-06:00`).toISOString(); setRange({ desde: toIso(draftFrom), hasta: toIso(draftUntil) }); setPage(1) } }
   const status = board?.cobertura.estado
   return <section className="h5-dashboard" aria-labelledby="commercial-dashboard-title">
-    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores comerciales" description="Cotizaciones, ventas, clientes, contratos y renovaciones registradas en TrackOn." action={<nav className="h5-source-links" aria-label="Registros de origen comerciales"><a href="/comercial/cotizaciones-ventas">Cotizaciones y ventas</a><a href="/inteligencia/origen/contratos">Contratos</a></nav>} />
+    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores comerciales" description="Cotizaciones, ventas, clientes, contratos y renovaciones registradas en MultiCore ERP." action={<nav className="h5-source-links" aria-label="Registros de origen comerciales"><a href="/comercial/cotizaciones-ventas">Cotizaciones y ventas</a><a href="/inteligencia/origen/contratos">Contratos</a></nav>} />
     <form className="h5-range" onSubmit={event => { event.preventDefault(); apply() }}><label>Desde<input type="datetime-local" value={draftFrom} onChange={event => setDraftFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" value={draftUntil} onChange={event => setDraftUntil(event.currentTarget.value)} /></label><Button variant="primary" type="submit" disabled={!validRange || loading}>Consultar</Button></form>
     {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="comercial" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h5-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}

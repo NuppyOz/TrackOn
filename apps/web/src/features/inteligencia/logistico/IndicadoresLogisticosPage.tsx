@@ -9,7 +9,7 @@ import { consultarTableroLogistico } from './logistico.api'
 import type { DesgloseLogistico, TableroLogistico, TipoDesgloseLogistico } from './logistico.types'
 import './logistico.css'
 
-const LIMIT = 25
+const LIMIT = 10
 const metricDefs = [
   ['stock_critico_cantidad', 'Artículos con stock crítico'], ['compras_pendientes_cantidad', 'Líneas de compra pendientes'],
   ['herramientas_prestadas', 'Herramientas prestadas'], ['herramientas_vencidas', 'Préstamos vencidos'], ['inventario_valorizado', 'Inventario valorizado'],

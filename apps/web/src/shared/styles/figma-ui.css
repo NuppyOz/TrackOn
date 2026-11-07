@@ -39,6 +39,8 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .figma-sidebar-group nav { display:grid; gap:5px; }
 .figma-sidebar .figma-nav-link { display:flex; align-items:center; gap:11px; min-height:38px; border:0; border-radius:6px; padding:0 11px; color:#d6d0e2; font-size:12px; font-weight:500; background:transparent; box-shadow:none; width:100%; text-align:left; }
 .figma-sidebar .figma-nav-link:hover { background:var(--tk-purple-hover); color:#fff; }
+.figma-sidebar .figma-nav-children { margin:2px 0 6px 18px; padding-left:10px; border-left:2px solid rgb(255 255 255 / 18%); display:grid; gap:2px; }
+.figma-sidebar .figma-nav-sublink { min-height:30px; padding-left:10px; font-size:11.5px; color:#c9c2d6; }
 .figma-sidebar .figma-nav-link.selected { background:var(--tk-purple-hover); color:#fff; box-shadow:none; font-weight:700; }
 .figma-nav-icon { display:inline-grid !important; place-items:center; flex:0 0 14px; font-size:13px; width:14px; height:16px; margin:0 !important; color:inherit !important; }
 .figma-sidebar-footer { margin-top:auto; display:flex; flex-direction:column; gap:12px; }
@@ -47,27 +49,26 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .figma-help-card small { font-size:10px; line-height:1.35; color:#d6d0e2; }
 .figma-help-card span { font-size:10px; color:#6cc4f0; font-weight:600; }
 .figma-version { padding:12px 6px 0; font-size:9px; border-top:1px solid #554b6c; color:#b5accd; }
-.workspace { padding:28px 30px 50px; min-width:0; overflow-x:hidden; }
+.workspace { padding:var(--tk-space-6) var(--tk-space-8) 48px; min-width:0; overflow-x:hidden; }
 .section-heading { align-items:flex-start; gap:16px; }
-.section-heading h2 { font-family:inherit; color:var(--tk-purple); font-weight:700; font-size:26px; letter-spacing:-.025em; }
-.section-heading p { font-size:13px; line-height:1.45; }
-.primary-button, .secondary-button { min-height:38px; font-size:12px; border-radius:6px; }
+.section-heading h2 { font-family:inherit; color:var(--tk-purple); font-weight:700; font-size:var(--tk-font-page-title); letter-spacing:-.025em; }
+.section-heading p { font-size:var(--tk-font-body); line-height:var(--tk-line-body); }
+.primary-button, .secondary-button { min-height:var(--tk-control-height); font-size:var(--tk-font-body); border-radius:6px; }
 .primary-button { background:var(--tk-blue); border-color:var(--tk-blue); color:#fff; }
 .primary-button:hover { background:var(--tk-blue-dark); color:#fff; }
 .secondary-button { color:var(--tk-purple); background:var(--tk-soft-purple); border-color:var(--tk-border); }
 .secondary-button:hover { background:#e9e5ef; }
 .card { border:1px solid var(--tk-border); border-radius:9px; box-shadow:0 2px 8px rgb(47 37 77 / 3%); }
-.table-wrap table { font-size:12px; }
-.table-wrap th { background:var(--tk-soft-purple); color:var(--tk-muted); font-size:12px; letter-spacing:.02em; text-transform:none; font-weight:600; }
-.table-wrap td { font-size:12px; border-bottom-color:var(--tk-border); }
-.table-wrap tbody tr:hover { background:#fcfbfe; }
+.table-wrap table { font-size:14px; }
+.table-wrap td { font-size:14px; color:#424242; border-bottom:1px solid #d9d9d9; }
+.table-wrap tbody tr:hover { background:#f8f9fa; }
 .notice { border-radius:7px; }
 .form-card input, .form-card select, .form-card textarea, .filters input, .filters select { font-size:12px; }
 
 /* Lista de órdenes — Desktop / Administración / Órdenes (Figma 95:1465) */
 .tk-orders { max-width:1320px; width:100%; margin:0 auto; }
 .tk-orders .tk-orders-heading { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:22px; }
-.tk-orders .tk-orders-heading h2 { margin:0 0 7px; font-size:28px; line-height:1.2; }
+.tk-orders .tk-orders-heading h2 { margin:0 0 7px; font-size:var(--tk-font-page-title); line-height:var(--tk-line-heading); }
 .tk-orders .tk-orders-heading p { margin:0; color:var(--tk-muted); font-size:13px; }
 .tk-orders .tk-breadcrumb { color:var(--tk-muted); font-size:11px; margin:0 0 10px; }
 .tk-orders .tk-breadcrumb span { color:var(--tk-purple); font-weight:600; }
@@ -76,15 +77,12 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .tk-orders .tk-search-group { display:flex; align-items:center; flex:1 1 300px; min-width:230px; max-width:430px; position:relative; }
 .tk-orders .tk-search-group input { width:100%; padding:0 12px 0 34px; height:40px; border:1px solid #dbdbdb; border-radius:6px; background:#fff; font-size:12px; color:var(--tk-text); }
 .tk-orders .tk-search-group::before { content:'⌕'; color:#8c8992; position:absolute; left:12px; font-size:20px; line-height:1; pointer-events:none; }
-.tk-orders .tk-status-tabs { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
-.tk-orders .tk-status-tab { border:1px solid var(--tk-border); background:#fff; color:var(--tk-muted); font-size:10px; padding:7px 11px; border-radius:99px; white-space:nowrap; line-height:1.2; font-weight:600; }
-.tk-orders .tk-status-tab[aria-pressed="true"] { background:var(--tk-purple); color:#fff; border-color:var(--tk-purple); }
 .tk-orders .tk-search-submit { background:#fff; border:1px solid var(--tk-border); color:var(--tk-purple); padding:0 14px; height:40px; }
 .tk-orders .tk-advanced-state { min-width:120px; width:auto; max-width:165px; height:40px; font-size:11px; background:#fff; border:1px solid var(--tk-border); border-radius:6px; padding:0 10px; color:var(--tk-muted); }
 .tk-orders .tk-table-card { overflow:hidden; }
 .tk-orders .tk-orders-table { width:100%; border-collapse:collapse; table-layout:fixed; }
-.tk-orders .tk-orders-table thead { background:var(--tk-soft-purple); }
-.tk-orders .tk-orders-table thead th { height:44px; padding:12px 12px; font-size:12px; font-weight:600; letter-spacing:0; text-transform:none; }
+.tk-orders .tk-orders-table thead { background:#fff; }
+.tk-orders .tk-orders-table thead th { height:44px; }
 .tk-orders .tk-orders-table td { padding:12px; height:71px; }
 .tk-orders .tk-orders-table th:nth-child(1) { width:13%; }
 .tk-orders .tk-orders-table th:nth-child(2) { width:26%; }
@@ -139,7 +137,6 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
     .figma-brand-tagline, .figma-brand-identity small { display:none; }
     .tk-orders .tk-filters { align-items:stretch; }
     .tk-orders .tk-search-group { max-width:none; }
-    .tk-orders .tk-status-tabs { order:3; width:100%; }
     .tk-orders .tk-order-form-layout { grid-template-columns:1fr; }
 }
 @media (max-width: 750px) {

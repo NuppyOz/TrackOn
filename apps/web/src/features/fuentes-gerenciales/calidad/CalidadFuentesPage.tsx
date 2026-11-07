@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { GarantiasGerencialesPage } from './garantias';
 import { CasosCalidadPage } from './casos';
 import { CorrectivasGerencialesPage } from './correctivas';
+import { SectionSelector } from '../../erp-ui/components';
 
 export function CalidadFuentesPage() {
     const [seccion, setSeccion] = useState<'garantias' | 'casos' | 'correctivas'>(() => {
@@ -10,11 +11,10 @@ export function CalidadFuentesPage() {
     });
     const [busy, setBusy] = useState(false);
     return <div className="fuentes-scope">
-        <nav className="inteligencia-workspace__nav" aria-label="Registros de calidad">
-            <button type="button" disabled={busy} aria-current={seccion === 'garantias' ? 'page' : undefined} onClick={() => setSeccion('garantias')}>Garantías</button>
-            <button type="button" disabled={busy} aria-current={seccion === 'casos' ? 'page' : undefined} onClick={() => setSeccion('casos')}>Reclamos y calidad</button>
-            <button type="button" disabled={busy} aria-current={seccion === 'correctivas' ? 'page' : undefined} onClick={() => setSeccion('correctivas')}>Acciones correctivas</button>
-        </nav>
+        <SectionSelector label="Tipo de registro" value={seccion} disabled={busy} onChange={value => setSeccion(value as typeof seccion)} options={[
+            { value: 'garantias', label: 'Garantías' }, { value: 'casos', label: 'Reclamos y calidad' },
+            { value: 'correctivas', label: 'Acciones correctivas' },
+        ]} />
         {seccion === 'garantias' ? <GarantiasGerencialesPage onBusyChange={setBusy} /> : seccion === 'casos' ? <CasosCalidadPage onBusyChange={setBusy} /> : <CorrectivasGerencialesPage onBusyChange={setBusy} />}
     </div>;
 }

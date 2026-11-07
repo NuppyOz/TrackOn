@@ -2,8 +2,8 @@ import { api } from '../../shared/api'
 import type { EstadoServicio, Servicio, ServicioInput } from './servicios.types'
 import type { Pagina } from '../../shared/pagination'
 
-export function listarServicios(estado: EstadoServicio, buscar: string) {
-  const query = new URLSearchParams({ estado })
+export function listarServicios(estado: EstadoServicio, buscar: string, pagina = 1, limite = 10) {
+  const query = new URLSearchParams({ estado, pagina: String(pagina), limite: String(limite) })
   if (buscar) query.set('buscar', buscar)
   return api<Pagina<Servicio>>(`/api/servicios?${query}`)
 }

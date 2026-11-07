@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../../infrastructure/prisma.js';
 import type { CreateServicioInput, ServicioFilters, UpdateServicioInput } from './servicios.schema.js';
 import { paginaDesde } from '../../shared/pagination.js';
@@ -11,20 +12,21 @@ export function crearServicio(datos: CreateServicioInput) {
     });
 }
 export async function listarServicios(filtros: ServicioFilters) {
-    const items = await prisma.servicio.findMany({
-        where: {
-            ...(filtros.estado !== 'todos' ? { activo: filtros.estado === 'activos' } : {}),
-            ...(filtros.buscar ? { OR: [
-                { codigo: { contains: filtros.buscar, mode: 'insensitive' } },
-                { nombre: { contains: filtros.buscar, mode: 'insensitive' } },
-            ] } : {}),
-        },
+    const where: Prisma.ServicioWhereInput = {
+        ...(filtros.estado !== 'todos' ? { activo: filtros.estado === 'activos' } : {}),
+        ...(filtros.buscar ? { OR: [
+            { codigo: { contains: filtros.buscar, mode: 'insensitive' } },
+            { nombre: { contains: filtros.buscar, mode: 'insensitive' } },
+        ] } : {}),
+    };
+    const [items, total] = await Promise.all([prisma.servicio.findMany({
+        where,
         select,
         orderBy: { nombre: 'asc' },
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite + 1,
-    });
-    return paginaDesde(items, filtros);
+    }), prisma.servicio.count({ where })]);
+    return paginaDesde(items, filtros, total);
 }
 export function buscarServicioPorId(id: number) {
     return prisma.servicio.findUnique({ where: { id }, select });

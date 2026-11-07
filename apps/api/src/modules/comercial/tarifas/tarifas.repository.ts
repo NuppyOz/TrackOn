@@ -5,14 +5,22 @@ import type { ActualizarConcepto, CambiarEstadoTarifa, CrearConcepto, CrearTarif
 export type ClienteDb = Prisma.TransactionClient | typeof prisma;
 const proyeccionConcepto = { id: true, codigo: true, nombre: true, unidad: true, tipo: true } as const;
 
-export function listarConceptos(filtros: ListarConceptos) {
-    const where = {
+function whereConceptos(filtros: ListarConceptos): Prisma.ConceptoComercialWhereInput {
+    return {
         ...(filtros.estado === 'activos' ? { activo: true } : filtros.estado === 'inactivos' ? { activo: false } : {}),
         ...(filtros.q ? { OR: [
             { codigo: { contains: filtros.q, mode: 'insensitive' as const } },
             { nombre: { contains: filtros.q, mode: 'insensitive' as const } },
         ] } : {}),
     };
+}
+
+export function contarConceptos(filtros: ListarConceptos) {
+    return prisma.conceptoComercial.count({ where: whereConceptos(filtros) });
+}
+
+export function listarConceptos(filtros: ListarConceptos) {
+    const where = whereConceptos(filtros);
     const dir = filtros.sortDir;
     const orderBy: Prisma.ConceptoComercialOrderByWithRelationInput[] = filtros.sortBy === 'codigo'
         ? [{ codigo: dir }, { id: dir }]
@@ -43,8 +51,8 @@ export async function actualizarConcepto(id: number, datos: ActualizarConcepto) 
     });
 }
 
-export function listarTarifas(filtros: ListarTarifas) {
-    const where = {
+function whereTarifas(filtros: ListarTarifas): Prisma.TarifaComercialWhereInput {
+    return {
         ...(filtros.conceptoId !== undefined ? { conceptoId: filtros.conceptoId } : {}),
         ...(filtros.clienteId !== undefined ? { clienteId: filtros.clienteId } : {}),
         ...(filtros.estado === 'activos' ? { activo: true } : filtros.estado === 'inactivos' ? { activo: false } : {}),
@@ -53,8 +61,15 @@ export function listarTarifas(filtros: ListarTarifas) {
             { nombre: { contains: filtros.q, mode: 'insensitive' as const } },
         ] } } : {}),
     };
+}
+
+export function contarTarifas(filtros: ListarTarifas) {
+    return prisma.tarifaComercial.count({ where: whereTarifas(filtros) });
+}
+
+export function listarTarifas(filtros: ListarTarifas) {
     return prisma.tarifaComercial.findMany({
-        where,
+        where: whereTarifas(filtros),
         select: { id: true, conceptoId: true, clienteId: true, moneda: true, precio: true, activo: true, version: true, creadaEn: true, concepto: { select: proyeccionConcepto } },
         orderBy: filtros.sortBy === 'id' ? [{ id: filtros.sortDir }] : [{ creadaEn: filtros.sortDir }, { id: 'desc' }],
         skip: (filtros.pagina - 1) * filtros.limite,

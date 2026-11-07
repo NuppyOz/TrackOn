@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../../infrastructure/prisma.js';
 import type { CreateMaterialInput, MaterialFilters, UpdateMaterialInput } from './materiales.schema.js';
 import { paginaDesde } from '../../shared/pagination.js';
@@ -11,20 +12,21 @@ export function crearMaterial(datos: CreateMaterialInput) {
     });
 }
 export async function listarMateriales(filtros: MaterialFilters) {
-    const items = await prisma.material.findMany({
-        where: {
-            ...(filtros.estado !== 'todos' ? { activo: filtros.estado === 'activos' } : {}),
-            ...(filtros.buscar ? { OR: [
-                { codigo: { contains: filtros.buscar, mode: 'insensitive' } },
-                { nombre: { contains: filtros.buscar, mode: 'insensitive' } },
-            ] } : {}),
-        },
+    const where: Prisma.MaterialWhereInput = {
+        ...(filtros.estado !== 'todos' ? { activo: filtros.estado === 'activos' } : {}),
+        ...(filtros.buscar ? { OR: [
+            { codigo: { contains: filtros.buscar, mode: 'insensitive' } },
+            { nombre: { contains: filtros.buscar, mode: 'insensitive' } },
+        ] } : {}),
+    };
+    const [items, total] = await Promise.all([prisma.material.findMany({
+        where,
         select,
         orderBy: { nombre: 'asc' },
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite + 1,
-    });
-    return paginaDesde(items, filtros);
+    }), prisma.material.count({ where })]);
+    return paginaDesde(items, filtros, total);
 }
 export function buscarMaterialPorId(id: number) {
     return prisma.material.findUnique({ where: { id }, select });

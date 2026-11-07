@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { prisma } from "../../infrastructure/prisma.js";
 import { paginaDesde } from "../../shared/pagination.js";
 
@@ -83,21 +84,22 @@ export function crear(datos: CreateUbicacionInput) {
 }
 
 export async function listar(filtros: ListarUbicacionesInput) {
-    const items = await prisma.ubicacion.findMany({
-        where: {
-            ...(filtros.clienteId !== undefined ? { clienteId: filtros.clienteId } : {}),
+    const where: Prisma.UbicacionWhereInput = {
+        ...(filtros.clienteId !== undefined ? { clienteId: filtros.clienteId } : {}),
 
-            ...(filtros.estado !== "todos" ? { activa: filtros.estado === "activos" } : {}),
+        ...(filtros.estado !== "todos" ? { activa: filtros.estado === "activos" } : {}),
 
-            ...(filtros.nombre
-                ? {
-                      nombre: {
-                          contains: filtros.nombre,
-                          mode: "insensitive" as const,
-                      },
-                  }
-                : {}),
-        },
+        ...(filtros.nombre
+            ? {
+                  nombre: {
+                      contains: filtros.nombre,
+                      mode: "insensitive" as const,
+                  },
+              }
+            : {}),
+    };
+    const [items, total] = await Promise.all([prisma.ubicacion.findMany({
+        where,
 
         select: ubicacionSelect,
 
@@ -105,9 +107,9 @@ export async function listar(filtros: ListarUbicacionesInput) {
 
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite + 1,
-    });
+    }), prisma.ubicacion.count({ where })]);
 
-    return paginaDesde(items, filtros);
+    return paginaDesde(items, filtros, total);
 }
 
 export function actualizar(id: number, datos: UpdateUbicacionInput) {

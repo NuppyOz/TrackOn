@@ -4,8 +4,8 @@ import { PrismaClient } from '@prisma/client';
 
 const connectionString = process.env.DATABASE_URL;
 
-if (process.env.NODE_ENV === 'production') {
-    throw new Error('Este comando no puede ejecutarse con NODE_ENV=production.');
+if (!['development', 'test'].includes(process.env.NODE_ENV ?? '')) {
+    throw new Error('Este comando sólo puede ejecutarse con NODE_ENV=development o NODE_ENV=test.');
 }
 
 if (!connectionString) {
@@ -145,25 +145,25 @@ async function prepararCuadrilla(nombre: string, empleados: number[], liderId: n
 async function main() {
     const ubicacionesFrioCentro = await prepararCliente({
         codigo: 'CLI-001',
-        razonSocial: 'Frío Centro Nicaragua S.A.',
-        nombreComercial: 'FríoCentro',
+        razonSocial: 'DEMO / SIMULADO — Frío Centro Nicaragua S.A.',
+        nombreComercial: 'DEMO / SIMULADO — FríoCentro',
         identificacionTributaria: 'J0310000000012',
-        telefono: '2255-0101',
-        correo: 'operaciones@friocentro.example',
+        telefono: '+50588880001',
+        correo: 'operaciones.friocentro@example.com',
         ubicaciones: [
-            { nombre: 'Planta Managua', direccion: 'Carretera Norte, km 7', referencia: 'Portón azul, bodega 3' },
-            { nombre: 'Sucursal Masaya', direccion: 'Avenida San Jerónimo, Masaya', referencia: 'Contiguo al mercado de artesanías' },
+            { nombre: 'DEMO / SIMULADO — Planta Managua', direccion: 'Dirección ficticia para pruebas, Managua', referencia: 'Ubicación de demostración' },
+            { nombre: 'DEMO / SIMULADO — Sucursal Masaya', direccion: 'Dirección ficticia para pruebas, Masaya', referencia: 'Ubicación de demostración' },
         ],
     });
     const ubicacionesHotel = await prepararCliente({
         codigo: 'CLI-002',
-        razonSocial: 'Inversiones Las Palmas S.A.',
-        nombreComercial: 'Hotel Las Palmas',
+        razonSocial: 'DEMO / SIMULADO — Inversiones Las Palmas S.A.',
+        nombreComercial: 'DEMO / SIMULADO — Hotel Las Palmas',
         identificacionTributaria: 'J0310000000029',
-        telefono: '2278-4400',
-        correo: 'mantenimiento@laspalmas.example',
+        telefono: '+50588880002',
+        correo: 'mantenimiento.laspalmas@example.com',
         ubicaciones: [
-            { nombre: 'Hotel Las Palmas', direccion: 'Residencial Las Colinas, Managua', referencia: 'Entrada principal, preguntar por mantenimiento' },
+            { nombre: 'DEMO / SIMULADO — Hotel Las Palmas', direccion: 'Dirección ficticia para pruebas, Managua', referencia: 'Ubicación de demostración' },
         ],
     });
 

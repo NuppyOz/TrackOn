@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { correoOpcionalSchema, telefonoNicaraguenseSchema } from "../../shared/contacto.schema.js";
 
 function textObligatorio(etiqueta: string, maximo: number) {
     return z
@@ -52,15 +53,9 @@ const typeDocumentSchema = tipoDocumentoPersonaSchema.nullish();
 
 const numberDocumentSchema = textObligatorio("El número de documento", 50).nullish();
 
-const telephoneSchema = textObligatorio("El teléfono", 25).nullish();
+const telephoneSchema = telefonoNicaraguenseSchema;
 
-const correoSchema = textObligatorio("El correo", 254)
-    .pipe(
-        z.email({
-            error: "El correo no tiene un formato válido.",
-        }),
-    )
-    .nullish();
+const correoSchema = correoOpcionalSchema("El correo");
 
 export const createPersonaSchema = z
     .strictObject({

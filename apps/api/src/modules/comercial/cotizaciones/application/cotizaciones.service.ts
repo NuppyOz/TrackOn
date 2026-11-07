@@ -33,7 +33,7 @@ function encabezado(row: CotizacionConDetalle | CotizacionListado, ahora = new D
   const estadoPersistido = row.estado as EstadoCotizacionPersistido;
   const estadoEfectivo = estadoEfectivoCotizacion(estadoPersistido, row.venceEn, { ahora: () => ahora });
   return {
-    id: row.id, clienteId: row.clienteId, clienteNombreRegistrado: row.clienteNombreRegistrado,
+    id: row.id, clienteId: row.clienteId, oportunidadId: row.oportunidadId ?? null, clienteNombreRegistrado: row.clienteNombreRegistrado,
     clienteIdentificacionRegistrada: row.clienteIdentificacionRegistrada ?? null, contactoId: row.contactoId ?? null,
     estadoPersistido, estadoEfectivo, decisionOrigen: row.decisionOrigen ?? null, decisionComentario: row.decisionComentario ?? null,
     moneda: row.moneda, subtotal: decimalFijo(row.subtotal, 2), descuento: decimalFijo(row.descuento, 2), total: decimalFijo(row.total, 2),
@@ -49,11 +49,11 @@ function detalleDto(row: CotizacionConDetalle | null) {
     notas: row.notas.map(nota => ({ id: nota.id, texto: nota.texto, autor: { id: nota.autor.id, nombre: nota.autor.identificador }, creadaEn: fecha(nota.creadaEn) })),
   };
 }
-type ResultadoErrorCotizacion = { tipo: 'no-encontrada'|'cliente-no-encontrado'|'contacto-no-encontrado'|'conflicto'|'estado-invalido'|'cliente-inactivo'|'contacto-inactivo'|'vencida' };
+type ResultadoErrorCotizacion = { tipo: 'no-encontrada'|'cliente-no-encontrado'|'contacto-no-encontrado'|'oportunidad-no-encontrada'|'conflicto'|'estado-invalido'|'cliente-inactivo'|'contacto-inactivo'|'vencida'|'oportunidad-cliente-distinto'|'oportunidad-cerrada' };
 function assertResultado<T extends { tipo: string }>(result: T): Exclude<T, ResultadoErrorCotizacion> {
-  if (result.tipo === 'no-encontrada' || result.tipo === 'cliente-no-encontrado' || result.tipo === 'contacto-no-encontrado') throw new AppError(404, 'El recurso solicitado no existe.');
-  if (result.tipo === 'conflicto' || result.tipo === 'estado-invalido' || result.tipo === 'cliente-inactivo' || result.tipo === 'contacto-inactivo' || result.tipo === 'vencida') {
-    throw new AppError(409, result.tipo === 'vencida' ? 'La cotización vencida no admite decisión.' : result.tipo === 'contacto-inactivo' ? 'El contacto está inactivo.' : result.tipo === 'cliente-inactivo' ? 'El cliente está inactivo.' : 'La cotización cambió o ya no admite esta acción.');
+  if (result.tipo === 'no-encontrada' || result.tipo === 'cliente-no-encontrado' || result.tipo === 'contacto-no-encontrado' || result.tipo === 'oportunidad-no-encontrada') throw new AppError(404, 'El recurso solicitado no existe.');
+  if (result.tipo === 'conflicto' || result.tipo === 'estado-invalido' || result.tipo === 'cliente-inactivo' || result.tipo === 'contacto-inactivo' || result.tipo === 'vencida' || result.tipo === 'oportunidad-cliente-distinto' || result.tipo === 'oportunidad-cerrada') {
+    throw new AppError(409, result.tipo === 'vencida' ? 'La cotización vencida no admite decisión.' : result.tipo === 'contacto-inactivo' ? 'El contacto está inactivo.' : result.tipo === 'cliente-inactivo' ? 'El cliente está inactivo.' : result.tipo === 'oportunidad-cliente-distinto' ? 'La oportunidad pertenece a otro cliente.' : result.tipo === 'oportunidad-cerrada' ? 'La oportunidad ya está cerrada.' : 'La cotización cambió o ya no admite esta acción.');
   }
   return result as Exclude<T, ResultadoErrorCotizacion>;
 }
@@ -63,8 +63,8 @@ function actorParaIdempotencia(actor: ActorDecision): ActorOperacion {
 
 export async function listarCotizaciones(filtros: ListarCotizacionesInput) {
   const ahora = new Date();
-  const rows = await repository.listar(filtros, ahora);
-  return { items: rows.slice(0, filtros.limite).map(row => encabezado(row, ahora)), pagina: filtros.pagina, limite: filtros.limite, hayMas: rows.length > filtros.limite };
+  const [rows, total] = await Promise.all([repository.listar(filtros, ahora), repository.contar(filtros, ahora)]);
+  return { items: rows.slice(0, filtros.limite).map(row => encabezado(row, ahora)), pagina: filtros.pagina, limite: filtros.limite, hayMas: rows.length > filtros.limite, total };
 }
 export async function obtenerCotizacion(id: number) { return detalleDto(await repository.detalle(id)); }
 export async function crearCotizacion(datos: CrearCotizacionInput, usuarioId: number, clave: string) {

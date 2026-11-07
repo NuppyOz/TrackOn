@@ -17,7 +17,7 @@ describe('Administración de usuarios y permisos', () => {
     it('separa usuarios de roles con navegación clara', () => {
         render(<AdministracionWorkspace ruta="/administracion/usuarios" />);
         expect(screen.getByText('Listado de usuarios')).toBeTruthy();
-        fireEvent.click(screen.getByRole('button', { name: 'Roles y permisos' }));
+        fireEvent.change(screen.getByLabelText('Configuración'), { target: { value: 'roles' } });
         expect(mocks.irA).toHaveBeenCalledWith('/administracion/roles');
     });
     it('muestra los permisos efectivos de cada rol', async () => {

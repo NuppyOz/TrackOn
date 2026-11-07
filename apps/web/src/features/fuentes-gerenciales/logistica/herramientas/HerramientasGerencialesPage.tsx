@@ -7,7 +7,7 @@ import { HerramientaDetalle } from './HerramientaDetalle'
 import { HerramientaForm } from './HerramientaForm'
 import type { DevolucionNueva, Herramienta, HerramientaNueva, HerramientaResumen, Pagina, PrestamoNuevo } from './herramientas.types'
 import './herramientas.css'
-const LIMIT = 25
+const LIMIT = 10
 const errorText = (cause: unknown) => cause instanceof Error ? cause.message : 'No se pudo completar la operación.'
 type Mode = 'loan' | 'return' | null
 type Props = Readonly<{ onBusyChange?: (busy: boolean) => void }>

@@ -12,14 +12,14 @@ export async function listar(clienteId: number, filtros: ListarContactosQuery) {
             { cargo: { contains: q, mode: 'insensitive' as const } },
         ] } : {}),
     };
-    const contactos = await prisma.contactoComercial.findMany({
+    const [contactos, total] = await Promise.all([prisma.contactoComercial.findMany({
         where,
         orderBy: [{ [filtros.sortBy]: filtros.sortDir }, { id: 'desc' }],
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite + 1,
-    });
+    }), prisma.contactoComercial.count({ where })]);
     const hayMas = contactos.length > filtros.limite;
-    return { items: hayMas ? contactos.slice(0, filtros.limite) : contactos, pagina: filtros.pagina, limite: filtros.limite, hayMas };
+    return { items: hayMas ? contactos.slice(0, filtros.limite) : contactos, pagina: filtros.pagina, limite: filtros.limite, hayMas, total };
 }
 
 export function crear(clienteId: number, datos: CrearContactoInput) {

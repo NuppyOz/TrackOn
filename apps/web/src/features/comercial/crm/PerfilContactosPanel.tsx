@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { ApiError } from '../../../shared/api';
-import { ActionMenu, Button, StatePanel, StatusBadge } from '../../../shared/ui';
+import { AccionesFila, IconButton, Button, StatePanel, StatusBadge } from '../../../shared/ui'
+import { CheckCircleIcon, PencilSimpleIcon, ProhibitIcon } from '@phosphor-icons/react';
+import { NicaraguanPhoneField } from '../../../shared/ui/NicaraguanPhoneField';
 import type { Cliente } from '../../clientes/clientes.types';
 import { actualizarContacto, actualizarPerfil, crearContacto, listarContactos, obtenerPerfil, type ContactoComercial, type ContactoInput, type PerfilComercial } from './crm.api';
 import { DataTable, type DataTableColumn, type SortDirection } from '../../erp-ui/components';
 
 type Props = { cliente: Cliente; seccion?: 'perfil' | 'contactos' | 'ambos' };
 const vacio = { nombre: '', email: '', telefono: '', cargo: '' };
-const aPayload = (f: typeof vacio): ContactoInput => ({ nombre: f.nombre.trim(), email: f.email.trim() || null, telefono: f.telefono.trim() || null, cargo: f.cargo.trim() || null });
+const aPayload = (f: typeof vacio): ContactoInput => ({ nombre: f.nombre.trim(), email: f.email.trim() || null, telefono: f.telefono ? `+505${f.telefono}` : null, cargo: f.cargo.trim() || null });
 
 export function PerfilContactosPanel({ cliente, seccion = 'ambos' }: Props) {
   const [perfil, setPerfil] = useState<PerfilComercial | null>(null);
@@ -27,7 +29,7 @@ export function PerfilContactosPanel({ cliente, seccion = 'ambos' }: Props) {
   const ocupadoRef = useRef(false);
   const [consulta, setConsulta] = useState('');
   const [pagina, setPagina] = useState(1);
-  const [hayMas, setHayMas] = useState(false);
+  const [hayMas, setHayMas] = useState(false); const [total, setTotal] = useState<number>();
   const [sortBy, setSortBy] = useState<'id' | 'nombre' | 'creadoEn'>('nombre');
   const [sortDir, setSortDir] = useState<SortDirection>('asc');
   const requestRef = useRef(0);
@@ -39,7 +41,7 @@ export function PerfilContactosPanel({ cliente, seccion = 'ambos' }: Props) {
     try {
       const c = await listarContactos(cliente.id, { q: consulta.trim().slice(0, 100) || undefined, pagina, limite: 10, sortBy, sortDir });
       if (requestId !== requestRef.current) return;
-      setContactos(c.items); setHayMas(c.hayMas); setErrorContactos('');
+      setContactos(c.items); setHayMas(c.hayMas); setTotal(c.total); setErrorContactos('');
     } catch { if (requestId === requestRef.current) setErrorContactos('No se pudieron cargar los contactos.'); }
     finally { if (requestId === requestRef.current) setCargando(false); }
   }, [cliente.id, consulta, pagina, sortBy, sortDir]);
@@ -94,7 +96,7 @@ export function PerfilContactosPanel({ cliente, seccion = 'ambos' }: Props) {
     { key: 'telefono', header: 'Teléfono', render: c => c.telefono || '—' },
     { key: 'cargo', header: 'Cargo', render: c => c.cargo || '—' },
     { key: 'estado', header: 'Estado', render: c => <StatusBadge active={c.activo} /> },
-    ...(!soloLectura ? [{ key: 'acciones', header: 'Acciones', render: (c: ContactoComercial) => <ActionMenu label={`Acciones para ${c.nombre}`}><button type="button" disabled={ocupado} onClick={() => editar(c)}>Editar</button><button type="button" disabled={ocupado} onClick={() => void activar(c)}>{c.activo ? 'Desactivar' : 'Activar'}</button></ActionMenu> }] : []),
+    ...(!soloLectura ? [{ key: 'acciones', header: 'Acciones', render: (c: ContactoComercial) => <AccionesFila><IconButton icon={PencilSimpleIcon} label="Editar" disabled={ocupado} onClick={() => editar(c)} /><IconButton icon={c.activo ? ProhibitIcon : CheckCircleIcon} variant={c.activo ? 'danger' : 'secondary'} label={c.activo ? 'Desactivar' : 'Activar'} disabled={ocupado} onClick={() => void activar(c)} /></AccionesFila> }] : []),
   ];
   const reintentarConflicto = () => {
     setEditPerfil(false); setContactoForm(null); setEditando(null); setErrorMutacion(''); setCargando(true); setCargandoPerfil(true);
@@ -122,17 +124,17 @@ export function PerfilContactosPanel({ cliente, seccion = 'ambos' }: Props) {
         <h3>{editando ? 'Editar contacto' : 'Nuevo contacto'}</h3>
         <label>Nombre *<input required autoFocus value={contactoForm.nombre} onChange={e => setContactoForm({ ...contactoForm, nombre: e.target.value })} maxLength={150} /></label>
         <label>Correo<input type="email" value={contactoForm.email} onChange={e => setContactoForm({ ...contactoForm, email: e.target.value })} maxLength={254} /></label>
-        <label>Teléfono<input value={contactoForm.telefono} onChange={e => setContactoForm({ ...contactoForm, telefono: e.target.value })} maxLength={25} /></label>
+        <NicaraguanPhoneField id="crm-contact-phone" label="Teléfono" value={contactoForm.telefono} onChange={telefono => setContactoForm({ ...contactoForm, telefono })} />
         <label>Cargo<input value={contactoForm.cargo} onChange={e => setContactoForm({ ...contactoForm, cargo: e.target.value })} maxLength={100} /></label>
         <div className="crm-form__actions"><Button type="button" onClick={() => { setContactoForm(null); setEditando(null); }}>Cancelar</Button><Button variant="primary" type="submit" loading={ocupado}>Guardar contacto</Button></div>
       </form>}
-      <DataTable columns={columns} rows={contactos} getRowKey={c => c.id}
+      {!contactoForm && <DataTable columns={columns} rows={contactos} getRowKey={c => c.id}
         search={{ value: consulta, onChange: value => { setConsulta(value.slice(0, 100)); setPagina(1); setCargando(true); }, label: 'Buscar contactos', placeholder: 'Nombre, correo o cargo' }}
         sort={{ key: sortBy, direction: sortDir, onChange: (key, dir) => { setSortBy(key as typeof sortBy); setSortDir(dir); setPagina(1); setCargando(true); } }}
-        pagination={{ pagina, limite: 10, hayMas, onPageChange: next => { setPagina(next); setCargando(true); }, label: 'Paginación de contactos' }}
+        pagination={{ pagina, limite: 10, hayMas, total, onPageChange: next => { setPagina(next); setCargando(true); }, label: 'Paginación de contactos' }}
         state={cargando ? 'loading' : errorContactos ? 'error' : 'ready'} error={{ description: errorContactos }} onRetry={() => { setCargando(true); void cargar(); }}
         emptyTitle={consulta.trim() ? 'No hay resultados' : 'Aún no hay contactos'}
-        emptyDescription={consulta.trim() ? 'Prueba con otro término de búsqueda.' : soloLectura ? 'Este cliente no tiene contactos registrados.' : 'Agrega un contacto para mantener sus referencias comerciales.'} />
+        emptyDescription={consulta.trim() ? 'Prueba con otro término de búsqueda.' : soloLectura ? 'Este cliente no tiene contactos registrados.' : 'Agrega un contacto para mantener sus referencias comerciales.'} />}
     </section>}
   </div>;
 }

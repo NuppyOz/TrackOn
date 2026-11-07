@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ModuleHeader } from '../../erp-ui/components';
+import { RUTAS } from '../../../shared/navigation';
 import "../../erp-ui/tokens.css";
 import { cambiarEstadoCuentaPortal, crearCuentaPortal, obtenerCuentaPortal, restablecerCuentaPortal } from "./portal-cuentas.api";
 import type { CuentaPortal } from "./portal-cuentas.types";
@@ -97,7 +99,7 @@ export function PortalCuentasPage({ puedeGestionar = false }: PortalCuentasPageP
     const mostrarAlta = mostrarFormulario && !cuenta;
     const mostrarReset = mostrarFormulario && Boolean(cuenta);
     return <main className="portal-admin comercial-scope">
-        <header className="portal-admin__header"><div><p className="portal-admin__eyebrow">Comercial / Acceso de clientes</p><h1>Cuenta del portal</h1><p>Administra el acceso del cliente a sus cotizaciones.</p></div>
+        <header className="portal-admin__header"><ModuleHeader breadcrumb={[{ label: 'Comercial', ruta: RUTAS.comercial.inicio }, { label: 'Accesos de clientes' }]} title="Accesos de clientes" description="Cuentas con las que cada cliente entra al portal (/portal)." />
             <button className="portal-admin__button portal-admin__button--quiet" disabled={busy || cargando || !clienteId} onClick={() => void cargar(clienteId)}>Actualizar</button>
         </header>
         {error && <p className="portal-admin__alert" role="alert">{error}</p>}

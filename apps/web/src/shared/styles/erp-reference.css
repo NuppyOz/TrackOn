@@ -34,7 +34,7 @@
 .workspace {
     grid-column: 2;
     grid-row: 2;
-    padding: 38px;
+    padding: var(--tk-space-8);
 }
 .workspace > section {
     max-width: none;
@@ -95,12 +95,16 @@
     background: transparent !important;
     border-radius: 9px !important;
     font-size: 14px !important;
+    font-weight: 550;
     text-align: left;
+    gap: 13px;
+    min-height: 44px;
 }
 .erp-home-link.selected {
-    background: var(--tk-purple-hover) !important;
+    background: #4b4264 !important;
     color: white !important;
-    box-shadow: inset 4px 0 var(--tk-blue) !important;
+    box-shadow: none !important;
+    font-weight: 650 !important;
 }
 .erp-nav-caption {
     font-size: 11px;
@@ -115,11 +119,12 @@
     list-style: none;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
     cursor: pointer;
-    padding: 13px 15px;
+    padding: 11px 13px;
     color: #d6d0e2;
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 550;
     line-height: 1.5;
     border-radius: 8px;
 }
@@ -131,6 +136,7 @@
 }
 .erp-nav-group summary > svg:last-child {
     margin-left: auto;
+    transition: transform 150ms ease;
 }
 .erp-nav-group[open] > summary > svg:last-child {
     transform: rotate(180deg);
@@ -138,6 +144,8 @@
 .erp-nav-group summary:hover {
     background: var(--tk-purple-hover);
 }
+.erp-nav-group[open] > summary { color: #fff; background: rgb(255 255 255 / 7%); font-weight: 650; }
+.erp-nav-group summary > span { min-width: 0; overflow-wrap: anywhere; }
 .erp-nav-group nav {
     padding: 2px 4px 6px 35px;
     display: grid;
@@ -145,39 +153,23 @@
 }
 .figma-sidebar .erp-nav-group .figma-nav-link {
     font-size: 12px;
-    min-height: 35px;
+    min-height: 38px;
     padding: 8px 12px;
+    border-radius: 7px;
+    color: #d6d0e2;
+    font-weight: 500;
 }
 .figma-sidebar .figma-nav-link.selected {
-    box-shadow: inset 3px 0 var(--tk-blue);
-    font-weight: 500;
+    background: #4b4264;
+    box-shadow: none !important;
+    color: #fff;
+    font-weight: 650;
 }
 .erp-resource-links {
     margin: 15px 12px;
 }
 .erp-resource-links .figma-nav-link {
     font-size: 11px;
-}
-.erp-sidebar-account {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 20px 24px;
-    border-top: 1px solid rgb(255 255 255 / 12%);
-    min-height: 88px;
-}
-.erp-sidebar-account > span:nth-child(2) {
-    display: grid;
-    gap: 3px;
-    flex: 1;
-}
-.erp-sidebar-account strong {
-    color: white;
-    font-size: 12px;
-}
-.erp-sidebar-account small {
-    font-size: 11px;
-    color: #b5accd;
 }
 .erp-account-avatar,
 .figma-topbar .figma-user-avatar {
@@ -640,7 +632,7 @@
         grid-template-columns: 280px minmax(0, 1fr);
     }
     .workspace {
-        padding: 30px;
+        padding: var(--tk-space-6);
     }
     .erp-stat {
         padding: 18px 14px;

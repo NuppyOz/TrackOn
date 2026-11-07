@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { listarClientes } from '../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../clientes/clientes.types'
-import { ActionMenu, Button } from '../../../shared/ui'
-import { DataTable, type DataTableColumn, type SortDirection } from '../../erp-ui/components'
+import { AccionesFila, Button, IconButton } from '../../../shared/ui'
+import { EyeIcon, PencilSimpleIcon, ReceiptIcon, ShoppingCartIcon } from '@phosphor-icons/react'
+import { DataTable, ModuleHeader, type DataTableColumn, type SortDirection } from '../../erp-ui/components'
 import { agregarNotaCotizacion, actualizarCotizacion, crearCotizacion, decidirCotizacion, enviarCotizacion, listarCotizaciones, obtenerCotizacion } from './cotizaciones.api'
 import { CotizacionDetalle } from './CotizacionDetalle'
 import { EstadoCotizacionBadge } from './EstadoCotizacionBadge'
@@ -11,9 +12,12 @@ import type { Cotizacion, CotizacionDecision, CotizacionDraft, CotizacionPatch, 
 import { convertirCotizacionEnVenta } from '../ventas/ventas.api'
 import { VentasPage } from '../ventas/VentasPage'
 import type { VentaResumen } from '../ventas/ventas.types'
+import { OportunidadesPage } from '../oportunidades/OportunidadesPage'
+import type { Oportunidad } from '../oportunidades/oportunidades.api'
+import { irA, RUTAS } from '../../../shared/navigation'
 import './cotizaciones.css'
 
-const LIMITE = 25
+const LIMITE = 10
 const money = (value: string) => {
   const [whole, fraction = ''] = value.split('.')
   return `C$ ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction.padEnd(2, '0')}`
@@ -24,21 +28,30 @@ const date = (value: string) => {
 }
 const message = (cause: unknown) => cause instanceof Error ? cause.message : 'No se pudo completar la operación.'
 const uuid = () => crypto.randomUUID()
-function idInicial(parametro: 'cotizacionId' | 'ventaId') {
+function idInicial(parametro: string) {
   const value = new URLSearchParams(window.location.search).get(parametro)
   return value && /^[1-9]\d*$/.test(value) && Number(value) <= 2_147_483_647 ? Number(value) : null
 }
 
-export function CotizacionesPage() {
+type SeccionVentas = 'oportunidades' | 'cotizaciones' | 'ventas'
+const rutaSeccion: Record<SeccionVentas, string> = { oportunidades: RUTAS.comercial['ventas-oportunidades'], cotizaciones: RUTAS.comercial['ventas-cotizaciones'], ventas: RUTAS.comercial['ventas-registradas'] }
+
+const migas = (actual: string) => [{ label: 'Comercial', ruta: RUTAS.comercial.inicio }, { label: 'Gestión de ventas', ruta: RUTAS.comercial.ventas }, { label: actual }]
+
+export function CotizacionesPage({ seccion }: Readonly<{ seccion?: SeccionVentas }> = {}) {
   const [rows, setRows] = useState<CotizacionResumen[]>([])
-  const [page, setPage] = useState(1); const [hasMore, setHasMore] = useState(false)
+  const [page, setPage] = useState(1); const [hasMore, setHasMore] = useState(false); const [total, setTotal] = useState<number>()
   const [q, setQ] = useState(''); const [estado, setEstado] = useState(''); const [clienteId, setClienteId] = useState('')
   const [sortBy, setSortBy] = useState<'id' | 'venceEn'>('id'); const [sortDir, setSortDir] = useState<SortDirection>('desc')
   const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [notice, setNotice] = useState('')
   const [clients, setClients] = useState<Cliente[]>([])
-  const [view, setView] = useState<'list' | 'new' | 'detail'>('list'); const [detail, setDetail] = useState<Cotizacion | null>(null); const [editing, setEditing] = useState(false)
+  const [view, setView] = useState<'list' | 'new' | 'detail'>(() => idInicial('oportunidadId') ? 'new' : 'list'); const [detail, setDetail] = useState<Cotizacion | null>(null); const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [sectionTab, setSectionTab] = useState<'cotizaciones' | 'ventas'>(() => idInicial('ventaId') ? 'ventas' : 'cotizaciones')
+  const [sectionTab, setSectionTabState] = useState<SeccionVentas>(() => seccion ?? (idInicial('ventaId') ? 'ventas' : 'cotizaciones'))
+  // Mantiene la URL (y el sidebar) alineados con la sección mostrada.
+  const setSectionTab = (value: SeccionVentas, query = '') => { setSectionTabState(value); if (seccion && value !== seccion) irA(rutaSeccion[value] + query) }
+  // Desde la lista de oportunidades llega por URL (?oportunidadId=&clienteId=) al remontar la página de cotizaciones.
+  const [opportunityForQuote, setOpportunityForQuote] = useState<Pick<Oportunidad, 'id' | 'clienteId'> | null>(() => { const id = idInicial('oportunidadId'); const clienteId = idInicial('clienteId'); return id && clienteId ? { id, clienteId } : null })
   const [ventaInicialId, setVentaInicialId] = useState<number | null>(() => idInicial('ventaId'))
   const [cotizacionInicialId] = useState(() => idInicial('ventaId') ? null : idInicial('cotizacionId'))
   const lock = useRef(false); const requestId = useRef(0); const idempotency = useRef<{ signature: string; key: string } | null>(null)
@@ -54,7 +67,7 @@ export function CotizacionesPage() {
     try {
       const result = await listarCotizaciones({ q: q.trim().slice(0, 100) || undefined, estado: estado || undefined, clienteId: clienteId ? Number(clienteId) : undefined, pagina: requestedPage, limite: LIMITE, sortBy, sortDir })
       if (request !== requestId.current) return
-      setRows(result.items); setPage(result.pagina); setHasMore(result.hayMas)
+      setRows(result.items); setPage(result.pagina); setHasMore(result.hayMas); setTotal(result.total)
     } catch (cause) { if (request === requestId.current) setError(message(cause)) }
     finally { if (request === requestId.current) setLoading(false) }
   }, [page, q, estado, clienteId, sortBy, sortDir])
@@ -66,7 +79,8 @@ export function CotizacionesPage() {
   useEffect(() => { let live = true; listarClientes().then(value => { if (live) setClients(value) }).catch(cause => { if (live) setError(message(cause)) }); return () => { live = false } }, [])
 
   const resetIntent = () => { idempotency.current = null }
-  const startNew = () => { resetIntent(); setDetail(null); setEditing(false); setNotice(''); setView('new') }
+  const startNew = () => { resetIntent(); setOpportunityForQuote(null); setDetail(null); setEditing(false); setNotice(''); setView('new') }
+  const quoteOpportunity = (item: Oportunidad) => { resetIntent(); setOpportunityForQuote(item); setDetail(null); setEditing(false); setView('new'); setSectionTab('cotizaciones', `?oportunidadId=${item.id}&clienteId=${item.clienteId}`); setNotice('') }
   const open = useCallback(async (id: number, edit = false) => {
     setBusy(true); setError('')
     try {
@@ -89,7 +103,7 @@ export function CotizacionesPage() {
         setDetail(updated); setEditing(false); setNotice('Borrador actualizado. Las líneas se conservaron salvo que solicitaste reemplazarlas.')
       } else {
         const created = await runIdempotent('cotizacion:crear', null, value, key => crearCotizacion(value as CotizacionDraft, key))
-        setDetail(created); setView('detail'); setNotice('Borrador creado. Los precios y totales los calculó el servidor.')
+        setDetail(created); setOpportunityForQuote(null); setView('detail'); setNotice('Borrador creado. Los precios y totales los calculó el servidor.')
       }
       resetIntent(); await load(1)
     } catch (cause) { setError(message(cause)) }
@@ -154,7 +168,7 @@ export function CotizacionesPage() {
     { key: 'estado', header: 'Estado', render: row => <EstadoCotizacionBadge estado={row.estadoEfectivo} /> },
     { key: 'venceEn', header: 'Vence', render: row => date(row.venceEn), sortable: true },
     { key: 'total', header: 'Total', render: row => money(row.total), align: 'end' },
-    { key: 'acciones', header: 'Acciones', render: row => <ActionMenu label={`Acciones C-${row.id}`}><button type="button" disabled={busy} onClick={() => void open(row.id)}>Ver detalle</button>{row.accionesPermitidas.editar && <button type="button" disabled={busy} onClick={() => void open(row.id, true)}>Editar borrador</button>}{row.accionesPermitidas.convertirVenta && <button type="button" disabled={busy} onClick={() => void convert(row)}>Convertir a venta</button>}{row.ventaId && <button type="button" disabled={busy} onClick={() => { setVentaInicialId(row.ventaId); setSectionTab('ventas') }}>Ver venta V-{row.ventaId}</button>}</ActionMenu> },
+    { key: 'acciones', header: 'Acciones', render: row => <AccionesFila><IconButton icon={EyeIcon} label="Ver detalle" disabled={busy} onClick={() => void open(row.id)} />{row.accionesPermitidas.editar && <IconButton icon={PencilSimpleIcon} label="Editar borrador" disabled={busy} onClick={() => void open(row.id, true)} />}{row.accionesPermitidas.convertirVenta && <IconButton icon={ShoppingCartIcon} variant="secondary" label="Convertir a venta" disabled={busy} onClick={() => void convert(row)} />}{row.ventaId && <IconButton icon={ReceiptIcon} variant="secondary" label={`Ver venta V-${row.ventaId}`} disabled={busy} onClick={() => { setVentaInicialId(row.ventaId); setSectionTab('ventas', `?ventaId=${row.ventaId}`) }} />}</AccionesFila> },
   ]
   const sortKey = sortBy === 'id' ? 'id' : 'venceEn'
   const changeSort = (key: string, direction: SortDirection) => {
@@ -166,16 +180,15 @@ export function CotizacionesPage() {
   if (view === 'list') {
     content = <>
       <div className="cotizaciones__filters"><label>Estado <select aria-label="Filtrar por estado" value={estado} onChange={event => { setEstado(event.target.value); setPage(1) }}><option value="">Todos</option>{['BORRADOR', 'ENVIADA', 'APROBADA', 'RECHAZADA', 'VENCIDA'].map(value => <option key={value}>{value}</option>)}</select></label><label>Cliente <select aria-label="Filtrar por cliente" value={clienteId} onChange={event => { setClienteId(event.target.value); setPage(1) }}><option value="">Todos los clientes</option>{clients.map(client => <option key={client.id} value={client.id}>{nombreCliente(client)}</option>)}</select></label></div>
-      <DataTable columns={columns} rows={rows} getRowKey={row => row.id} search={{ value: q, onChange: value => { setQ(value.slice(0, 100)); setPage(1) }, label: 'Buscar', placeholder: 'Cliente o cotización' }} sort={{ key: sortKey, direction: sortDir, onChange: changeSort }} pagination={{ pagina: page, limite: LIMITE, hayMas: hasMore, onPageChange: value => { setPage(value); void load(value) } }} state={loading ? 'loading' : error ? 'error' : 'ready'} error={{ title: error }} onRetry={() => void load()} emptyTitle="No hay cotizaciones" emptyDescription="Crea un borrador para comenzar." />
+      <DataTable columns={columns} rows={rows} getRowKey={row => row.id} search={{ value: q, onChange: value => { setQ(value.slice(0, 100)); setPage(1) }, label: 'Buscar', placeholder: 'Cliente o cotización' }} sort={{ key: sortKey, direction: sortDir, onChange: changeSort }} pagination={{ pagina: page, limite: LIMITE, hayMas: hasMore, total, onPageChange: value => { setPage(value); void load(value) } }} state={loading ? 'loading' : error ? 'error' : 'ready'} error={{ title: error }} onRetry={() => void load()} emptyTitle="No hay cotizaciones" emptyDescription="Crea un borrador para comenzar." />
     </>
   } else if (form) {
-    content = <CotizacionForm quote={editing ? detail : null} clients={clients} busy={busy} onSave={save} onCancel={() => { resetIntent(); setEditing(false); if (view === 'new') setView('list') }} />
+    content = <CotizacionForm quote={editing ? detail : null} clients={clients} busy={busy} oportunidadId={opportunityForQuote?.id} clienteInicialId={opportunityForQuote?.clienteId} onSave={save} onCancel={() => { resetIntent(); setOpportunityForQuote(null); setEditing(false); if (view === 'new') setView('list') }} />
   } else if (detail) {
     content = <CotizacionDetalle quote={detail} busy={busy} onEdit={() => setEditing(true)} onSend={() => void transition('enviar')} onDecision={decision => void transition('decision', decision)} onNote={addNote} onConvert={() => void convert()} onOpenVenta={() => { if (detail.ventaId) { setVentaInicialId(detail.ventaId); setSectionTab('ventas') } }} onBack={() => { resetIntent(); setView('list'); setDetail(null); setNotice('') }} />
   } else content = <p role="status">Selecciona una cotización.</p>
 
-  return <div className="comercial-scope cotizaciones"><header className="cotizaciones__header"><div><p>Comercial / Cotizaciones y ventas</p><h1>Cotizaciones y ventas</h1><span>Gestiona cotizaciones y consulta ventas confirmadas.</span></div>{view === 'list' && sectionTab === 'cotizaciones' && <Button variant="primary" disabled={busy} onClick={startNew}>Nueva cotización</Button>}</header>
-    <nav className="cotizaciones__tabs" aria-label="Cotizaciones y ventas"><button type="button" aria-current={sectionTab === 'cotizaciones' ? 'page' : undefined} disabled={busy} onClick={() => { setSectionTab('cotizaciones'); setVentaInicialId(null) }}>Cotizaciones</button><button type="button" aria-current={sectionTab === 'ventas' ? 'page' : undefined} disabled={busy} onClick={() => { setSectionTab('ventas'); setVentaInicialId(null) }}>Ventas</button></nav>
-    {notice && <div role="status" className="cotizaciones__notice">{notice}</div>}{error && <p role="alert" className="cotizaciones__error">{error}</p>}{sectionTab === 'ventas' ? <VentasPage ventaInicialId={ventaInicialId ?? undefined} /> : content}
+  return <div className="comercial-scope cotizaciones">{sectionTab === 'cotizaciones' && <ModuleHeader breadcrumb={migas(view === 'new' ? 'Nueva cotización' : 'Cotizaciones')} title={view === 'new' ? 'Nueva cotización' : 'Cotizaciones'} description={view === 'list' ? 'Propuestas enviadas al cliente y su conversión en ventas.' : undefined} action={view === 'list' ? <Button variant="primary" disabled={busy} onClick={startNew}>Nueva cotización</Button> : undefined} />}
+    {notice && <div role="status" className="cotizaciones__notice tk-toast">{notice}</div>}{error && <p role="alert" className="cotizaciones__error">{error}</p>}{sectionTab === 'oportunidades' ? <OportunidadesPage onCreateQuote={quoteOpportunity} /> : sectionTab === 'ventas' ? <VentasPage ventaInicialId={ventaInicialId ?? undefined} /> : content}
   </div>
 }

@@ -35,6 +35,14 @@ enum TipoActorAuditoria {
   SISTEMA
 }
 
+enum EtapaOportunidadComercial {
+  NUEVA
+  CALIFICADA
+  PROPUESTA
+  GANADA
+  PERDIDA
+}
+
 model Rol {
   id          Int       @id @default(autoincrement())
   cod         String    @unique @db.VarChar(30)
@@ -116,6 +124,7 @@ model Cliente {
   notasComerciales NotaComercial[]
   documentosComerciales ReferenciaDocumentoComercial[]
   tarifasComerciales TarifaComercial[]
+  oportunidadesComerciales OportunidadComercial[]
 
   @@map("clientes")
   contratosGerenciales ContratoGerencial[]
@@ -147,10 +156,12 @@ model Ubicacion {
 }
 
 model Usuario {
+  reportesGenerados ReporteGenerado[]
   cotizacionesCreadas CotizacionComercial[] @relation("CreadorCotizacion")
   cotizacionesDecididas CotizacionComercial[] @relation("DecisionCotizacion")
   notasCotizacionesComerciales NotaCotizacionComercial[]
   ventasConfirmadasComerciales VentaComercial[]
+  oportunidadesComerciales OportunidadComercial[] @relation("ResponsableOportunidad")
   id                         Int                          @id @default(autoincrement())
   empleadoId                 Int                          @unique
   rolId                      Int
@@ -196,6 +207,21 @@ model Usuario {
   correctivasGerenciales CorrectivaGerencial[]
   garantiasGerenciales GarantiaGerencial[]
   retrabajosGerenciales RetrabajoGerencial[]
+}
+
+model ReporteGenerado {
+  id Int @id @default(autoincrement())
+  tipo String @db.VarChar(30)
+  desde DateTime? @db.Timestamptz(6)
+  hasta DateTime? @db.Timestamptz(6)
+  filas Int
+  contenido String @db.Text
+  creadoEn DateTime @default(now()) @db.Timestamptz(6)
+  usuarioId Int
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([usuarioId, creadoEn])
+  @@map("reportes_generados")
 }
 
 model Cuadrilla {
@@ -635,6 +661,7 @@ model TarifaComercial {
 model CotizacionComercial {
   id Int @id @default(autoincrement())
   clienteId Int
+  oportunidadId Int?
   contactoId Int?
   creadaPorId Int
   estado String @default("BORRADOR") @db.VarChar(20)
@@ -656,6 +683,7 @@ model CotizacionComercial {
   decisionCuentaId Int?
   decisionComentario String? @db.VarChar(1000)
   cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  oportunidad OportunidadComercial? @relation(fields: [oportunidadId], references: [id], onDelete: Restrict)
   contacto ContactoComercial? @relation(fields: [contactoId], references: [id], onDelete: Restrict)
   creadaPor Usuario @relation("CreadorCotizacion", fields: [creadaPorId], references: [id], onDelete: Restrict)
   decisionUsuario Usuario? @relation("DecisionCotizacion", fields: [decisionUsuarioId], references: [id], onDelete: Restrict)
@@ -667,6 +695,27 @@ model CotizacionComercial {
   @@index([estado, enviadaEn])
   @@map("cotizaciones_comerciales")
 }
+model OportunidadComercial {
+  id Int @id @default(autoincrement())
+  clienteId Int
+  responsableId Int
+  nombre String @db.VarChar(150)
+  etapa EtapaOportunidadComercial @default(NUEVA)
+  valorEstimado Decimal? @db.Decimal(16, 2)
+  proximaActividad DateTime? @db.Timestamptz(6)
+  nota String? @db.VarChar(1000)
+  version Int @default(1)
+  creadaEn DateTime @default(now()) @db.Timestamptz(6)
+  actualizadaEn DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  responsable Usuario @relation("ResponsableOportunidad", fields: [responsableId], references: [id], onDelete: Restrict)
+  cotizaciones CotizacionComercial[]
+
+  @@index([clienteId, etapa, actualizadaEn])
+  @@index([responsableId, etapa, actualizadaEn])
+  @@map("oportunidades_comerciales")
+}
+
 model LineaCotizacionComercial {
   id Int @id @default(autoincrement())
   cotizacionId Int

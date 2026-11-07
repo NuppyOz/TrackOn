@@ -19,7 +19,7 @@ import type { Comprobante, ComprobanteLinea } from '../documentos/documentos.typ
 import '../../procedencia/h5-sources.css'
 import '../documentos/finanzas.css'
 
-const LIMIT = 25
+const LIMIT = 10
 const localDate = (value: string) => new Date(new Date(value).getTime() - 6 * 60 * 60 * 1000).toISOString().slice(0, 16)
 const isoDate = (value: string) => new Date(`${value}:00-06:00`).toISOString()
 const date = (value: string) => new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(new Date(value))

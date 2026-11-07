@@ -41,11 +41,18 @@ que tenga la misma `DATABASE_URL` exportada. Elige una contraseña de al menos 1
 caracteres:
 
 ```bash
-DEV_USERS_PASSWORD='elige-una-clave-segura' pnpm --filter @trackon/api seed:dev-users
+NODE_ENV=development TRACKON_ENABLE_DEV_USER_SEED=1 \
+  DEV_ADMIN_PASSWORD='clave-local-admin-separada' \
+  DEV_TECH_PASSWORD='clave-local-tecnico-separada' \
+  pnpm --filter @trackon/api seed:dev-users
 ```
 
-El comando solo está permitido fuera de producción y también permite restablecer
-la contraseña de ambas cuentas locales si se vuelve a ejecutar.
+El comando requiere `NODE_ENV=development`, `TRACKON_ENABLE_DEV_USER_SEED=1` y una
+URL de PostgreSQL con host local (`localhost`, `127.0.0.1` o `::1`). Crea solo
+cuentas faltantes; si ya existen, conserva sus contraseñas, roles y estados. No
+registra credenciales y exige contraseñas diferentes para el administrador y el
+técnico. Para cambiar una contraseña existente, utiliza el flujo administrativo
+previsto por el sistema.
 
 Para cargar clientes, ubicaciones, equipos, servicios, empleados y cuadrillas de
 ejemplo, ejecuta en esa misma terminal:
@@ -62,8 +69,19 @@ En una tercera terminal, inicia el frontend:
 pnpm --filter web dev
 ```
 
+Atajo: con `DATABASE_URL` exportada, `pnpm dev` desde la raíz levanta la API y el
+frontend en la misma terminal. El error `ECONNREFUSED 127.0.0.1:3000` al iniciar
+sesión significa que la API no está corriendo.
+
 Abre `http://localhost:5173`. Vite reenvía las solicitudes `/api` al backend
 en `http://localhost:3000`.
+
+Vite reenvía `/api` a `http://127.0.0.1:3000` por defecto. Si la API usa otro host
+o puerto, configura `TRACKON_API_PROXY_TARGET` antes de iniciar Vite. Un `502`
+en `/api/auth/login` indica que Vite no logró conectar con la API; comprueba
+`curl http://localhost:3000/api/ready` y confirma que la API esté iniciada antes
+de volver a probar el login. La API mantiene la validación y los errores de
+autenticación normales.
 
 ## Migraciones y comprobación
 

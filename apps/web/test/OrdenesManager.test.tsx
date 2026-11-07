@@ -43,7 +43,7 @@ const detalle: OrdenDetalle = {
 };
 
 function pagina(items: OrdenResumen[] = [orden], hayMas = false) {
-    return { items, hayMas, pagina: 1, limite: 25 };
+    return { items, hayMas, pagina: 1, limite: 10 };
 }
 
 beforeEach(() => {
@@ -142,7 +142,7 @@ describe('Gestión web de órdenes de trabajo', () => {
         fireEvent.change(screen.getByLabelText('Programada hasta'), { target: { value: '2026-10-31' } });
         await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenLastCalledWith(expect.objectContaining({ prioridad: 'URGENTE', clienteId: '2', desde: '2026-10-01', hasta: '2026-10-31', pagina: 1 })));
         fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }));
-        await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenLastCalledWith({ estado: '', buscar: '', pagina: 1, limite: 25 }));
+        await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenLastCalledWith({ estado: '', buscar: '', pagina: 1, limite: 10 }));
         expect((screen.getByLabelText('Programada desde') as HTMLInputElement).value).toBe('');
     });
     it('ignora respuestas anteriores al último filtro de órdenes', async () => {
@@ -150,12 +150,13 @@ describe('Gestión web de órdenes de trabajo', () => {
         await esperarListado();
         let resolver!: (valor: ReturnType<typeof pagina>) => void;
         mocks.listarOrdenes.mockReturnValueOnce(new Promise(resolve => { resolver = resolve; })).mockResolvedValueOnce(pagina([]));
-        fireEvent.click(screen.getByRole('button', { name: 'Asignadas' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Cerradas' }));
+        const estado = screen.getByLabelText('Filtrar estado de orden');
+        fireEvent.change(estado, { target: { value: 'ASIGNADA' } });
+        fireEvent.change(estado, { target: { value: 'CERRADA' } });
         await screen.findByText('No hay órdenes para estos filtros.');
         await act(async () => { resolver(pagina()); });
         expect(screen.queryByText('OT-140')).toBeNull();
-        expect(screen.getByRole('button', { name: 'Cerradas' }).getAttribute('aria-pressed')).toBe('true');
+        expect((estado as HTMLSelectElement).value).toBe('CERRADA');
     });
     it('lista órdenes al iniciar', async () => {
         render(<OrdenesManager />);
@@ -183,7 +184,7 @@ describe('Gestión web de órdenes de trabajo', () => {
         fireEvent.change(screen.getByRole('combobox', { name: 'Filtrar estado de orden' }), { target: { value: 'PENDIENTE' } });
         fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
         await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenCalledWith({
-            estado: 'PENDIENTE', buscar: 'motor', pagina: 1, limite: 25,
+            estado: 'PENDIENTE', buscar: 'motor', pagina: 1, limite: 10,
         }));
     });
 

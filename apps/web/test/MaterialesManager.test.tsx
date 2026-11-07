@@ -15,7 +15,7 @@ describe('Materiales con permisos y operaciones asíncronas', () => {
         await screen.findByText('Refrigerante');
         fireEvent.change(screen.getByLabelText('Estado del material'), { target: { value: 'inactivos' } });
         await screen.findByText('No hay materiales para estos filtros');
-        expect(mocks.listar).toHaveBeenLastCalledWith('inactivos', '', 1);
+        expect(mocks.listar).toHaveBeenLastCalledWith('inactivos', '', 1, 10);
         fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }));
         await screen.findByText('Refrigerante');
         expect((screen.getByLabelText('Estado del material') as HTMLSelectElement).value).toBe('activos');
@@ -29,12 +29,12 @@ describe('Materiales con permisos y operaciones asíncronas', () => {
         fireEvent.change(input, { target: { value: 'REF' } });
         await act(async () => { await vi.advanceTimersByTimeAsync(250); });
         expect(mocks.listar).toHaveBeenCalledTimes(2);
-        expect(mocks.listar).toHaveBeenLastCalledWith('activos', 'REF', 1);
+        expect(mocks.listar).toHaveBeenLastCalledWith('activos', 'REF', 1, 10);
         fireEvent.change(input, { target: { value: 'no existente' } });
         fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }));
         await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
         expect(mocks.listar).toHaveBeenCalledTimes(3);
-        expect(mocks.listar).toHaveBeenLastCalledWith('activos', '', 1);
+        expect(mocks.listar).toHaveBeenLastCalledWith('activos', '', 1, 10);
     });
     it('permite consultar el catálogo al técnico y oculta las mutaciones', async () => {
         render(<MaterialesManager puedeGestionar={false} />);

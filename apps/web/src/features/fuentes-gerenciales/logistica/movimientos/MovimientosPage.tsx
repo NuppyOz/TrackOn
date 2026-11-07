@@ -10,7 +10,7 @@ import { crearMovimiento, listarMovimientos, obtenerMovimiento, revertirMovimien
 import type { Movimiento, MovimientoNuevo, Pagina, ReversionNueva, TipoMovimiento } from './movimientos.types'
 import '../articulos/logistica.css'
 
-const LIMITE = 25
+const LIMITE = 10
 const errorMessage = (cause: unknown) => cause instanceof Error ? cause.message : 'No se pudo completar la operación.'
 const keyIntention = () => globalThis.crypto.randomUUID()
 const qty = /^(?:0|[1-9]\d{0,8})(?:\.\d{1,3})?$/

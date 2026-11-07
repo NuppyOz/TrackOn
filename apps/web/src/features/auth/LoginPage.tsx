@@ -1,6 +1,7 @@
 import "./LoginPage.css";
 import { useState, type SyntheticEvent } from "react";
 import { iniciarSesion, type UsuarioSesion } from "./auth.api";
+import { ApiError } from "../../shared/api";
 
 interface Props {
     onLogin: (usuario: UsuarioSesion) => void;
@@ -26,7 +27,11 @@ export default function LoginPage({ onLogin }: Readonly<Props>) {
             const usuario = await iniciarSesion(identificador, password);
             onLogin(usuario);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
+            setError(err instanceof ApiError
+                ? err.message
+                : err instanceof TypeError
+                    ? "No se pudo conectar con el servidor. Comprueba que la API esté disponible e inténtalo de nuevo."
+                    : err instanceof Error ? err.message : "No se pudo iniciar sesión.");
         } finally {
             setEnviando(false);
         }
@@ -34,18 +39,18 @@ export default function LoginPage({ onLogin }: Readonly<Props>) {
 
     return (
         <main className="auth-screen">
-            <aside className="auth-brand-panel" aria-label="Identidad TrackOn">
+            <aside className="auth-brand-panel" aria-label="Identidad MultiCore ERP">
                 <div className="auth-brand-lockup">
                     <div className="auth-brand-company">
                         <strong>MULTICAS</strong>
                         <small>REFRIGERACIÓN Y CLIMATIZACIÓN</small>
                     </div>
                     <span className="auth-brand-divider" aria-hidden="true" />
-                    <span className="auth-brand-product">TrackOn</span>
+                    <span className="auth-brand-product">MultiCore ERP</span>
                 </div>
                 <div className="auth-brand-content">
                     <span className="auth-brand-accent" aria-hidden="true" />
-                    <h1>TrackOn</h1>
+                    <h1>MultiCore ERP</h1>
                     <p>Gestión técnica centralizada para MULTICAS S.A.</p>
                     <div className="auth-brand-illustration" aria-hidden="true">
                         <span /><span /><span /><span />
@@ -56,13 +61,13 @@ export default function LoginPage({ onLogin }: Readonly<Props>) {
 
             <section className="auth-login-area" aria-labelledby="login-titulo">
                 <div className="auth-mobile-brand">
-                    <strong>MULTICAS</strong><span aria-hidden="true">|</span><strong>TrackOn</strong>
-                    <small>Portal de acceso</small>
+                    <strong>MULTICAS</strong><span aria-hidden="true">|</span><strong>MultiCore ERP</strong>
+                    <small>Acceso interno</small>
                 </div>
                 <div className="auth-login-stack">
                     <div className="auth-panel">
                         <h2 id="login-titulo">Iniciar sesión</h2>
-                        <p className="auth-description">Ingresa tus credenciales para acceder a TrackOn.</p>
+                        <p className="auth-description">Ingresa tus credenciales para acceder a MultiCore ERP.</p>
                         {error && <div className="auth-error" role="alert">{error}</div>}
                         <form onSubmit={event => void enviar(event)} className="auth-form">
                             <label htmlFor="login-identificador">Usuario</label>
@@ -106,7 +111,7 @@ export default function LoginPage({ onLogin }: Readonly<Props>) {
                             </button>
                         </form>
                     </div>
-                    <p className="auth-help">Acceso interno · MULTICAS S.A.</p>
+                    <p className="auth-help">Acceso interno · MULTICAS S.A. · ¿Eres cliente? <a href="/portal">Entra por el portal del cliente</a></p>
                 </div>
                 <p className="auth-mobile-footer">MULTICAS S.A. · Refrigeración y climatización</p>
             </section>

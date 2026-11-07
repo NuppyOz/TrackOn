@@ -1,0 +1,65 @@
+:root {
+  --tk-font-page-title: 24px;
+  --tk-font-section-title: 18px;
+  --tk-font-subtitle: 16px;
+  --tk-font-body: 14px;
+  --tk-font-table: 14px;
+  --tk-font-secondary: 12px;
+  --tk-font-breadcrumb: 12px;
+  --tk-line-body: 1.5;
+  --tk-line-heading: 1.25;
+  --tk-space-1: 4px;
+  --tk-space-2: 8px;
+  --tk-space-3: 12px;
+  --tk-space-4: 16px;
+  --tk-space-5: 20px;
+  --tk-space-6: 24px;
+  --tk-space-8: 32px;
+  --tk-control-height: 40px;
+}
+
+body { font-size: var(--tk-font-body); line-height: var(--tk-line-body); }
+.workspace :is(h1, .page-header h1, .section-heading h2, .tk-orders-heading h2, .tk-employee-heading h2),
+.portal h1, .auth-panel h2 { font-size: var(--tk-font-page-title) !important; line-height: var(--tk-line-heading); }
+.workspace :is(h2, .page-header h2), .portal h2 { font-size: var(--tk-font-section-title) !important; line-height: var(--tk-line-heading); }
+.tk-modal h2 { font-size: var(--tk-font-section-title) !important; line-height: var(--tk-line-heading); }
+.workspace h3, .portal h3 { font-size: var(--tk-font-subtitle) !important; line-height: var(--tk-line-heading); }
+.tk-modal h3 { font-size: var(--tk-font-subtitle) !important; line-height: var(--tk-line-heading); }
+.workspace p:not(.erp-ui__metric-value), .portal p { font-size: var(--tk-font-body) !important; line-height: var(--tk-line-body); }
+.tk-modal p { font-size: var(--tk-font-body) !important; line-height: var(--tk-line-body); }
+.workspace :is(label, small, .tk-muted, .breadcrumb, .tk-context-breadcrumb, .tk-breadcrumb, .erp-ui__breadcrumb),
+.portal :is(small, dt, th) { font-size: var(--tk-font-secondary) !important; }
+.workspace :is(input, select, textarea, button), .portal :is(input, select, textarea, button) { font-size: var(--tk-font-body) !important; }
+.tk-modal :is(input, select, textarea, button) { font-size: var(--tk-font-body) !important; }
+.workspace .table-wrap td,
+.workspace .erp-ui__table td,
+.workspace .tk-orders-table td,
+.workspace .tk-employee-table td,
+.portal table td { font-size: var(--tk-font-table) !important; }
+.workspace .erp-ui__breadcrumb { font-size: var(--tk-font-breadcrumb) !important; }
+.workspace :is(.table-wrap, .erp-ui__table-scroll) { max-width: 100%; }
+.workspace .list-card .table-wrap :is(th, td) { padding: var(--tk-space-3) var(--tk-space-4) !important; }
+
+/* Tabla común: encabezado, filas y desplazamiento como en el catálogo de referencia. */
+.workspace :is(.table-wrap, .erp-ui__table-scroll) { overflow-x: auto; background: #fff; border: 1px solid #E6E2EC; border-radius: 8px; }
+.workspace :is(.table-wrap table, .erp-ui__table) { border-collapse: collapse; width: 100%; }
+.workspace :is(.table-wrap table, .erp-ui__table) th { white-space: nowrap; text-align: left; }
+.workspace :is(.table-wrap table, .erp-ui__table) :is(th, td) { padding: 12px 16px !important; border-bottom: 1px solid #E6E2EC; vertical-align: middle; }
+.workspace :is(.table-wrap table, .erp-ui__table) tbody tr:last-child td { border-bottom: 0; }
+.workspace :is(.table-wrap table, .erp-ui__table) tbody tr:hover { background: #F5F6F8; }
+.workspace :is(.table-wrap table, .erp-ui__table) :is(button, a):focus-visible { outline: 2px solid #087DB5; outline-offset: 2px; }
+@media (max-width: 768px) { .workspace :is(.table-wrap table, .erp-ui__table) { min-width: 640px; } }
+
+:is(.workspace, .portal) :is([class*="table-wrap"], [class*="table-scroll"], .table-responsive) { max-width: 100%; overflow-x: auto; }
+:is(.workspace, .portal) table { width: 100%; border-collapse: collapse; background: #fff; }
+/* Encabezado de tabla canónico (estilo SMSC): una sola regla manda sobre las de cada módulo. */
+:is(.workspace, .portal) table thead th { background: #fff !important; color: #000 !important; font-weight: 600 !important; font-size: var(--tk-font-secondary) !important; letter-spacing: .06em !important; text-transform: uppercase !important; white-space: nowrap; text-align: left; padding: 12px 16px !important; border-bottom: 1px solid #d9d9d9; }
+:is(.workspace, .portal) table tbody td { font-size: var(--tk-font-table) !important; color: #424242; }
+/* Títulos de página: un solo tamaño, sea h1 (ModuleHeader) o h2 (section-heading de los módulos). */
+.workspace :is(.erp-ui__module-copy h1, .section-heading > div > h2, .tk-orders-heading h2, .tk-employee-heading h2, .tk-clientes-heading h2, .insights-header h1, .field-scope > h2) { font-size: var(--tk-font-page-title) !important; line-height: var(--tk-line-heading); font-weight: 650; }
+.workspace :is(.eyebrow, .tk-employee-eyebrow, .erp-ui__breadcrumb, .tk-breadcrumb, .ventas__eyebrow, .tarifas__eyebrow, .portal-admin__eyebrow) { font-size: var(--tk-font-breadcrumb) !important; }
+:is(.workspace, .portal) table :is(th, td) { padding: 12px 16px; border-bottom: 1px solid #E6E2EC; vertical-align: middle; }
+:is(.workspace, .portal) table tbody tr:last-child :is(th, td) { border-bottom: 0; }
+:is(.workspace, .portal) table tbody tr:hover { background: #F5F6F8; }
+@media (max-width: 768px) { :is(.workspace, .portal) :is([class*="table-wrap"], [class*="table-scroll"], .table-responsive) table { min-width: 640px; } }
+

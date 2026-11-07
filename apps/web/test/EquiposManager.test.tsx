@@ -80,7 +80,7 @@ describe('Gestión de Equipos — TK-03', () => {
     await esperarListado()
     expect(within(screen.getByRole('table')).getByText('CLI-007 · Ana López')).toBeTruthy()
     expect(screen.getByText('SER-100')).toBeTruthy()
-    expect(mocks.listarEquipos).toHaveBeenCalledWith(expect.objectContaining({ estado: 'activos', pagina: 1, limite: 25 }))
+    expect(mocks.listarEquipos).toHaveBeenCalledWith(expect.objectContaining({ estado: 'activos', pagina: 1, limite: 10 }))
   })
 
   it('muestra el estado vacío cuando no hay registros', async () => {

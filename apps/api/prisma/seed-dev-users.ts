@@ -4,18 +4,40 @@ import { PrismaClient } from '@prisma/client';
 import { hashPassword } from '../src/security/password.js';
 
 const connectionString = process.env.DATABASE_URL;
-const password = process.env.DEV_USERS_PASSWORD;
+const adminPassword = process.env.DEV_ADMIN_PASSWORD;
+const technicianPassword = process.env.DEV_TECH_PASSWORD;
 
-if (process.env.NODE_ENV === 'production') {
-    throw new Error('Este comando no puede ejecutarse con NODE_ENV=production.');
+if (process.env.NODE_ENV !== 'development') {
+    throw new Error('Este comando solo puede ejecutarse con NODE_ENV=development.');
+}
+
+if (process.env.TRACKON_ENABLE_DEV_USER_SEED !== '1') {
+    throw new Error('La semilla requiere TRACKON_ENABLE_DEV_USER_SEED=1 como confirmación explícita.');
 }
 
 if (!connectionString) {
     throw new Error('Falta DATABASE_URL en el entorno.');
 }
 
-if (!password || password.length < 12 || password.length > 128) {
-    throw new Error('DEV_USERS_PASSWORD debe tener entre 12 y 128 caracteres.');
+let databaseHost: string;
+try {
+    databaseHost = new URL(connectionString).hostname.toLowerCase();
+} catch {
+    throw new Error('DATABASE_URL no es una URL válida.');
+}
+
+if (!['localhost', '127.0.0.1', '::1'].includes(databaseHost)) {
+    throw new Error('La semilla solo puede conectarse a PostgreSQL local.');
+}
+
+for (const [name, value] of [['DEV_ADMIN_PASSWORD', adminPassword], ['DEV_TECH_PASSWORD', technicianPassword]] as const) {
+    if (!value || value.length < 12 || value.length > 128) {
+        throw new Error(`${name} debe tener entre 12 y 128 caracteres.`);
+    }
+}
+
+if (adminPassword === technicianPassword) {
+    throw new Error('Las contraseñas locales de administrador y técnico deben ser distintas.');
 }
 
 const prisma = new PrismaClient({
@@ -63,56 +85,48 @@ const cuentas: DevUser[] = [
 ];
 
 async function prepararCuenta(cuenta: DevUser) {
+    const usuarioExistente = await prisma.usuario.findUnique({
+        where: { identificador: cuenta.identificador },
+        select: { id: true },
+    });
+
+    if (usuarioExistente) return;
+
+    const empleadoExistente = await prisma.empleado.findUnique({
+        where: { codEmpleado: cuenta.codEmpleado },
+        select: { id: true },
+    });
+
+    if (empleadoExistente) {
+        throw new Error(`El código local ${cuenta.codEmpleado} ya pertenece a un empleado; no se modificó.`);
+    }
+
     const rol = await prisma.rol.upsert({
         where: { cod: cuenta.rol.cod },
-        update: {
-            nombre: cuenta.rol.nombre,
-            descripcion: cuenta.rol.descripcion,
-        },
+        update: {},
         create: cuenta.rol,
     });
 
-    let empleado = await prisma.empleado.findUnique({
-        where: { codEmpleado: cuenta.codEmpleado },
-    });
-
-    if (!empleado) {
-        empleado = await prisma.empleado.create({
-            data: {
-                codEmpleado: cuenta.codEmpleado,
-                active: true,
-                habilitadoComoTecnico: cuenta.habilitadoComoTecnico,
-                persona: {
-                    create: {
-                        firstName: cuenta.firstName,
-                        firstLastName: cuenta.firstLastName,
-                    },
+    const empleado = await prisma.empleado.create({
+        data: {
+            codEmpleado: cuenta.codEmpleado,
+            active: true,
+            habilitadoComoTecnico: cuenta.habilitadoComoTecnico,
+            persona: {
+                create: {
+                    firstName: cuenta.firstName,
+                    firstLastName: cuenta.firstLastName,
                 },
             },
-        });
-    } else {
-        empleado = await prisma.empleado.update({
-            where: { id: empleado.id },
-            data: {
-                active: true,
-                habilitadoComoTecnico: cuenta.habilitadoComoTecnico,
-            },
-        });
-    }
-
-    await prisma.usuario.upsert({
-        where: { empleadoId: empleado.id },
-        update: {
-            identificador: cuenta.identificador,
-            rolId: rol.id,
-            passwordHash: await hashPassword(password),
-            activo: true,
         },
-        create: {
+    });
+
+    await prisma.usuario.create({
+        data: {
             empleadoId: empleado.id,
             rolId: rol.id,
+            passwordHash: await hashPassword(cuenta.rol.cod === 'ADMIN' ? adminPassword! : technicianPassword!),
             identificador: cuenta.identificador,
-            passwordHash: await hashPassword(password),
             activo: true,
         },
     });
@@ -123,12 +137,12 @@ async function main() {
         await prepararCuenta(cuenta);
     }
 
-    console.log(`Usuarios locales listos: ${cuentas.map((cuenta) => cuenta.identificador).join(', ')}`);
+    console.log('Cuentas locales creadas si faltaban; las existentes no se modificaron.');
 }
 
 main()
     .catch((error: unknown) => {
-        console.error('No se pudieron preparar los usuarios locales:', error);
+        console.error('No se pudieron preparar los usuarios locales. Revisa NODE_ENV, la habilitación explícita y la conexión local.');
         process.exitCode = 1;
     })
     .finally(async () => {

@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { InteligenciaWorkspace } from '../src/features/inteligencia/InteligenciaWorkspace'
 import { irA } from '../src/shared/navigation'
 
-vi.mock('../src/shared/navigation', () => ({ irA: vi.fn() }))
+vi.mock('../src/shared/navigation', async importOriginal => ({
+  ...(await importOriginal<typeof import('../src/shared/navigation')>()),
+  irA: vi.fn(),
+}))
 vi.mock('../src/features/inteligencia/InteligenciaModule', () => ({ InteligenciaModule: ({ children }: { children: unknown }) => <section>{children as never}</section> }))
 vi.mock('../src/features/fuentes-gerenciales', () => ({ FuentesGerencialesModule: ({ children }: { children: unknown }) => <section>{children as never}</section> }))
 vi.mock('../src/features/fuentes-gerenciales/procedencia/CoberturaPage', () => ({ CoberturaPage: () => <p>cobertura</p> }))
@@ -33,10 +36,11 @@ describe('rutas del espacio de inteligencia', () => {
 
   it('navega entre operación, indicadores, origen y cobertura', () => {
     render(<InteligenciaWorkspace ruta="/inteligencia/financiero" />)
-    fireEvent.click(screen.getByRole('button', { name: 'Operación' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Indicadores de negocio' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Registros de origen' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Cobertura de los datos' }))
+    const area = screen.getByLabelText('Área')
+    fireEvent.change(area, { target: { value: 'operacion' } })
+    fireEvent.change(area, { target: { value: 'indicadores' } })
+    fireEvent.change(area, { target: { value: 'origen' } })
+    fireEvent.change(area, { target: { value: 'cobertura' } })
     expect(vi.mocked(irA).mock.calls).toEqual([
       ['/inteligencia/operacion/resumen'], ['/inteligencia/financiero'], ['/inteligencia/origen/finanzas'], ['/inteligencia/cobertura'],
     ])

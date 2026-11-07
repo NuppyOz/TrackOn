@@ -1,0 +1,24 @@
+.opp { display: grid; gap: 16px; min-width: 0; }
+.opp__header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.opp__header h2 { margin: 0; font-size: 18px; }
+.opp__header p { margin: 4px 0 0; color: var(--erp-color-neutral-600); font-size: 14px; }
+.opp__form { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; padding: 16px; background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); }
+.opp__form label { display: grid; gap: 6px; flex: 1 1 190px; font-size: 12px; }
+.opp__form input, .opp__form select, .opp__card select, .opp__row-actions select { min-height: 38px; border: 1px solid var(--erp-color-neutral-200); border-radius: 6px; padding: 7px 10px; background: white; color: var(--erp-color-neutral-900); font: inherit; }
+.opp__switch { display: flex; gap: 4px; border-bottom: 1px solid var(--erp-color-neutral-200); }
+.opp__switch button { border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 8px 12px; color: var(--erp-color-secondary-500); font: inherit; cursor: pointer; }
+.opp__switch button[aria-pressed="true"] { color: var(--erp-color-primary-600); border-color: var(--erp-color-primary-600); font-weight: 600; }
+.opp__board { display: grid; grid-template-columns: repeat(5, minmax(210px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 8px; align-items: start; }
+.opp__column { display: grid; gap: 8px; min-width: 210px; padding: 10px; background: var(--erp-color-neutral-100); border-radius: 8px; }
+.opp__column h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.opp__card { display: grid; gap: 6px; padding: 12px; background: white; border: 1px solid var(--erp-color-neutral-200); border-radius: 7px; font-size: 12px; overflow-wrap: anywhere; }
+.opp__card strong { font-size: 14px; }
+.opp__card span, .opp__card time { color: var(--erp-color-secondary-500); }
+.opp__card-actions, .opp__row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.opp__row-actions select { max-width: 130px; }
+.opp__empty { color: var(--erp-color-neutral-600); font-size: 12px; }
+.opp__pagination { display: flex; justify-content: space-between; gap: 12px; align-items: center; font-size: 12px; }
+.opp__pagination div { display: flex; gap: 8px; }
+.opp__notice { margin: 0; color: var(--erp-color-success); }
+.opp__error { margin: 0; color: var(--erp-color-error); }
+@media (max-width: 700px) { .opp__header { align-items: flex-start; flex-direction: column; } .opp__board { grid-template-columns: repeat(5, minmax(260px, 1fr)); } .opp__pagination { align-items: flex-start; flex-direction: column; } }

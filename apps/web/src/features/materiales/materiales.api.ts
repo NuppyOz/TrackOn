@@ -4,7 +4,7 @@ import type { Pagina } from '../../shared/pagination';
 export interface Material { id: number; codigo: string; nombre: string; unidadMedida: string; activo: boolean }
 export type MaterialInput = Pick<Material, 'codigo' | 'nombre' | 'unidadMedida'>;
 export type EstadoMaterial = 'todos' | 'activos' | 'inactivos';
-export function listarMateriales(estado: EstadoMaterial, buscar: string, pagina = 1, limite = 25) {
+export function listarMateriales(estado: EstadoMaterial, buscar: string, pagina = 1, limite = 10) {
     const query = new URLSearchParams({ estado, buscar, pagina: String(pagina), limite: String(limite) });
     return api<Pagina<Material>>(`/api/materiales?${query}`);
 }

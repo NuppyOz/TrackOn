@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
 import { cambiarEstadoEquipo, crearEquipo, editarEquipo, listarEquipos, listarUbicaciones } from "./equipos.api";
 import type { Equipo, EquipoFiltros, EquipoInput, Ubicacion } from "./equipos.types";
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
+import { Paginacion } from '../../shared/Paginacion';
+import { AccionesFila, IconButton } from '../../shared/ui';
+import { CheckCircleIcon, PencilSimpleIcon, ProhibitIcon } from '@phosphor-icons/react';
 
-const LIMITE = 25;
 const filtrosIniciales: EquipoFiltros = {
     clienteId: "",
     ubicacionId: "",
@@ -55,7 +57,9 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
     const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
     const { filtros, aplicados: filtrosAplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales);
     const [pagina, setPagina] = useState(1);
+    const [limite, setLimite] = useState(10);
     const [hayMas, setHayMas] = useState(false);
+    const [total, setTotal] = useState<number>();
     const [recarga, setRecarga] = useState(0);
     const [formulario, setFormulario] = useState<Formulario>(formularioVacio);
     const [equipoEnEdicion, setEquipoEnEdicion] = useState<Equipo | null>(null);
@@ -110,7 +114,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
 
     useEffect(() => {
         let vigente = true;
-        void listarEquipos({ ...filtrosAplicados, pagina, limite: LIMITE })
+        void listarEquipos({ ...filtrosAplicados, pagina, limite })
             .then(resultado => {
                 if (!vigente) return;
                 if (pagina > 1 && resultado.items.length === 0) {
@@ -119,6 +123,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                 }
                 setEquipos(resultado.items);
                 setHayMas(resultado.hayMas);
+                setTotal(resultado.total);
             })
             .catch((error: unknown) => {
                 if (vigente) {
@@ -136,7 +141,7 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
         return () => {
             vigente = false;
         };
-    }, [filtrosAplicados, pagina, recarga]);
+    }, [filtrosAplicados, pagina, limite, recarga]);
 
     function actualizarCampo(campo: keyof Formulario, valor: string) {
         setFormulario(actual => ({ ...actual, [campo]: valor }));
@@ -498,25 +503,13 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                                         {equipo.activo ? "Activo" : "Inactivo"}
                                                     </span>
                                                 </td>
-                                                <td className="actions">
+                                                <td data-label="Acciones">
                                                     {puedeGestionar && (
-                                                        <>
-                                                            <button
-                                                                type="button"
-                                                                disabled={cambiandoEstadoId !== null}
-                                                                onClick={() => comenzarEdicion(equipo)}
-                                                            >
-                                                                Editar
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                disabled={cambiandoEstadoId !== null}
-                                                                onClick={() => void cambiarEstado(equipo)}
-                                                            >
-                                                                {textoAccionEstado(equipo, cambiandoEstadoId)}
-                                                            </button>
-                                                        </>
+                                                        <AccionesFila>
+                                                            <IconButton icon={PencilSimpleIcon} label="Editar" disabled={cambiandoEstadoId !== null} onClick={() => comenzarEdicion(equipo)} />
+                                                            <IconButton icon={equipo.activo ? ProhibitIcon : CheckCircleIcon} variant={equipo.activo ? "danger" : "secondary"}
+                                                                label={textoAccionEstado(equipo, cambiandoEstadoId)} disabled={cambiandoEstadoId !== null} onClick={() => void cambiarEstado(equipo)} />
+                                                        </AccionesFila>
                                                     )}
                                                 </td>
                                             </tr>
@@ -525,31 +518,9 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                 </table>
                             </div>
                         )}
-                        <div className="equipos-pagination">
-                            <p aria-live="polite">{`Página ${pagina} · ${LIMITE} registros por página`}</p>
-                            <div className="equipos-pagination-actions">
-                                <button
-                                    type="button"
-                                    disabled={cargando || pagina <= 1}
-                                    onClick={() => {
-                                        setCargando(true);
-                                        setPagina(p => Math.max(1, p - 1));
-                                    }}
-                                >
-                                    Anterior
-                                </button>
-                                <button
-                                    type="button"
-                                    disabled={cargando || !hayMas}
-                                    onClick={() => {
-                                        setCargando(true);
-                                        setPagina(p => p + 1);
-                                    }}
-                                >
-                                    Siguiente
-                                </button>
-                            </div>
-                        </div>
+                        <Paginacion pagina={pagina} limite={limite} hayMas={hayMas} total={total} cargando={cargando} etiqueta="Paginación de equipos"
+                            onPagina={nueva => { setCargando(true); setPagina(nueva); }}
+                            onLimite={nuevo => { setCargando(true); setLimite(nuevo); setPagina(1); }} />
                     </div>
                 )}
             </div>

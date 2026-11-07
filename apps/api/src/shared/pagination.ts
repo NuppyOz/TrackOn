@@ -13,7 +13,8 @@ export const paginacionQueryShape = {
 
 export type Paginacion = { pagina: number; limite: number };
 
-export function paginaDesde<T>(items: T[], { pagina, limite }: Paginacion) {
+/** `total` permite al cliente mostrar páginas numeradas; `hayMas` se mantiene para quien no lo envía. */
+export function paginaDesde<T>(items: T[], { pagina, limite }: Paginacion, total?: number) {
     const hayMas = items.length > limite;
-    return { items: items.slice(0, limite), pagina, limite, hayMas };
+    return { items: items.slice(0, limite), pagina, limite, hayMas, total };
 }

@@ -69,7 +69,7 @@ export function IndicadoresFinancierosPage() {
   }, [])
   useEffect(() => { let active = true; queueMicrotask(() => { if (active) void load(range.desde, range.hasta) }); return () => { active = false; reqId.current += 1 } }, [load, range])
   const rows = useMemo(() => (board?.desgloses ?? []).filter(row => (kind === 'TODOS' || row.tipo === kind) && (row.tipo !== 'RENTABILIDAD' || group === 'TODOS' || row.agrupacion === group) && rowSearch(row).includes(query.toLocaleLowerCase())), [board, kind, group, query])
-  const pageSize = 25
+  const pageSize = 10
   const shown = rows.slice((page - 1) * pageSize, page * pageSize)
   const metrics = metricDefs.map(([key, label]) => ({ key, label, metric: board?.metricas.find(item => item.clave === key) }))
   const missing = board ? metrics.filter(item => !item.metric).map(item => item.label) : []
@@ -88,7 +88,7 @@ export function IndicadoresFinancierosPage() {
   const apply = () => { if (valid) { setRange({ desde: localIso(from), hasta: localIso(until) }); setPage(1) } }
   const coverage = board?.cobertura.estado
   return <section className="h6-dashboard" aria-labelledby="financial-dashboard-title">
-    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores financieros" description="Facturación, cobros, saldos, costos y servicios pendientes capturados en TrackOn." action={<nav className="h6-source-links" aria-label="Fuentes financieras"><a href="/inteligencia/origen/finanzas">Comprobantes y cobros</a></nav>} />
+    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores financieros" description="Facturación, cobros, saldos, costos y servicios pendientes capturados en MultiCore ERP." action={<nav className="h6-source-links" aria-label="Fuentes financieras"><a href="/inteligencia/origen/finanzas">Comprobantes y cobros</a></nav>} />
     <form className="h6-range" onSubmit={event => { event.preventDefault(); apply() }}><label>Desde<input type="datetime-local" step="1" value={from} onChange={event => setFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" step="1" value={until} onChange={event => setUntil(event.currentTarget.value)} /></label><Button type="submit" variant="primary" disabled={!valid || loading}>Consultar</Button></form>
     {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="financiero" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h6-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}

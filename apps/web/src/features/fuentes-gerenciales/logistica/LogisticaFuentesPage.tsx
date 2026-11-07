@@ -3,6 +3,7 @@ import { ArticulosPage } from './articulos/ArticulosPage';
 import { MovimientosPage } from './movimientos/MovimientosPage';
 import { ComprasGerencialesPage } from './compras';
 import { HerramientasGerencialesPage } from './herramientas';
+import { SectionSelector } from '../../erp-ui/components';
 
 type SeccionLogistica = 'articulos' | 'movimientos' | 'compras' | 'herramientas';
 
@@ -25,12 +26,10 @@ export function LogisticaFuentesPage() {
     const [seccion, setSeccion] = useState<SeccionLogistica>(seccionInicial);
     const [busy, setBusy] = useState(false);
     return <div className="fuentes-scope">
-        <nav className="inteligencia-workspace__nav" aria-label="Registros logísticos">
-            <button type="button" disabled={busy} aria-current={seccion === 'articulos' ? 'page' : undefined} onClick={() => setSeccion('articulos')}>Artículos</button>
-            <button type="button" disabled={busy} aria-current={seccion === 'movimientos' ? 'page' : undefined} onClick={() => setSeccion('movimientos')}>Movimientos</button>
-            <button type="button" disabled={busy} aria-current={seccion === 'compras' ? 'page' : undefined} onClick={() => setSeccion('compras')}>Compras</button>
-            <button type="button" disabled={busy} aria-current={seccion === 'herramientas' ? 'page' : undefined} onClick={() => setSeccion('herramientas')}>Herramientas</button>
-        </nav>
+        <SectionSelector label="Tipo de registro" value={seccion} disabled={busy} onChange={value => setSeccion(value as SeccionLogistica)} options={[
+            { value: 'articulos', label: 'Artículos' }, { value: 'movimientos', label: 'Movimientos' },
+            { value: 'compras', label: 'Compras' }, { value: 'herramientas', label: 'Herramientas' },
+        ]} />
         {contenido(seccion, setBusy)}
     </div>;
 }

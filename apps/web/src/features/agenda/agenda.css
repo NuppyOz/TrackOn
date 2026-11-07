@@ -1,0 +1,25 @@
+/* Agenda semanal al estilo de los calendarios profesionales: 7 columnas, hoy resaltado, eventos como fichas. */
+.agenda__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.agenda__toolbar h3 { margin: 0 8px; font-size: 20px; font-weight: 600; }
+.agenda__toolbar label { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: 13px; color: #454b55; }
+.agenda__toolbar input[type="date"] { min-height: 34px; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 6px; }
+.agenda__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid #d9d9d9; border-radius: 8px; overflow: hidden; background: #fff; }
+.agenda__dia { min-height: 440px; border-right: 1px solid #e6e2ec; display: flex; flex-direction: column; }
+.agenda__dia:last-child { border-right: 0; }
+.agenda__dia-cabecera { padding: 10px 8px 8px; border-bottom: 1px solid #e6e2ec; text-align: center; background: #fafafa; }
+.agenda__dia-cabecera span { display: block; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #666b73; }
+.agenda__dia-cabecera strong { display: inline-grid; place-items: center; width: 34px; height: 34px; margin-top: 4px; border-radius: 50%; font-size: 18px; font-weight: 500; color: #202124; }
+.agenda__dia.is-hoy .agenda__dia-cabecera strong { background: var(--tk-blue, #129fdc); color: #fff; }
+.agenda__dia.is-hoy .agenda__dia-cabecera span { color: var(--tk-blue, #129fdc); font-weight: 700; }
+.agenda__eventos { display: grid; align-content: start; gap: 6px; padding: 8px 6px; }
+.agenda__evento { display: grid; gap: 2px; width: 100%; padding: 6px 8px; border: 0; border-left: 4px solid var(--tk-blue, #129fdc); border-radius: 6px; background: #eaf6fc; color: #202124; text-align: left; font: inherit; font-size: 12px; cursor: pointer; }
+.agenda__evento:hover { background: #d7eefa; }
+.agenda__evento strong { font-size: 12px; }
+.agenda__evento small { color: #666b73; }
+.agenda__evento--EN_PROCESO, .agenda__evento--EN_EJECUCION { border-left-color: #ed9b16; background: #fff4e0; }
+.agenda__evento--FINALIZADA, .agenda__evento--CERRADA, .agenda__evento--COMPLETADA { border-left-color: #2e7d32; background: #e9f5ea; }
+.agenda__evento--CANCELADA, .agenda__evento--INACTIVA { border-left-color: #c62828; background: #fdecea; }
+.agenda__evento--PENDIENTE, .agenda__evento--PENDIENTE_ASIGNACION { border-left-color: #665b82; background: #efecf5; }
+.agenda__vacio { padding: 12px 6px; font-size: 12px; color: #9aa0a6; text-align: center; }
+.agenda__nota { margin: 10px 0 0; font-size: 13px; color: #666b73; }
+@media (max-width: 900px) { .agenda__grid { grid-template-columns: 1fr; } .agenda__dia { min-height: 0; border-right: 0; border-bottom: 1px solid #e6e2ec; } }

@@ -19,6 +19,7 @@ vi.mock('../src/infrastructure/prisma.js', () => ({
         ordenTrabajo: {
             create: mocks.createOrden,
             findMany: mocks.findManyOrden,
+            count: vi.fn().mockResolvedValue(0),
             findUnique: mocks.findUniqueOrden,
         },
         asignacion: { findFirst: mocks.findFirstAsignacion },

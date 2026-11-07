@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { correoOpcionalSchema, telefonoNicaraguenseSchema } from '../../../shared/contacto.schema.js';
 
 const INT32_MAX = 2_147_483_647;
 const idPositivo = z.number().int().min(1).max(INT32_MAX);
@@ -19,16 +20,16 @@ export const actualizarPerfilSchema = z.object({
 
 export const crearContactoSchema = z.object({
     nombre: z.string().trim().min(1).max(150),
-    email: textoOpcional(254).refine(value => value == null || z.email().safeParse(value).success, 'Correo electrónico inválido'),
-    telefono: textoOpcional(25),
+    email: correoOpcionalSchema('El correo del contacto'),
+    telefono: telefonoNicaraguenseSchema,
     cargo: textoOpcional(100),
 }).strict();
 
 export const actualizarContactoSchema = z.object({
     version: versionEsperada.min(1),
     nombre: z.string().trim().min(1).max(150).optional(),
-    email: textoOpcional(254).refine(value => value == null || z.email().safeParse(value).success, 'Correo electrónico inválido'),
-    telefono: textoOpcional(25),
+    email: correoOpcionalSchema('El correo del contacto'),
+    telefono: telefonoNicaraguenseSchema,
     cargo: textoOpcional(100),
     activo: z.boolean().optional(),
 }).strict().refine(({ version: _version, ...campos }) => Object.values(campos).some(value => value !== undefined), {

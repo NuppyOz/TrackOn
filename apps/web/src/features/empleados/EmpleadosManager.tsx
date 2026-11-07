@@ -6,14 +6,14 @@ import EmpleadosListado from './EmpleadosListado';
 import EmpleadoFormulario from './EmpleadoFormulario';
 import EmpleadoDetallePanel from './EmpleadoDetallePanel';
 import ConfirmarAccionEmpleado from './ConfirmarAccionEmpleado';
+import { irA, leerDetalle, RUTAS, useRuta } from '../../shared/navigation';
 
-type Vista = 'listado' | 'crear' | 'detalle' | 'editar';
 type Accion = 'estado' | 'tecnico';
 
 const errorTexto = (error: unknown) => error instanceof Error ? error.message : 'No se pudo completar la operación.';
 
 export default function EmpleadosManager() {
-    const [vista, setVista] = useState<Vista>('listado');
+    const { vista, id: rutaId } = leerDetalle(useRuta(), RUTAS.empleados);
     const [empleados, setEmpleados] = useState<EmpleadoResumen[]>([]);
     const [seleccionado, setSeleccionado] = useState<EmpleadoDetalle | null>(null);
     const [cargando, setCargando] = useState(true);
@@ -29,6 +29,15 @@ export default function EmpleadosManager() {
         return () => { activo = false; };
     }, []);
 
+    // Enlace directo a /empleados/:id o /empleados/:id/editar.
+    useEffect(() => {
+        if (rutaId === undefined || seleccionado?.id === rutaId) return;
+        let activo = true;
+        void obtenerEmpleado(rutaId).then(datos => { if (activo) setSeleccionado(datos); })
+            .catch(error => { if (activo) setAviso({ tipo: 'error', texto: errorTexto(error) }); });
+        return () => { activo = false; };
+    }, [rutaId, seleccionado]);
+
     async function actualizarListado() {
         setEmpleados(await listarEmpleados());
     }
@@ -38,7 +47,7 @@ export default function EmpleadosManager() {
         setAviso(null);
         try {
             setSeleccionado(await obtenerEmpleado(id));
-            setVista('detalle');
+            irA(`${RUTAS.empleados}/${id}`);
         } catch (error) { setAviso({ tipo: 'error', texto: errorTexto(error) }); }
         finally { setCargando(false); }
     }
@@ -72,7 +81,7 @@ export default function EmpleadosManager() {
         finally { setOcupada(false); }
     }
 
-    function volver() { setAviso(null); setConfirmar(null); setVista('listado'); }
+    function volver() { setAviso(null); setConfirmar(null); irA(RUTAS.empleados); }
 
     const titulo = vista === 'listado' ? 'Empleados' : vista === 'crear' ? 'Registrar empleado' : vista === 'editar' ? 'Editar empleado' : 'Detalle del empleado';
     const nombre = seleccionado ? nombreEmpleado(seleccionado) : '';
@@ -89,17 +98,17 @@ export default function EmpleadosManager() {
                 <h2 id="tk-employees-title">{titulo}</h2>
                 <p>Gestión de personal interno de MULTICAS y habilitación técnica.</p>
             </div>
-            {vista === 'listado' ? <button type="button" className="tk-employee-primary" onClick={() => { setAviso(null); setSeleccionado(null); setVista('crear'); }}>+ Registrar empleado</button>
+            {vista === 'listado' ? <button type="button" className="tk-employee-primary" onClick={() => { setAviso(null); setSeleccionado(null); irA(`${RUTAS.empleados}/nuevo`); }}>+ Registrar empleado</button>
                 : <button type="button" className="tk-employee-secondary" onClick={volver}>← Volver al listado</button>}
         </header>
         {aviso && <div role="alert" className={`tk-employee-notice ${aviso.tipo}`}>{aviso.texto}</div>}
         {cargando ? <div className="tk-employee-panel tk-employee-loading" role="status">Cargando información de empleados…</div> : <>
-            {vista === 'listado' && <EmpleadosListado empleados={empleados} onVer={id => void abrirDetalle(id)} onCrear={() => setVista('crear')} />}
-            {(vista === 'crear' || vista === 'editar') && <EmpleadoFormulario key={`${vista}-${seleccionado?.id ?? 'nuevo'}`}
+            {vista === 'listado' && <EmpleadosListado empleados={empleados} onVer={id => void abrirDetalle(id)} onCrear={() => irA(`${RUTAS.empleados}/nuevo`)} />}
+            {(vista === 'crear' || (vista === 'editar' && seleccionado)) && <EmpleadoFormulario key={`${vista}-${seleccionado?.id ?? 'nuevo'}`}
                 empleado={vista === 'editar' ? seleccionado : null} guardando={ocupada}
                 onCancelar={volver} onGuardar={guardar} />}
             {vista === 'detalle' && seleccionado && <EmpleadoDetallePanel empleado={seleccionado} ocupada={ocupada}
-                onEditar={() => { setAviso(null); setVista('editar'); }}
+                onEditar={() => { setAviso(null); irA(`${RUTAS.empleados}/${seleccionado.id}/editar`); }}
                 onCambiarEstado={() => setConfirmar('estado')}
                 onCambiarHabilitacion={() => setConfirmar('tecnico')} />}
         </>}

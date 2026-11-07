@@ -8,7 +8,7 @@ import { CompraDetalle } from './CompraDetalle'
 import { CompraForm } from './CompraForm'
 import type { CancelacionNueva, Compra, CompraNueva, CompraResumen, Pagina, RecepcionNueva } from './compras.types'
 
-const LIMIT = 25
+const LIMIT = 10
 const errorText = (cause: unknown) => cause instanceof Error ? cause.message : 'No se pudo completar la operación.'
 type Props = Readonly<{ onBusyChange?: (busy: boolean) => void }>
 export function ComprasGerencialesPage({ onBusyChange }: Props = {}) {

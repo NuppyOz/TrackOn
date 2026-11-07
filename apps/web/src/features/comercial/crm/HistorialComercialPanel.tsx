@@ -13,7 +13,7 @@ type HistorialComercial = Readonly<{
   referenciaId: number
 }>
 type PaginaHistorial = Readonly<{ items: HistorialComercial[]; pagina: number; limite: number; hayMas: boolean; alcance: 'COMERCIAL' }>
-const LIMITE = 25
+const LIMITE = 10
 const nombres: Record<TipoHistorial, string> = { NOTA: 'Nota', COTIZACION: 'Cotización', VENTA: 'Venta' }
 const fecha = (value: string) => {
   const parsed = new Date(value)

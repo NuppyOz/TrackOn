@@ -38,3 +38,14 @@
   .ventas__detail { padding: var(--erp-space-4); }
   .ventas__detail-head { align-items: flex-start; flex-direction: column; }
 }
+
+/* Detalle de venta: datos en tarjetas y total destacado, como el detalle de orden. */
+.ventas__detail-head h3 { font-size: 1.25rem; }
+.ventas__subtitulo { margin: 4px 0 0; color: var(--erp-color-neutral-600); }
+.ventas__detail-actions { display: flex; align-items: center; gap: 12px; }
+.ventas__facts { gap: 12px; }
+.ventas__facts > div { padding: 12px 14px; border: 1px solid var(--erp-color-neutral-200); border-radius: 8px; background: #fff; }
+.ventas__facts dt { font-size: 11px; letter-spacing: .6px; text-transform: uppercase; }
+.ventas__facts dd { font-size: 15px; }
+.ventas__table-wrap { border: 1px solid var(--erp-color-neutral-200); border-radius: 8px; }
+.ventas__total { padding: 14px 16px; border: 0; border-radius: 8px; background: #f5f6f8; }

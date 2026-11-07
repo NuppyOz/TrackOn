@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { EmpleadoResumen, FiltroEstado, FiltroTecnico } from './empleados.types';
 import { nombreEmpleado } from './empleados.types';
+import { Paginacion } from '../../shared/Paginacion';
+import { AccionesFila, IconButton } from '../../shared/ui';
+import { EyeIcon } from '@phosphor-icons/react';
 
 interface Props {
     empleados: EmpleadoResumen[];
@@ -13,7 +16,7 @@ export default function EmpleadosListado({ empleados, onVer, onCrear }: Readonly
     const [estado, setEstado] = useState<FiltroEstado>('todos');
     const [tecnico, setTecnico] = useState<FiltroTecnico>('todos');
     const [pagina, setPagina] = useState(1);
-    const limite = 10;
+    const [limite, setLimite] = useState(10);
     const resultados = useMemo(() => {
         const termino = busqueda.trim().toLocaleLowerCase('es');
         return empleados.filter(item => {
@@ -58,17 +61,16 @@ export default function EmpleadosListado({ empleados, onVer, onCrear }: Readonly
                     <td data-label="Empleado">{nombreEmpleado(item)}</td>
                     <td data-label="Estado"><span className={`tk-employee-pill ${item.active ? 'is-active' : 'is-inactive'}`}>{item.active ? 'Activo' : 'Inactivo'}</span></td>
                     <td data-label="Habilitación técnica"><span className={`tk-employee-pill ${item.habilitadoComoTecnico ? 'is-tech' : 'is-neutral'}`}>{item.habilitadoComoTecnico ? 'Habilitado' : 'No habilitado'}</span></td>
-                    <td data-label="Acciones"><button type="button" className="tk-employee-link" onClick={() => onVer(item.id)}>Ver detalle</button></td>
+                    <td data-label="Acciones"><AccionesFila><IconButton icon={EyeIcon} label="Ver detalle" onClick={() => onVer(item.id)} /></AccionesFila></td>
                 </tr>)}</tbody>
             </table></div> : <div className="tk-employee-empty">
                 <strong>No hay empleados con estos filtros.</strong>
                 <p>Prueba otros criterios o registra un empleado.</p>
                 {empleados.length === 0 && <button type="button" className="tk-employee-primary" onClick={onCrear}>Registrar empleado</button>}
             </div>}
-            {resultados.length > limite && <div className="tk-employee-pagination">
-                <button type="button" className="tk-employee-secondary" disabled={paginaActual === 1} onClick={() => setPagina(p => p - 1)}>Anterior</button>
-                <span>Página {paginaActual} de {totalPaginas}</span>
-                <button type="button" className="tk-employee-secondary" disabled={paginaActual === totalPaginas} onClick={() => setPagina(p => p + 1)}>Siguiente</button>
+            {resultados.length > 0 && <div className="tk-employee-pagination">
+                <Paginacion pagina={paginaActual} limite={limite} hayMas={paginaActual < totalPaginas} total={resultados.length} etiqueta="Paginación de empleados"
+                    onPagina={setPagina} onLimite={nuevo => { setLimite(nuevo); setPagina(1); }} />
             </div>}
         </div>
     </>;

@@ -156,7 +156,7 @@ button {
 .sidebar button.selected {
     background: #453b61;
     color: #ffffff;
-    box-shadow: inset 3px 0 var(--color-primary-500);
+    box-shadow: none;
 }
 
 .sidebar-note {
@@ -346,8 +346,8 @@ button {
 .filters {
     display: grid;
     grid-template-columns: repeat(2, minmax(120px, 1fr));
-    gap: 12px;
-    padding: 20px;
+    gap: var(--tk-space-3);
+    padding: var(--tk-space-4);
     border-bottom: 1px solid #e6e2ec;
     background: #ffffff;
 }
@@ -387,10 +387,18 @@ th {
 
 th,
 td {
-    padding: 14px 13px;
+    padding: var(--tk-space-3) var(--tk-space-4);
     border-bottom: 1px solid #e7ece9;
     vertical-align: middle;
 }
+
+.list-card .table-wrap th { white-space: nowrap; }
+.list-card .table-wrap td { min-height: 52px; }
+.list-card .table-wrap tbody tr:last-child td { border-bottom: 0; }
+.list-card .table-wrap td.actions,
+.list-card .table-wrap td:last-child { white-space: nowrap; }
+.list-card .table-wrap td.actions button,
+.list-card .table-wrap td:last-child button { margin: 2px 4px 2px 0; }
 
 tbody tr:last-child td {
     border-bottom: 0;
@@ -700,13 +708,13 @@ td span {
 .page-header h1 {
     margin: 0;
     color: var(--color-secondary-700);
-    font-size: 30px;
+    font-size: var(--tk-font-page-title);
 }
 
 .breadcrumb {
     margin: 0 0 8px;
     color: var(--color-secondary-500);
-    font-size: 11px;
+    font-size: var(--tk-font-breadcrumb);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1137,10 +1145,10 @@ body {
 }
 
 .sidebar button.selected {
-    background: #493e66;
+    background: #4b4264;
     color: #ffffff;
-    box-shadow: inset 3px 0 #129fdc;
-    font-weight: 600;
+    box-shadow: none;
+    font-weight: 650;
 }
 
 .section-heading p:not(.eyebrow) {
@@ -1436,3 +1444,4 @@ select:focus-visible {
         flex-direction: column;
     }
 }
+.nic-phone-field__control{display:flex;align-items:center;min-height:40px;border:1px solid var(--color-border,#E6E2EC);border-radius:6px;background:#fff;overflow:hidden}.nic-phone-field__control>span{padding:0 12px;color:#665B82;border-right:1px solid var(--color-border,#E6E2EC);font-weight:600}.nic-phone-field__control input{border:0!important;outline:0;min-width:0;flex:1;padding:9px 12px}.nic-phone-field__control:focus-within{outline:2px solid #129FDC;outline-offset:1px}.nic-phone-field__control input[aria-invalid="true"]{background:#fffafa}

@@ -1,6 +1,25 @@
 @import '../../erp-ui/tokens.css';
 
 .crm-page { color: var(--erp-color-neutral-900); padding: var(--erp-space-6); }
+.crm-new-button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; border-radius: 7px; background: var(--erp-color-primary-500); color: white; font-weight: 600; text-decoration: none; }
+.crm-new-button:hover { background: var(--erp-color-primary-600); }
+.crm-filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 16px; }
+.crm-filters label { display: grid; gap: 4px; color: var(--erp-color-secondary-500); font-size: 12px; }
+.crm-filters select { min-height: 38px; min-width: 150px; padding: 6px 10px; background: white; border: 1px solid var(--erp-color-neutral-200); border-radius: 6px; color: var(--erp-color-neutral-900); font: inherit; }
+.crm-link { border: 0; padding: 0; background: transparent; color: var(--erp-color-primary-600); font: inherit; font-weight: 600; cursor: pointer; text-align: left; }
+.crm-detail__actions { display: flex; align-items: center; gap: 12px; }
+.crm-locations { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.crm-locations article { padding: 14px; border: 1px solid var(--erp-color-neutral-200); border-radius: 7px; background: var(--erp-color-neutral-0); }
+.crm-locations h3 { margin: 0 0 8px; font-size: 16px; }
+.crm-locations p { margin: 4px 0; white-space: pre-wrap; }
+.crm-locations span { color: var(--erp-color-secondary-500); font-size: 12px; }
+.crm-location-pagination { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; font-size: 12px; }
+.crm-location-pagination div { display: flex; gap: 8px; }
+.crm-card__heading a { color: var(--erp-color-primary-600); font-weight: 600; text-decoration: none; }
+.crm-opportunities { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.crm-opportunities li { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 12px; border-bottom: 1px solid var(--erp-color-neutral-200); }
+.crm-opportunities li > div { display: grid; gap: 4px; }
+.crm-opportunities span { color: var(--erp-color-secondary-500); font-size: 12px; }
 .crm-selector, .crm-card { background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-lg); padding: var(--erp-space-4); }
 .crm-selector { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(220px, 2fr); gap: var(--erp-space-2) var(--erp-space-4); align-items: center; margin-bottom: var(--erp-space-6); }
 .crm-selector label, .crm-form label { font-size: .875rem; font-weight: 600; }
@@ -11,10 +30,7 @@
 .crm-detail__header { background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-lg); padding: var(--erp-space-4); }
 .crm-detail__header h2, .crm-card h2 { margin: 0; font-size: 1.2rem; }
 .crm-detail__code { margin: 0 0 var(--erp-space-1); color: var(--erp-color-neutral-600); font-size: .8rem; }
-.crm-tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--erp-color-neutral-200); gap: var(--erp-space-2); }
-.crm-tabs button { flex: 0 0 auto; padding: var(--erp-space-3) var(--erp-space-4); color: var(--erp-color-neutral-900); border: 0; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font: inherit; }
-.crm-tabs button[aria-current="page"] { border-bottom-color: var(--erp-color-primary-600); font-weight: 700; }
-.crm-tabs button:focus-visible, .crm-page input:focus-visible, .crm-page select:focus-visible, .crm-page textarea:focus-visible { outline: 3px solid var(--erp-color-secondary-500); outline-offset: 2px; }
+.crm-page input:focus-visible, .crm-page select:focus-visible, .crm-page textarea:focus-visible { outline: 3px solid var(--erp-color-secondary-500); outline-offset: 2px; }
 .crm-panels { display: grid; gap: var(--erp-space-4); }
 .crm-card__heading { margin-bottom: var(--erp-space-4); }
 .crm-card__heading p { color: var(--erp-color-neutral-600); font-size: .875rem; margin: var(--erp-space-1) 0 0; }
@@ -41,3 +57,22 @@
   .crm-form { grid-template-columns: 1fr; }
   .crm-form__actions { grid-column: 1; }
 }
+
+/* Submódulos de CRM (contactos, ubicaciones): lista de clientes a la izquierda, detalle a la derecha. */
+.crm-split { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.crm-split__lista { background: #fff; border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-lg); padding: 12px; }
+.crm-split__buscar { display: grid; gap: 4px; font-size: 12px; color: var(--erp-color-neutral-600); margin-bottom: 8px; }
+.crm-split__buscar input { min-height: 36px; padding: 0 10px; border: 1px solid #d9d9d9; border-radius: 6px; font: inherit; }
+.crm-split__lista ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 60vh; overflow: auto; }
+.crm-split__lista button { display: grid; gap: 2px; width: 100%; padding: 8px 10px; border: 1px solid transparent; border-radius: 8px; background: transparent; text-align: left; font: inherit; cursor: pointer; }
+.crm-split__lista button:hover { background: var(--erp-color-neutral-100); }
+.crm-split__lista button[aria-pressed="true"] { background: #eaf6fc; border-color: var(--erp-color-primary-100); }
+.crm-split__lista button strong { font-size: 13px; }
+.crm-split__lista button small { color: var(--erp-color-neutral-600); font-size: 11px; }
+.crm-split__lista .tk-paginacion { margin-top: 8px; grid-template-columns: 1fr; font-size: 12px; }
+.crm-split__panel { display: grid; gap: 12px; }
+.crm-split__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: #fff; border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-lg); }
+.crm-split__cabecera h2 { margin: 0; font-size: 1.1rem; }
+.crm-split__vacio { padding: 48px 16px; text-align: center; color: var(--erp-color-neutral-600); background: #fff; border: 1px dashed var(--erp-color-neutral-200); border-radius: var(--erp-radius-lg); }
+.crm-split__vacio strong { display: block; margin-bottom: 4px; color: var(--erp-color-neutral-900); }
+@media (max-width: 900px) { .crm-split { grid-template-columns: 1fr; } }

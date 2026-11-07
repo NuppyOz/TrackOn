@@ -5,15 +5,17 @@ import { listarUbicaciones } from '../equipos/equipos.api';
 import type { Ubicacion } from '../equipos/equipos.types';
 import { cambiarEstadoOrden, ejecutarOrden, crearOrden, listarOrdenes, obtenerOrden } from './ordenes.api';
 import type { EstadoOrden, FiltrosOrdenes, OrdenDetalle, OrdenNueva, OrdenResumen, PrioridadOrden } from './ordenes.types';
-import { irA } from '../../shared/navigation';
+import { irA, RUTAS } from '../../shared/navigation';
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
+import { Paginacion } from '../../shared/Paginacion';
 import Modal from '../../shared/Modal';
 import EditarOrdenForm from './EditarOrdenForm';
 import DesactivarOrdenForm from './DesactivarOrdenForm';
 import OrdenAcciones from './OrdenAcciones';
 import { permiteAccionOrden, type AccionOrden } from './ordenes.acciones';
+import { ModuleHeader, WorkflowStepper, type Miga } from '../erp-ui/components';
 
-const filtrosBase: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 25 };
+const filtrosBase: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 10 };
 const estados: EstadoOrden[] = [
     'BORRADOR', 'PENDIENTE', 'ASIGNADA', 'EN_EJECUCION', 'EN_REVISION', 'CERRADA', 'CANCELADA',
 ];
@@ -48,13 +50,13 @@ const configuracionVista: Record<VistaOrdenes, { titulo: string; descripcion: st
     despacho: { titulo: 'Despacho y asignación', descripcion: 'Asigna cuadrillas y programa las solicitudes pendientes de atención.', estado: 'PENDIENTE', permiteCrear: false },
 };
 
-interface Props { puedeGestionar?: boolean; ordenInicial?: number; crearInicial?: boolean; vista?: VistaOrdenes }
+interface Props { puedeGestionar?: boolean; ordenInicial?: number; crearInicial?: boolean; vista?: VistaOrdenes; /** Migas del módulo que lo contiene (Operaciones). */ migas?: readonly Miga[] }
 
-export default function OrdenesManager({ puedeGestionar = true, ordenInicial, crearInicial = false, vista = 'ordenes' }: Readonly<Props>) {
+export default function OrdenesManager({ puedeGestionar = true, ordenInicial, crearInicial = false, vista = 'ordenes', migas }: Readonly<Props>) {
     const configuracion = configuracionVista[vista];
     const filtrosIniciales: FiltrosOrdenes = { ...filtrosBase, estado: configuracion.estado };
     const { filtros, aplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales);
-    const [pagina, setPagina] = useState<{ items: OrdenResumen[]; hayMas: boolean }>({ items: [], hayMas: false });
+    const [pagina, setPagina] = useState<{ items: OrdenResumen[]; hayMas: boolean; total?: number }>({ items: [], hayMas: false });
     const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
     const [detalle, setDetalle] = useState<OrdenDetalle | null>(null);
     const [creando, setCreando] = useState(crearInicial);
@@ -209,12 +211,14 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
         }
     }
 
-    function cambiarFiltroEstado(estado: EstadoOrden | '') {
-        filtrar({ ...filtros, estado });
-    }
-
     function contenidoDetalle() {
         if (!detalle) return null;
+        const estadoProgreso = detalle.estadoCodigo === 'CANCELADA'
+            ? [...detalle.historial].reverse().find(item => item.estadoNuevo !== 'CANCELADA')?.estadoNuevo ?? 'BORRADOR'
+            : detalle.estadoCodigo;
+        const etapaActual: Record<EstadoOrden, number> = {
+            BORRADOR: 0, PENDIENTE: 0, ASIGNADA: 1, EN_EJECUCION: 2, EN_REVISION: 3, CERRADA: 4, CANCELADA: 0,
+        };
         const opciones = (siguientes[detalle.estadoCodigo] ?? []).filter(estado => puedeGestionar || estado === 'EN_EJECUCION' || estado === 'EN_REVISION');
         const asignacion = detalle.asignaciones?.[0];
         const etiquetaCambio = (estado: EstadoOrden) => estado === 'PENDIENTE' ? 'Publicar orden'
@@ -222,7 +226,14 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                 : detalle.estadoCodigo === 'EN_REVISION' ? 'Devolver a ejecución' : 'Iniciar trabajo';
         return (
             <section className="tk-order-overview" aria-label="Resumen de la orden">
-                <div className="tk-order-state"><span className="tk-status-badge" data-status={detalle.estadoCodigo}>{nombreEstado(detalle.estadoCodigo)}</span><p>{indicacionesEstado[detalle.estadoCodigo]}</p></div>
+                <WorkflowStepper activeIndex={etapaActual[estadoProgreso as EstadoOrden]} steps={[
+                    { id: 'solicitud', label: 'Solicitud' },
+                    { id: 'diagnostico', label: 'Diagnóstico' },
+                    { id: 'ejecucion', label: 'Ejecución' },
+                    { id: 'evidencias', label: 'Evidencias' },
+                    { id: 'cierre', label: 'Cierre' },
+                ]} />
+                <div className="tk-order-state" data-cancelada={detalle.estadoCodigo === 'CANCELADA'}><span className="tk-status-badge" data-status={detalle.estadoCodigo}>{nombreEstado(detalle.estadoCodigo)}</span><p>{indicacionesEstado[detalle.estadoCodigo]}</p></div>
                 <dl className="tk-order-summary">
                     <div><dt>Cliente</dt><dd>{detalle.clienteNombreRegistrado}</dd></div>
                     <div><dt>Ubicación</dt><dd>{detalle.ubicacionNombreRegistrado}<span>{detalle.direccionRegistrada}</span></dd></div>
@@ -384,19 +395,13 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
     }
 
     return (
-        <section className="tk-orders" aria-labelledby="ordenes-titulo">
-            <div className="tk-breadcrumb">Gestión operativa › <span>Órdenes</span></div>
-            <div className="tk-orders-heading">
-                <div>
-                    <h2 id="ordenes-titulo">{configuracion.titulo}</h2>
-                    <p>{configuracion.descripcion}</p>
-                </div>
-                <div className="tk-order-toolbar"><button type="button" className="secondary-button" aria-label="Actualizar órdenes" disabled={cargando} onClick={() => { setMensaje(null); cargar(); }}>Actualizar</button>
+        <section className="tk-orders" aria-label={configuracion.titulo}>
+            <ModuleHeader breadcrumb={migas ?? [{ label: 'Operaciones', ruta: RUTAS.operaciones.inicio }, { label: configuracion.titulo }]} title={configuracion.titulo} description={configuracion.descripcion}
+                action={<div className="tk-order-toolbar"><button type="button" className="secondary-button" aria-label="Actualizar órdenes" disabled={cargando} onClick={() => { setMensaje(null); cargar(); }}>Actualizar</button>
                 {puedeGestionar && configuracion.permiteCrear && !creando && !detalle && !ordenInicial && (
                     <button type="button" className="primary-button tk-order-create"
                         onClick={() => { setMensaje(null); setDetalle(null); setOperacion(null); setCreando(true); }}>+ Nueva orden</button>
-                )}</div>
-            </div>
+                )}</div>} />
             {mensaje && !creando && !operacion && !detalle && !ordenInicial && <div className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</div>}
             {(
                 <>
@@ -408,26 +413,11 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                                 value={filtros.buscar}
                                 maxLength={150} onChange={event => filtrar({ ...filtros, buscar: event.target.value }, true)} />
                         </div>
-                        <div className="tk-status-tabs" role="group" aria-label="Filtros rápidos de estado">
-                            {([
-                                { codigo: '', titulo: 'Todas' },
-                                { codigo: 'ASIGNADA', titulo: 'Asignadas' },
-                                { codigo: 'EN_EJECUCION', titulo: 'En ejecución' },
-                                { codigo: 'EN_REVISION', titulo: 'En revisión' },
-                                { codigo: 'CERRADA', titulo: 'Cerradas' },
-                            ] as const).map(item => (
-                                <button key={item.codigo} type="button" className="tk-status-tab"
-                                    aria-pressed={filtros.estado === item.codigo}
-                                    onClick={() => cambiarFiltroEstado(item.codigo)}>{item.titulo}</button>
-                            ))}
-                        </div>
                         <select className="tk-advanced-state" aria-label="Filtrar estado de orden" value={filtros.estado}
                             onChange={event => filtrar({ ...filtros, estado: event.target.value as EstadoOrden | '' })}>
                             <option value="">Todos los estados</option>
                             {estados.map(item => <option key={item} value={item}>{nombreEstado(item)}</option>)}
                         </select>
-                        <button type="submit" className="secondary-button tk-search-submit">Buscar</button>
-                        <button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
                         <label>Prioridad<select aria-label="Filtrar prioridad" value={filtros.prioridad ?? ''} onChange={event => filtrar({ ...filtros, prioridad: event.target.value as PrioridadOrden | '' })}>
                             <option value="">Todas</option>{(['BAJA', 'MEDIA', 'ALTA', 'URGENTE'] as const).map(item => <option key={item} value={item}>{item.charAt(0) + item.slice(1).toLowerCase()}</option>)}
                         </select></label>
@@ -436,15 +426,17 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                         </select></label>
                         <label>Programada desde<input type="date" aria-label="Programada desde" value={filtros.desde ?? ''} max={filtros.hasta || undefined} onChange={event => filtrar({ ...filtros, desde: event.target.value })} /></label>
                         <label>Programada hasta<input type="date" aria-label="Programada hasta" value={filtros.hasta ?? ''} min={filtros.desde || undefined} onChange={event => filtrar({ ...filtros, hasta: event.target.value })} /></label>
+                        <div className="tk-filters__acciones">
+                            <button type="submit" className="secondary-button tk-search-submit">Buscar</button>
+                            <button type="button" className="secondary-button tk-search-submit" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
+                        </div>
                     </form>
                     <div className="card tk-table-card">
                         {contenidoLista()}
                         <div className="tk-table-pagination">
-                            <button type="button" className="secondary-button" disabled={cargando || aplicados.pagina === 1}
-                                onClick={() => cargar({ ...aplicados, pagina: aplicados.pagina - 1 })}>Anterior</button>
-                            <span>Página {aplicados.pagina}</span>
-                            <button type="button" className="secondary-button" disabled={cargando || !pagina.hayMas}
-                                onClick={() => cargar({ ...aplicados, pagina: aplicados.pagina + 1 })}>Siguiente</button>
+                            <Paginacion pagina={aplicados.pagina} limite={aplicados.limite} hayMas={pagina.hayMas} total={pagina.total} cargando={cargando}
+                                etiqueta="Paginación de órdenes" onPagina={nueva => cargar({ ...aplicados, pagina: nueva })}
+                                onLimite={limite => cargar({ ...aplicados, limite, pagina: 1 })} />
                         </div>
                     </div>
                 </>

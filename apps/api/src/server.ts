@@ -5,7 +5,7 @@ const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '0.0.0.0';
 
 const server = app.listen(port, host, () => {
-    console.log(`API de TrackOn disponible en http://${host}:${port}`);
+    console.log(`API de MultiCore ERP disponible en http://${host}:${port}`);
 });
 
 let cerrando = false;

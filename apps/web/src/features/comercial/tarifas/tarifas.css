@@ -20,10 +20,6 @@
 .tarifas__secondary:hover { background: var(--erp-color-neutral-100); }
 .tarifas__danger { background: var(--erp-color-error); color: var(--erp-color-neutral-0); }
 .tarifas__success { background: var(--erp-color-neutral-100); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-sm); color: var(--erp-color-success); margin: 0 0 var(--erp-space-4); padding: var(--erp-space-3) var(--erp-space-4); }
-.tarifas__tabs { border-bottom: 1px solid var(--erp-color-neutral-200); display: flex; gap: var(--erp-space-2); margin-bottom: var(--erp-space-6); }
-.tarifas__tabs button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--erp-color-neutral-600); font-weight: 600; margin-bottom: -1px; padding: 0 var(--erp-space-4) var(--erp-space-3); }
-.tarifas__tabs button[aria-selected="true"] { border-color: var(--erp-color-primary-600); color: var(--erp-color-primary-600); }
-.tarifas__tabs span { background: var(--erp-color-neutral-100); border-radius: 20px; color: var(--erp-color-neutral-600); font-size: .75rem; margin-left: 5px; padding: 2px 7px; }
 .tarifas__catalog { background: var(--erp-color-neutral-0); border: 1px solid var(--erp-color-neutral-200); border-radius: var(--erp-radius-md); overflow: hidden; }
 .tarifas__catalog-head { align-items: end; display: flex; justify-content: space-between; gap: var(--erp-space-4); padding: var(--erp-space-6) var(--erp-space-6) var(--erp-space-2); }
 .tarifas__catalog-head h2 { font-size: 1.1rem; margin: 0; }
@@ -95,3 +91,6 @@
   .tarifas__confirm .tarifas__secondary, .tarifas__confirm .tarifas__danger { flex: 1; }
   .tarifas__resolver { padding: var(--erp-space-6); }
 }
+
+/* Confirmación sobre el contenido, no al inicio de la página. */
+.tarifas__confirm { position: fixed; top: 28%; left: 50%; z-index: 60; width: min(92vw, 540px); transform: translateX(-50%); background: #fff; box-shadow: 0 16px 40px rgb(0 0 0 / 22%); }
