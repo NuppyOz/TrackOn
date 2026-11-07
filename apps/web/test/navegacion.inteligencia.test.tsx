@@ -4,6 +4,7 @@ import { rutaCanonica } from '../src/shared/navigation'
 import { AreaRegistros } from '../src/features/inteligencia/registros/AreaRegistros'
 import { InteligenciaWorkspace } from '../src/features/inteligencia/InteligenciaWorkspace'
 
+vi.mock('../src/features/fuentes-gerenciales/contratos', () => ({ ContratosFuentesPage: () => <p>panel contratos</p> }))
 vi.mock('../src/features/fuentes-gerenciales/finanzas/documentos', () => ({ ComprobantesPage: () => <p>panel comprobantes</p> }))
 vi.mock('../src/features/fuentes-gerenciales/finanzas/facturables', () => ({ FacturablesPage: () => <p>panel servicios</p> }))
 vi.mock('../src/features/fuentes-gerenciales/finanzas/cobros', () => ({ CobrosPage: () => <p>panel cobros</p> }))
@@ -13,7 +14,11 @@ vi.mock('../src/features/fuentes-gerenciales/logistica/movimientos', () => ({ Mo
 vi.mock('../src/features/fuentes-gerenciales/logistica/compras', () => ({ ComprasGerencialesPage: () => <p>panel compras</p> }))
 vi.mock('../src/features/fuentes-gerenciales/logistica/herramientas', () => ({ HerramientasGerencialesPage: () => <p>panel herramientas</p> }))
 vi.mock('../src/features/fuentes-gerenciales/calidad/garantias', () => ({ GarantiasGerencialesPage: () => <p>panel garantías</p> }))
-vi.mock('../src/features/fuentes-gerenciales/calidad/casos', () => ({ CasosCalidadPage: () => <p>panel casos</p> }))
+vi.mock('../src/features/fuentes-gerenciales/calidad/casos', () => ({
+  CasosCalidadPage: ({ onBusyChange }: { onBusyChange?: (busy: boolean) => void }) => (
+    <div><p>panel casos</p><button type="button" onClick={() => onBusyChange?.(true)}>simular guardado</button></div>
+  ),
+}))
 vi.mock('../src/features/fuentes-gerenciales/calidad/correctivas', () => ({ CorrectivasGerencialesPage: () => <p>panel correctivas</p> }))
 vi.mock('../src/features/fuentes-gerenciales/procedencia/CoberturaPage', () => ({ CoberturaPage: () => <p>panel cobertura</p> }))
 vi.mock('../src/features/inteligencia/comercial', () => ({ IndicadoresComercialesPage: () => <p>tablero comercial</p> }))
@@ -93,6 +98,30 @@ describe('Navegación de Inteligencia', () => {
       render(<InteligenciaWorkspace ruta="/inteligencia/cobertura" />)
       expect(screen.getByText('panel cobertura')).toBeTruthy()
       expect(screen.queryByRole('button', { name: 'Tablero' })).toBeNull()
+    })
+  })
+
+  describe('detalles del panel de registros', () => {
+    it('no dibuja chips cuando el área tiene una sola fuente', () => {
+      window.history.replaceState({}, '', '/inteligencia/comercial/registros')
+      render(<AreaRegistros area="comercial" />)
+      expect(screen.getByText('panel contratos')).toBeTruthy()
+      expect(screen.queryByRole('group', { name: /Fuente de los registros/ })).toBeNull()
+    })
+
+    it('vuelve a la primera fuente cuando la URL trae una que no existe', () => {
+      window.history.replaceState({}, '', '/inteligencia/logistico/registros?fuente=inventada')
+      render(<AreaRegistros area="logistico" />)
+      expect(screen.getByText('panel artículos')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Artículos' }).getAttribute('aria-pressed')).toBe('true')
+    })
+
+    it('avisa mientras el registro se está guardando', () => {
+      window.history.replaceState({}, '', '/inteligencia/calidad/registros?fuente=casos')
+      render(<AreaRegistros area="calidad" />)
+      expect(screen.queryByText('Guardando…')).toBeNull()
+      fireEvent.click(screen.getByRole('button', { name: 'simular guardado' }))
+      expect(screen.getByRole('status').textContent).toContain('Guardando')
     })
   })
 })
