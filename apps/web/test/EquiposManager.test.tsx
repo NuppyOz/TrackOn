@@ -43,7 +43,9 @@ function pagina(items: Equipo[] = [equipo], hayMas = false) {
 }
 
 async function esperarListado() {
-  await screen.findByRole('cell', { name: /EQ-042/ })
+  // El código también aparece en el nombre accesible del grupo de acciones;
+  // buscar la celda del equipo, cuyo nombre comienza con el código.
+  await screen.findByRole('cell', { name: /^EQ-042\b/ })
 }
 
 afterEach(() => {
