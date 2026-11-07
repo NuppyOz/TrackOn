@@ -46,10 +46,10 @@ function badgeEstado(value: string) {
   return <SemanticBadge label={value.replace('_', ' ')} variant={variant} />
 }
 function sourceLinks(row: DesgloseCalidad, nombres: Map<number, string>) {
-  if (row.tipo === 'GARANTIA') return <a href={`/inteligencia/origen/calidad?garantiaId=${row.id}`}>{row.referencia}</a>
-  if (row.tipo === 'CASO') return <a href={`/inteligencia/origen/calidad?casoId=${row.id}`}>{row.referencia}</a>
-  if (row.tipo === 'CORRECTIVA') return <a href={`/inteligencia/origen/calidad?correctivaId=${row.id}`}>{row.descripcion}</a>
-  if (row.tipo === 'RETRABAJO') return <a href={`/inteligencia/origen/calidad?casoId=${row.casoId}`}>{row.referenciaTrabajo} · {row.casoReferencia}</a>
+  if (row.tipo === 'GARANTIA') return <a href={`/inteligencia/calidad/registros?fuente=garantias&garantiaId=${row.id}`}>{row.referencia}</a>
+  if (row.tipo === 'CASO') return <a href={`/inteligencia/calidad/registros?fuente=casos&casoId=${row.id}`}>{row.referencia}</a>
+  if (row.tipo === 'CORRECTIVA') return <a href={`/inteligencia/calidad/registros?fuente=correctivas&correctivaId=${row.id}`}>{row.descripcion}</a>
+  if (row.tipo === 'RETRABAJO') return <a href={`/inteligencia/calidad/registros?fuente=casos&casoId=${row.casoId}`}>{row.referenciaTrabajo} · {row.casoReferencia}</a>
   return <span>{nombreDeCliente(row.clienteId, nombres)} · {row.activoReferencia} · {row.codigoFalla}</span>
 }
 function searchText(row: DesgloseCalidad): string {
@@ -136,12 +136,11 @@ export function IndicadoresCalidadPage() {
     { key: 'activo', header: 'Activo / falla', render: (row) => 'activoReferencia' in row ? `${row.activoReferencia}${row.tipo === 'CASO' ? ` · ${row.codigoFalla}` : row.tipo === 'FALLA_REPETIDA' ? ` · ${row.codigoFalla}` : ''}` : '—' },
     { key: 'fecha', header: 'Fecha', render: breakdownDate },
     { key: 'estado', header: 'Estado al corte', render: breakdownState },
-    { key: 'hitos', header: 'Trazabilidad', render: (row) => row.tipo === 'CASO' ? <>Plazo de respuesta {time(row.respuestaLimiteEn)} · respuesta {time(row.respondidaEn)}<br />Plazo de resolución {time(row.resolucionLimiteEn)} · resolución {time(row.resueltaEn)}<br />Cierre {time(row.cerradaEn)}</> : row.tipo === 'CORRECTIVA' ? <>Responsable: {row.responsableNombre}<br />Cierre: {time(row.cerradaEn)}</> : row.tipo === 'FALLA_REPETIDA' ? <span className="h8-case-links">{row.casoIds.map((id) => <a key={id} href={`/inteligencia/origen/calidad?casoId=${id}`}>Caso #{id}</a>)}</span> : row.tipo === 'RETRABAJO' ? <>Caso {row.casoReferencia} · trabajo {row.referenciaTrabajo}</> : `Cliente: ${row.clienteNombre}` },
+    { key: 'hitos', header: 'Trazabilidad', render: (row) => row.tipo === 'CASO' ? <>Plazo de respuesta {time(row.respuestaLimiteEn)} · respuesta {time(row.respondidaEn)}<br />Plazo de resolución {time(row.resolucionLimiteEn)} · resolución {time(row.resueltaEn)}<br />Cierre {time(row.cerradaEn)}</> : row.tipo === 'CORRECTIVA' ? <>Responsable: {row.responsableNombre}<br />Cierre: {time(row.cerradaEn)}</> : row.tipo === 'FALLA_REPETIDA' ? <span className="h8-case-links">{row.casoIds.map((id) => <a key={id} href={`/inteligencia/calidad/registros?fuente=casos&casoId=${id}`}>Caso #{id}</a>)}</span> : row.tipo === 'RETRABAJO' ? <>Caso {row.casoReferencia} · trabajo {row.referenciaTrabajo}</> : `Cliente: ${row.clienteNombre}` },
   ]
-  const sourceTitle = <a href="/inteligencia/origen/calidad">Registros de origen de calidad</a>
 
   return <section className="inteligencia-scope" aria-label="Indicadores de calidad"><div className="h8-dashboard">
-    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores de calidad" description="Garantías, reclamos, retrabajos, fallas repetidas y acciones correctivas al corte." action={sourceTitle} />
+    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores de calidad" description="Garantías, reclamos, retrabajos, fallas repetidas y acciones correctivas al corte." />
     <form className="h8-range" onSubmit={(event) => { event.preventDefault(); applyRange() }}><label>Desde<input type="datetime-local" step="1" value={draftFrom} onChange={(event) => setDraftFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" step="1" value={draftUntil} onChange={(event) => setDraftUntil(event.currentTarget.value)} /></label><Button type="submit" variant="primary" disabled={!validRange || loading}>Consultar</Button>{draftFrom && draftUntil && !validRange && <p className="h8-error" role="alert">El rango debe ser válido, Desde debe preceder a Hasta y no puede superar 366 días.</p>}</form>
     {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="calidad" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h8-error" role="alert">{error} <Button type="button" onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}

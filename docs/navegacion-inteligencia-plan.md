@@ -1,6 +1,6 @@
 # Plan — navegación de Inteligencia
 
-**Estado:** propuesta para aprobación · decisión 2 resuelta (mover Operación del día) · **Base:** `dev` @ 418b121 + `fix/ux-tanda-a-c`
+**Estado:** implementado en la rama `feat/navegacion-inteligencia` (7 de noviembre de 2026) · **Base:** `dev` @ 418b121 + `fix/ux-tanda-a-c`
 **Origen:** hallazgo P1-2 de `docs/odd/audits/UX-2026-11-07-menu-final.md`
 
 ---
@@ -132,3 +132,37 @@ Migrar los 30 enlaces de los 10 archivos, poner los chips de fuente con URL y el
 ## 10. Alternativa B (para después, no ahora)
 
 Reorganizar el menú por **áreas de trabajo** en vez de por módulos: Comercial, Finanzas, Logística, Calidad y Operación, cada una con su tablero y sus registros, y «Inteligencia y control» desaparece como grupo. Es la estructura que el negocio ya usa para hablar, pero mueve el menú entero y toca todas las secciones, no sólo ésta. Recomiendo hacer el paso A primero: deja el ruteo canónico y los redirects listos, y la B se vuelve un cambio de etiquetas y grupos.
+
+---
+
+## 10. Resultado medido
+
+Implementado el modelo de una fila, con las dos decisiones resueltas (atajos de la opción A y
+«Operación del día» fuera de Inteligencia).
+
+**Antes** (en `/inteligencia/origen/finanzas`): cuatro filas de pestañas y 335 px hasta el título;
+cinco puertas para lo financiero; la fuente en `useState`, sin URL.
+
+**Después:**
+- Una fila de navegación por área (`Tablero · Registros` más el enlace de cobertura), 51 px de alto.
+- La fuente de los registros es un filtro con chips que escribe `?fuente=` en la URL: enlace
+  compartible y botón atrás que vuelve a la fuente anterior (verificado con Playwright).
+- `/inteligencia/<área>` y `/inteligencia/<área>/registros?fuente=…` son las direcciones canónicas;
+  los seis caminos viejos redirigen uno a uno (comprobantes, cobros, costos, servicios, artículos,
+  compras, herramientas, garantías, casos, correctivas y `/inteligencia/operacion/*`).
+- El menú conserva dos atajos («Registros financieros» y «Registros logísticos») que llevan a la
+  ruta canónica sin marcarse como activos: el resaltado es del área dueña.
+- «Operación del día» vive en `Servicios y operaciones de campo`, en `/operacion`.
+- Se retiraron los enlaces de origen de las cabeceras de los cuatro tableros: eran la quinta puerta.
+
+**Gates:** `tsc` API y web sin errores; 442 pruebas en 70 archivos; axe sin violaciones en
+`/inteligencia/financiero`, `/inteligencia/financiero/registros?fuente=cobros`,
+`/inteligencia/calidad/registros?fuente=casos` y `/operacion`.
+
+**Hallazgo colateral corregido:** el menú lateral no tenía desplazamiento; con los grupos abiertos,
+los últimos enlaces quedaban cortados en pantallas de 900 px de alto. Ahora el aside se desplaza y
+el ítem activo se trae a la vista.
+
+**Deuda anotada:** los importes de Cotizaciones, Ventas y Tarifas (módulo comercial, fuera de los
+cuatro menús auditados) siguen formateándose a mano con un espacio después del símbolo
+(`C$ 131,000.00`); el formato único es `C$131,000.00`.

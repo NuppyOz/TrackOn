@@ -3,3 +3,50 @@
 .inteligencia-workspace__nav button { background: transparent; color: var(--erp-color-neutral-900); border: 0; border-bottom: 2px solid transparent; padding: var(--erp-space-3); cursor: pointer; font: inherit; }
 .inteligencia-workspace__nav button[aria-current="page"] { border-bottom-color: var(--erp-color-primary-600); font-weight: 600; }
 .inteligencia-workspace__nav button:focus-visible { outline: 3px solid var(--erp-color-primary-100); outline-offset: 2px; }
+
+.inteligencia-workspace__nav .inteligencia-workspace__cobertura {
+    margin-left: auto;
+    align-self: center;
+    padding: var(--erp-space-2) var(--erp-space-3);
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--erp-color-primary-600);
+    text-decoration: none;
+}
+.inteligencia-workspace__nav .inteligencia-workspace__cobertura:hover { text-decoration: underline; }
+
+/* La fuente de registros es un filtro, no una pestaña: se ve como chip y
+   escribe ?fuente= en la URL para que el enlace se pueda compartir. */
+.fuente-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--erp-space-2);
+    margin-bottom: var(--erp-space-4);
+}
+.fuente-chips__label {
+    font-size: .76rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--erp-color-neutral-600);
+}
+.fuente-chips button {
+    border: 1px solid var(--erp-color-neutral-300);
+    background: var(--erp-color-neutral-0);
+    color: var(--erp-color-neutral-900);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font: inherit;
+    font-size: .82rem;
+    min-height: 32px;
+    cursor: pointer;
+}
+.fuente-chips button:hover { border-color: var(--erp-color-primary-600); }
+.fuente-chips button[aria-pressed="true"] {
+    background: var(--tk-blue-cta, #0b7ab0);
+    border-color: var(--tk-blue-cta, #0b7ab0);
+    color: #fff;
+}
+.fuente-chips button:focus-visible { outline: 3px solid var(--erp-color-primary-100); outline-offset: 2px; }
+.fuente-chips__busy { font-size: .8rem; color: var(--erp-color-neutral-600); }

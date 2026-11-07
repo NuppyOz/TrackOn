@@ -12,6 +12,7 @@ import {
     ShieldCheckIcon,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
+import { useEffect } from 'react';
 import { irA } from '../navigation';
 export type Seccion =
     | 'agenda'
@@ -27,6 +28,7 @@ export type Seccion =
     | 'cuadrillas'
     | 'comercial'
     | 'inteligencia'
+    | 'operacion'
     | 'operaciones'
     | 'field';
 interface SidebarProps {
@@ -37,7 +39,7 @@ interface SidebarProps {
     puedeAdministrar?: boolean;
     usuarioNombre?: string;
 }
-type Enlace = { id: Seccion; etiqueta: string; ruta?: string };
+type Enlace = { id: Seccion; etiqueta: string; ruta?: string; atajo?: boolean };
 export function Sidebar({
     seccion,
     onNavigate,
@@ -46,17 +48,29 @@ export function Sidebar({
     puedeAdministrar = false,
     usuarioNombre = 'TrackOn',
 }: Readonly<SidebarProps>) {
+    // Si el ítem activo queda fuera de la ventana, se desplaza el menú:
+    // el usuario tiene que ver dónde está parado.
+    useEffect(() => {
+        const activo = document.querySelector<HTMLElement>('.figma-sidebar .figma-nav-link.selected');
+        // jsdom no implementa scrollIntoView; en el navegador sí.
+        if (typeof activo?.scrollIntoView === 'function') activo.scrollIntoView({ block: 'nearest' });
+    });
+
+    // Un atajo lleva al mismo destino que un área de Inteligencia, pero no se
+    // marca como activo: el resaltado es del ítem dueño de la ruta.
+    function estaActivo(item: Enlace) {
+        if (item.atajo) return false;
+        if (!item.ruta) return seccion === item.id;
+        const actual = window.location.pathname;
+        return actual === item.ruta || actual.startsWith(`${item.ruta}/`);
+    }
     function enlaces(items: Enlace[]) {
         return items.map((item) => (
             <button
                 key={item.ruta ?? item.id}
                 type="button"
-                className={`figma-nav-link ${(item.ruta ? window.location.pathname === item.ruta : seccion === item.id) ? 'selected' : ''}`}
-                aria-current={
-                    (item.ruta ? window.location.pathname === item.ruta : seccion === item.id)
-                        ? 'page'
-                        : undefined
-                }
+                className={`figma-nav-link ${estaActivo(item) ? 'selected' : ''}`}
+                aria-current={estaActivo(item) ? 'page' : undefined}
                 onClick={() => {
                     onNavigate(item.id);
                     if (item.ruta) irA(item.ruta);
@@ -142,7 +156,10 @@ export function Sidebar({
                     )}
                 {grupo('Servicios y operaciones de campo', ToolboxIcon, [
                     ...(puedeGestionarCuadrillas
-                        ? [{ id: 'operaciones' as Seccion, etiqueta: 'Operaciones de servicio' }]
+                        ? [
+                              { id: 'operacion' as Seccion, etiqueta: 'Operación del día', ruta: '/operacion' },
+                              { id: 'operaciones' as Seccion, etiqueta: 'Operaciones de servicio' },
+                          ]
                         : []),
                     { id: 'ordenes', etiqueta: 'Órdenes de trabajo' },
                     { id: 'agenda', etiqueta: 'Agenda y planificación' },
@@ -161,7 +178,8 @@ export function Sidebar({
                               {
                                   id: 'inteligencia' as Seccion,
                                   etiqueta: 'Registros logísticos',
-                                  ruta: '/inteligencia/origen/logistica',
+                                  ruta: '/inteligencia/logistico/registros',
+                                  atajo: true,
                               },
                           ]
                         : []),
@@ -171,7 +189,8 @@ export function Sidebar({
                         {
                             id: 'inteligencia',
                             etiqueta: 'Registros financieros',
-                            ruta: '/inteligencia/origen/finanzas',
+                            ruta: '/inteligencia/financiero/registros',
+                            atajo: true,
                         },
                     ])}
                 {puedeGestionarCuadrillas &&
@@ -186,31 +205,10 @@ export function Sidebar({
                     ])}
                 {puedeGestionarCuadrillas &&
                     grupo('Inteligencia y control', ActivityIcon, [
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Indicadores comerciales',
-                            ruta: '/inteligencia/comercial',
-                        },
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Indicadores financieros',
-                            ruta: '/inteligencia/financiero',
-                        },
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Indicadores logísticos',
-                            ruta: '/inteligencia/logistico',
-                        },
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Indicadores de calidad',
-                            ruta: '/inteligencia/calidad',
-                        },
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Operación del día',
-                            ruta: '/inteligencia/operacion/resumen',
-                        },
+                        { id: 'inteligencia', etiqueta: 'Comercial', ruta: '/inteligencia/comercial' },
+                        { id: 'inteligencia', etiqueta: 'Financiero', ruta: '/inteligencia/financiero' },
+                        { id: 'inteligencia', etiqueta: 'Logístico', ruta: '/inteligencia/logistico' },
+                        { id: 'inteligencia', etiqueta: 'Calidad', ruta: '/inteligencia/calidad' },
                     ])}
             </div>
             <div className="erp-sidebar-account">

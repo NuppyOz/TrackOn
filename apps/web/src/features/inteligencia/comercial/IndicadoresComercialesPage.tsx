@@ -72,7 +72,7 @@ export function IndicadoresComercialesPage() {
   const summary = metrics.slice(0, 4).map(({ metric, label }) => ({ label, value: metricValue(metric), description: denominator(metric) }))
   const cols: DataTableColumn<DesgloseComercial>[] = [
     { key: 'tipo', header: 'Fuente', render: row => row.tipo === 'COTIZACION' ? 'Cotización' : row.tipo === 'VENTA' ? 'Venta' : 'Contrato' },
-    { key: 'referencia', header: 'Referencia', render: row => <a className="h5-link" href={row.tipo === 'CONTRATO' ? `/inteligencia/origen/contratos?contratoId=${row.id}` : `/comercial/cotizaciones-ventas?${row.tipo === 'VENTA' ? 'ventaId' : 'cotizacionId'}=${row.id}`}>{row.referencia || `#${row.id}`}</a> },
+    { key: 'referencia', header: 'Referencia', render: row => <a className="h5-link" href={row.tipo === 'CONTRATO' ? `/inteligencia/comercial/registros?fuente=contratos&contratoId=${row.id}` : `/comercial/cotizaciones-ventas?${row.tipo === 'VENTA' ? 'ventaId' : 'cotizacionId'}=${row.id}`}>{row.referencia || `#${row.id}`}</a> },
     { key: 'clienteId', header: 'Cliente', render: row => nombresClientes.get(row.clienteId) ?? `Cliente #${row.clienteId}` },
     { key: 'fecha', header: 'Fecha', render: row => formatDate(row.fecha) },
     { key: 'estado', header: 'Estado', render: row => row.estado ? <SemanticBadge label={row.estado} variant={row.estado === 'APROBADA' || row.estado === 'ACTIVA' ? 'success' : 'neutral'} /> : '—' },
@@ -84,7 +84,7 @@ export function IndicadoresComercialesPage() {
   const apply = () => { if (validRange) { const toIso = (value: string) => new Date(`${value}:00-06:00`).toISOString(); setRange({ desde: toIso(draftFrom), hasta: toIso(draftUntil) }); setPage(1) } }
   const status = board?.cobertura.estado
   return <section className="h5-dashboard" aria-labelledby="commercial-dashboard-title">
-    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores comerciales" description="Cotizaciones, ventas, clientes, contratos y renovaciones registradas en TrackOn." action={<nav className="h5-source-links" aria-label="Registros de origen comerciales"><a href="/comercial/cotizaciones-ventas">Cotizaciones y ventas</a><a href="/inteligencia/origen/contratos">Contratos</a></nav>} />
+    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores comerciales" description="Cotizaciones, ventas, clientes, contratos y renovaciones registradas en TrackOn." />
     <form className="h5-range" onSubmit={event => { event.preventDefault(); apply() }}><label>Desde<input type="datetime-local" value={draftFrom} onChange={event => setDraftFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" value={draftUntil} onChange={event => setDraftUntil(event.currentTarget.value)} /></label><Button variant="primary" type="submit" disabled={!validRange || loading}>Consultar</Button></form>
     {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="comercial" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h5-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}

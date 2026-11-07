@@ -1,4 +1,5 @@
 import { createIdempotencyKey } from '../../../../shared/idempotency'
+import { formatearMoneda } from '../../../../shared/formato'
 
 export const LIMITE_FINANZAS = 25
 export const textoError = (error: unknown) => error instanceof Error ? error.message : 'No se pudo completar la operación.'
@@ -12,4 +13,6 @@ export const dineroCentavos = (value: bigint) => {
   const abs = value < 0n ? -value : value
   return `${sign}${abs / 100n}.${String(abs % 100n).padStart(2, '0')}`
 }
-export const dinero = (value: string) => `C$ ${value}`
+// Tanda A: un solo formato de dinero en toda la sesión (`C$3,350.00`).
+// Antes esto devolvía `C$ 3350.00` y convivía con el formato del resumen.
+export const dinero = (value: string | number | null | undefined) => formatearMoneda(value)

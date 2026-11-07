@@ -27,3 +27,22 @@ export function formatearMonedaEntera(valor: number | string | null | undefined)
         ? new Intl.NumberFormat('es-NI', { style: 'currency', currency: 'NIO', maximumFractionDigits: 0 }).format(numero)
         : '—';
 }
+
+/**
+ * Importe con la precisión que traiga el dato.
+ *
+ * Los saldos valorizados del inventario llegan con hasta nueve decimales y el
+ * tablero los muestra tal cual: redondear ahí esconde justo la cifra que se
+ * está vigilando. El formato es el mismo (coma de miles, símbolo pegado).
+ */
+export function formatearMonedaPrecisa(valor: number | string | null | undefined): string {
+    if (valor === null || valor === undefined || valor === '') return '—';
+    const numero = typeof valor === 'number' ? valor : Number(valor);
+    if (!Number.isFinite(numero)) return '—';
+    return new Intl.NumberFormat('es-NI', {
+        style: 'currency',
+        currency: 'NIO',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 12,
+    }).format(numero);
+}

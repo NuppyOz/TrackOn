@@ -28,7 +28,7 @@ describe('Indicadores financieros FH06', () => {
     expect(screen.getByText(/Base: resultado C\$10\.00 ÷ facturación C\$80\.00/)).toBeTruthy()
     expect(screen.getByText(/2\.000 hora pendientes/)).toBeTruthy()
     const link = screen.getByRole('link', { name: 'FAC-042' })
-    expect(link.getAttribute('href')).toBe('/inteligencia/origen/finanzas?comprobanteId=42')
+    expect(link.getAttribute('href')).toBe('/inteligencia/financiero/registros?fuente=comprobantes&comprobanteId=42')
     expect(screen.getByText(/rentabilidad por cliente y por orden son vistas separadas/)).toBeTruthy()
     expect(screen.getByText(/1 costos sin asignación/)).toBeTruthy()
   })

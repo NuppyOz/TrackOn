@@ -1,3 +1,4 @@
+import { formatearMonedaPrecisa } from '../../../shared/formato'
 import { AsistenteIndicadores } from '../asistente'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../shared/ui'
@@ -29,14 +30,14 @@ function reasonText(reason: string | null) {
 }
 function metricValue(metric: TableroLogistico['metricas'][number] | undefined, key: string) {
   if (!metric || metric.valor === null) return 'No disponible'
-  return key === 'inventario_valorizado' ? `C$ ${String(metric.valor)}` : String(metric.valor)
+  return key === 'inventario_valorizado' ? formatearMonedaPrecisa(metric.valor) : String(metric.valor)
 }
 function rowValues(row: DesgloseLogistico) { return Object.values(row).filter(value => value !== null && value !== undefined).join(' ').toLocaleLowerCase('es-NI') }
 function rowArticleId(row: DesgloseLogistico) { return row.tipo === 'ARTICULO' ? row.id : row.tipo === 'HERRAMIENTA' ? null : row.articuloId }
 function sourceHref(row: DesgloseLogistico) {
-  if (row.tipo === 'ARTICULO') return `/inteligencia/origen/logistica?articuloId=${row.id}`
-  if (row.tipo === 'COMPRA_LINEA' || row.tipo === 'RECEPCION') return `/inteligencia/origen/logistica?compraId=${row.compraId}`
-  return `/inteligencia/origen/logistica?herramientaId=${row.id}`
+  if (row.tipo === 'ARTICULO') return `/inteligencia/logistico/registros?fuente=articulos&articuloId=${row.id}`
+  if (row.tipo === 'COMPRA_LINEA' || row.tipo === 'RECEPCION') return `/inteligencia/logistico/registros?fuente=compras&compraId=${row.compraId}`
+  return `/inteligencia/logistico/registros?fuente=herramientas&herramientaId=${row.id}`
 }
 function rowLabel(row: DesgloseLogistico) {
   if (row.tipo === 'ARTICULO') return `${row.codigo} · ${row.nombre}`
@@ -95,7 +96,6 @@ export function IndicadoresLogisticosPage() {
   if (loading) tableState = 'loading'
   else if (error) tableState = 'error'
   const shownArticles = article && !articles.some(item => item.id === article.id) ? [article, ...articles] : articles
-  const sourceTitle = <a className="h7-source-link" href="/inteligencia/origen/logistica">Registros de origen logístico</a>
   const columns: DataTableColumn<DesgloseLogistico>[] = [
     { key: 'tipo', header: 'Tipo', render: row => <SemanticBadge label={typeLabel[row.tipo]} variant={row.tipo === 'HERRAMIENTA' ? 'warning' : row.tipo === 'RECEPCION' ? 'success' : 'info'} icon={typeIcon[row.tipo]} /> },
     { key: 'registro', header: 'Registro', render: row => <a className="h7-source-link" href={sourceHref(row)}>{rowLabel(row)}</a> },
@@ -104,7 +104,7 @@ export function IndicadoresLogisticosPage() {
     { key: 'detalle', header: 'Detalle', render: row => row.tipo === 'ARTICULO' ? <span className="h7-article-detail"><span>Mínimo {row.minimo} {row.unidad} · valorizado C$ {row.valor}</span><span>Consumo neto del período {row.consumoNeto} {row.unidad}</span><span>Existencia media {row.stockMedio === null ? 'Sin base' : `${row.stockMedio} ${row.unidad}`} · rotación {row.rotacion === null ? 'Sin base' : `${row.rotacion} veces`}</span>{row.motivo && <small>{reasonText(row.motivo)}</small>}</span> : row.tipo === 'COMPRA_LINEA' ? <>Recibido {row.recibido} · cancelado {row.cancelado} · promesa {fechaHora(row.prometidaEn)}</> : row.tipo === 'RECEPCION' ? <>Prometida {fechaHora(row.prometidaEn)} · {row.tardia ? <SemanticBadge label="Recepción tardía" icon="!" variant="warning" /> : 'Dentro de fecha'}</> : <>Préstamo previsto hasta {fechaHora(row.previstaEn)}{row.vencida && <> · <SemanticBadge label="Vencida al corte" icon="!" variant="danger" /></>}</> },
   ]
   return <section className="inteligencia-scope" aria-label="Indicadores logísticos"><div className="h7-dashboard">
-    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores logísticos" description="Existencias, compromisos de compra, recepciones y herramientas al corte." action={sourceTitle} />
+    <ModuleHeader breadcrumb="Inteligencia" title="Indicadores logísticos" description="Existencias, compromisos de compra, recepciones y herramientas al corte." />
     <form className="h7-range" onSubmit={event => { event.preventDefault(); applyRange() }}><label>Desde<input type="datetime-local" step="1" value={from} onChange={event => setFrom(event.currentTarget.value)} /></label><label>Hasta<input type="datetime-local" step="1" value={until} onChange={event => setUntil(event.currentTarget.value)} /></label><Button type="submit" variant="primary" disabled={!validRange || loading}>Consultar</Button>{from && until && !validRange && <p className="h7-error" role="alert">El rango debe ser válido, Desde debe preceder a Hasta y no puede superar 366 días.</p>}</form>
     {board && !loading && !error && <AsistenteIndicadores key={`${board.desde}|${board.hasta}|${board.corteEvaluacion}`} area="logistico" desde={board.desde} hasta={board.hasta} />}
     {error && <p className="h7-error" role="alert">{error} <Button onClick={() => void load(range.desde, range.hasta)}>Reintentar</Button></p>}

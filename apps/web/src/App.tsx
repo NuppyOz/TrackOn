@@ -30,6 +30,7 @@ const ComercialWorkspace = lazy(() => import('./features/comercial/ComercialWork
 const InteligenciaWorkspace = lazy(() => import('./features/inteligencia/InteligenciaWorkspace').then(module => ({ default: module.InteligenciaWorkspace })));
 const OperacionesWorkspace = lazy(() => import('./features/operaciones/OperacionesWorkspace'));
 const FieldWorkspace = lazy(() => import('./features/field/FieldWorkspace'));
+const OperacionDelDia = lazy(() => import('./features/inteligencia/operativo/OperacionInteligentePage'));
 
 interface ModuleContentProps {
     seccion: Seccion;
@@ -50,7 +51,8 @@ function protectedContent(allowed: boolean, content: React.ReactNode) {
 function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadrillas, ruta, ordenNueva, puedeAdministrar }: Readonly<ModuleContentProps>) {
     switch (seccion) {
         case "comercial": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando Comercial…</p>}><ComercialWorkspace ruta={ruta} puedeAdministrar={puedeAdministrar} /></Suspense>);
-        case "inteligencia": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando IA y negocio…</p>}><InteligenciaWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense>);
+        case "inteligencia": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando inteligencia…</p>}><InteligenciaWorkspace ruta={ruta} /></Suspense>);
+        case "operacion": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando operación…</p>}><OperacionDelDia ruta={ruta} onOrden={onOrden} /></Suspense>);
         case "operaciones": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando operaciones…</p>}><OperacionesWorkspace ruta={ruta} puedeGestionar={puedeGestionar} onOrden={onOrden} /></Suspense>);
         case "field": return <Suspense fallback={<p role="status">Cargando TrackOn Field…</p>}><FieldWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense>;
         case "agenda": return <Agenda onOrden={onOrden} />;

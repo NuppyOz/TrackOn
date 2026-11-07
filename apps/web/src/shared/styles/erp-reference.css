@@ -838,3 +838,8 @@
   .figma-sidebar {visibility:hidden;}
   .figma-sidebar.sidebar--open {visibility:visible;}
 }
+
+/* Con los grupos abiertos el menú no cabe en una pantalla de 900 px de alto y
+   los últimos enlaces quedaban cortados: el aside recortaba en vez de desplazar. */
+.figma-sidebar { overflow-y: auto; overscroll-behavior: contain; }
+.figma-sidebar > * { flex-shrink: 0; }

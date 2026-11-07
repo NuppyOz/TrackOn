@@ -47,7 +47,7 @@ export function CoberturaPage() {
   ]
   const valid = Boolean(desde && hasta && managuaIso(desde) < managuaIso(hasta) && managuaIso(hasta) <= new Date().toISOString())
   return <section className="h5-source" aria-label="Cobertura de fuentes">
-    <ModuleHeader breadcrumb="Inteligencia / Registros de origen" title="Cobertura de fuentes" description="Declara el período verificado por área. El tablero compara esta cobertura con cada rango consultado." action={<Button variant="primary" onClick={() => startEdit(area)} disabled={open || saving}>Registrar cobertura</Button>} />
+    <ModuleHeader breadcrumb="Inteligencia / Cobertura" title="Cobertura de fuentes" description="Declara el período verificado por área. El tablero compara esta cobertura con cada rango consultado." action={<Button variant="primary" onClick={() => startEdit(area)} disabled={open || saving}>Registrar cobertura</Button>} />
     {error && <p role="alert" className="h5-error">{error} <Button onClick={() => void load()}>Reintentar</Button></p>}
     {!open && <DataTable columns={columns} rows={rows} getRowKey={row => row.area} pagination={{ pagina: 1, limite: 4, hayMas: false, onPageChange: () => undefined }} state={loading ? 'loading' : error ? 'error' : 'ready'} error={{ title: error }} onRetry={() => void load()} emptyTitle="No hay cobertura declarada" emptyDescription="Registra el período verificado para cada área." />}
     {!open && <section className="h5-subsection" aria-labelledby="coverage-history-title"><h2 id="coverage-history-title">Historial de cambios</h2>

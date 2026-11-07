@@ -118,7 +118,7 @@ export function GarantiasGerencialesPage({ onBusyChange }: Props) {
   }
 
   return <main className="calidad-source">
-    <ModuleHeader breadcrumb={<a href="/inteligencia/origen/calidad">Registros de origen de calidad</a>} title="Garantías" description="Registra y consulta la cobertura acordada para cada activo." action={!showForm && !selected ? <Button variant="primary" onClick={openCreate}>Nueva garantía</Button> : undefined} />
+    <ModuleHeader breadcrumb="Inteligencia / Calidad" title="Garantías" description="Registra y consulta la cobertura acordada para cada activo." action={!showForm && !selected ? <Button variant="primary" onClick={openCreate}>Nueva garantía</Button> : undefined} />
     {formSuccess && <p className="calidad-notice" role="status">{formSuccess}</p>}
     {showForm ? <section className="calidad-panel" aria-labelledby="garantia-form-title"><h2 id="garantia-form-title">Nueva garantía</h2>
       <p className="calidad-hint">La referencia del activo es una clave estable elegida por tu equipo; no se genera desde el nombre del equipo.</p>
