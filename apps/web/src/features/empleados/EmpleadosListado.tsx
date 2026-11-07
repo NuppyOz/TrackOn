@@ -1,7 +1,8 @@
 import type { PaginaEmpleados } from './empleados.api';
 import type { FiltrosEmpleados } from './empleados.types';
 import { nombreEmpleado } from './empleados.types';
-import { DataTable, TablePagination } from '../../shared/ui';
+import { DataTable, RowActions, TablePagination } from '../../shared/ui';
+import TableActionButton from '../../shared/TableActionButton';
 
 interface Props {
     datos: PaginaEmpleados;
@@ -47,8 +48,12 @@ export default function EmpleadosListado({ datos, filtros, cargando, onFiltros, 
                     <td data-label="Empleado">{nombreEmpleado(item)}</td>
                     <td data-label="Estado" data-align="center"><span className={`tk-employee-pill ${item.active ? 'is-active' : 'is-inactive'}`}>{item.active ? 'Activo' : 'Inactivo'}</span></td>
                     <td data-label="Habilitación técnica" data-align="center"><span className={`tk-employee-pill ${item.habilitadoComoTecnico ? 'is-tech' : 'is-neutral'}`}>{item.habilitadoComoTecnico ? 'Habilitado' : 'No habilitado'}</span></td>
-                    <td data-label="Acciones" data-align="actions" className="actions"><button type="button" className="tk-employee-link" onClick={() => onVer(item.id)}>Ver detalle</button>
-                        <button type="button" className="tk-employee-link" onClick={() => onEditar(item.id)}>Editar</button></td>
+                    <td data-label="Acciones" data-align="actions" className="tk-shared-actions-cell">
+                        <RowActions className="tk-table-actions" label={`Acciones de empleado ${item.codEmpleado}`}>
+                            <TableActionButton action="view" onClick={() => onVer(item.id)}>Ver detalle</TableActionButton>
+                            <TableActionButton action="edit" onClick={() => onEditar(item.id)}>Editar</TableActionButton>
+                        </RowActions>
+                    </td>
                 </tr>)}</tbody>
             </DataTable> : <div className="tk-employee-empty">
                 <strong>No hay empleados con estos filtros.</strong>
