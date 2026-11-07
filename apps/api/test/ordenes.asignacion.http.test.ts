@@ -18,7 +18,7 @@ const app = express();
 app.use(express.json());
 app.use('/api/ordenes', ordenesRouter);
 app.use(manageErrors);
-const datos = { cuadrillaId: 4, motivo: 'Asignación de cuadrilla' };
+const datos = { cuadrillaId: 4, motivo: 'Asignación de cuadrilla', fechaProgramada: '2026-11-09T10:30:00-06:00' };
 
 beforeEach(() => {
     vi.resetAllMocks();
@@ -51,6 +51,7 @@ describe('HTTP de asignaciones de órdenes', () => {
 
     it('rechaza body inválido y campos adicionales', async () => {
         expect((await request(app).post('/api/ordenes/8/asignacion').send({ ...datos, cuadrillaId: -1 })).status).toBe(400);
+        expect((await request(app).post('/api/ordenes/8/asignacion').send({ cuadrillaId: 4, motivo: datos.motivo })).status).toBe(400);
         expect((await request(app).post('/api/ordenes/8/asignacion').send({ ...datos, extra: true })).status).toBe(400);
         expect(mocks.asignar).not.toHaveBeenCalled();
     });
