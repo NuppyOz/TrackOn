@@ -242,6 +242,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                 )}</details>
                 {opciones.length > 0 && (
                         <form className="tk-order-next-step" onSubmit={event => void actualizarEstado(event)}>
+                            {mensaje?.tipo === 'error' && <p className="notice error" role="alert">{mensaje.texto}</p>}
                             <label>Motivo del cambio
                                 <textarea aria-label="Motivo del cambio" value={motivo}
                                     onChange={event => setMotivo(event.target.value)} minLength={3}
@@ -455,7 +456,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                     : operacion?.tipo === 'asignar' ? 'Selecciona la cuadrilla que atenderá esta orden.'
                         : operacion?.tipo === 'desactivar' ? 'Cancela esta orden indicando un motivo.' : 'Resumen de la solicitud y su avance.'}
                 ocupado={guardando} onClose={cerrarOperacion}>
-                {mensaje && <p className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</p>}
+                {mensaje && (!detalle || mensaje.tipo !== 'error') && <p className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</p>}
                 {operacion?.tipo === 'editar' && <EditarOrdenForm orden={operacion.orden} onBusy={setGuardando} onCancel={cerrarOperacion} onSaved={() => finalizarOperacion('Orden actualizada correctamente.')} />}
                 {operacion?.tipo === 'desactivar' && <DesactivarOrdenForm orden={operacion.orden} onBusy={setGuardando} onCancel={cerrarOperacion} onSaved={() => finalizarOperacion('Orden desactivada. Su estado es CANCELADA.')} />}
                 {operacion?.tipo === 'asignar' && <AsignarOrdenPanel orden={operacion.orden} onBusy={setGuardando} compacto onCancel={cerrarOperacion} onAssigned={() => finalizarOperacion('Orden asignada correctamente.')} />}

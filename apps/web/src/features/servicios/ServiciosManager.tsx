@@ -2,7 +2,8 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import { cambiarEstadoServicio, crearServicio, editarServicio, listarServicios } from "./servicios.api";
 import type { EstadoServicio, Servicio, ServicioInput } from "./servicios.types";
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
-import { DataTable, TablePagination } from '../../shared/ui';
+import { DataTable, RowActions, TablePagination } from '../../shared/ui';
+import TableActionButton from '../../shared/TableActionButton';
 import ConfirmDialog from '../../shared/ConfirmDialog';
 
 const vacio = { codigo: "", nombre: "", descripcion: "" };
@@ -143,15 +144,15 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                                         {servicio.activo ? "Activo" : "Inactivo"}
                                     </span>
                                 </td>
-                                <td data-label="Acciones" data-align="actions" className="actions">
+                                <td data-label="Acciones" data-align="actions" className="tk-shared-actions-cell">
                                     {puedeGestionar && (
-                                        <>
-                                            <button type="button" onClick={() => editar(servicio)}>Editar</button>
-
-                                            <button type="button" onClick={() => servicio.activo ? setConfirmacion(servicio) : void cambiarEstado(servicio)}>
+                                        <RowActions className="tk-table-actions" label={`Acciones de servicio ${servicio.codigo}`}>
+                                            <TableActionButton action="edit" onClick={() => editar(servicio)}>Editar</TableActionButton>
+                                            <TableActionButton action={servicio.activo ? 'deactivate' : 'activate'}
+                                                onClick={() => servicio.activo ? setConfirmacion(servicio) : void cambiarEstado(servicio)}>
                                                 {servicio.activo ? "Desactivar" : "Activar"}
-                                            </button>
-                                        </>
+                                            </TableActionButton>
+                                        </RowActions>
                                     )}
                                 </td>
                             </tr>

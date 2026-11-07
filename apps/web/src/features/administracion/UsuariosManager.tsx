@@ -4,7 +4,8 @@ import { listarEmpleados } from '../empleados/empleados.api';
 import type { EmpleadoResumen } from '../empleados/empleados.types';
 import type { Rol } from '../roles/roles.types';
 import AccesoForm from './AccesoForm';
-import { Button, DataTable, StatePanel, StatusBadge, TablePagination } from '../../shared/ui';
+import { Button, DataTable, RowActions, StatePanel, StatusBadge, TablePagination } from '../../shared/ui';
+import TableActionButton from '../../shared/TableActionButton';
 import { DEFAULT_PAGE_SIZE } from '../../shared/pagination';
 
 async function listarEmpleadosActivos() {
@@ -55,7 +56,10 @@ export default function UsuariosManager() {
         {cargando && <StatePanel type="loading" title="Cargando usuarios…" />}
         {formulario ? <AccesoForm usuario={editando} roles={roles} empleados={disponibles} onCancel={() => setFormulario(false)} onSaved={() => { setFormulario(false); setRecarga(valor => valor + 1); }} /> : <>
             <div className="filters"><input aria-label="Buscar usuario" placeholder="Usuario, identificador o empleado" value={buscar} onChange={event => { setBuscar(event.target.value); setPagina(1); }} /><select aria-label="Filtrar rol de usuario" value={rol} onChange={event => { setRol(event.target.value); setPagina(1); }}><option value="">Todos los roles</option>{roles.map(item => <option key={item.id} value={item.cod}>{item.nombre}</option>)}</select><Button onClick={() => { setBuscar(''); setRol(''); setPagina(1); }}>Limpiar</Button></div>
-            <div className="tk-dashboard-body"><div className="card list-card"><DataTable label="Usuarios"><thead><tr><th>Usuario</th><th>Empleado</th><th>Rol</th><th data-align="center">Estado</th><th data-align="actions">Acciones</th></tr></thead><tbody>{usuariosPagina.map(item => <tr key={item.id}><td data-label="Usuario">{item.identificador}</td><td data-label="Empleado">{item.empleado.persona?.firstName} {item.empleado.persona?.firstLastName}<small>{item.empleado.codEmpleado}</small></td><td data-label="Rol">{item.rol.nombre}</td><td data-label="Estado" data-align="center"><StatusBadge active={item.activo} /></td><td data-label="Acciones" data-align="actions" className="actions"><Button onClick={() => { setEditando(item); setFormulario(true); }}>Editar acceso</Button><Button onClick={() => setConfirmacion(item)}>{item.activo ? 'Desactivar' : 'Activar'}</Button></td></tr>)}</tbody></DataTable>
+            <div className="tk-dashboard-body"><div className="card list-card"><DataTable label="Usuarios"><thead><tr><th>Usuario</th><th>Empleado</th><th>Rol</th><th data-align="center">Estado</th><th data-align="actions">Acciones</th></tr></thead><tbody>{usuariosPagina.map(item => <tr key={item.id}><td data-label="Usuario">{item.identificador}</td><td data-label="Empleado">{item.empleado.persona?.firstName} {item.empleado.persona?.firstLastName}<small>{item.empleado.codEmpleado}</small></td><td data-label="Rol">{item.rol.nombre}</td><td data-label="Estado" data-align="center"><StatusBadge active={item.activo} /></td><td data-label="Acciones" data-align="actions" className="tk-shared-actions-cell"><RowActions className="tk-table-actions" label={`Acciones de usuario ${item.identificador}`}>
+                                <TableActionButton action="edit" onClick={() => { setEditando(item); setFormulario(true); }}>Editar acceso</TableActionButton>
+                                <TableActionButton action={item.activo ? 'deactivate' : 'activate'} onClick={() => setConfirmacion(item)}>{item.activo ? 'Desactivar' : 'Activar'}</TableActionButton>
+                            </RowActions></td></tr>)}</tbody></DataTable>
                 {visibles.length > 0 && <TablePagination pagina={pagina} limite={DEFAULT_PAGE_SIZE} total={visibles.length} cantidad={usuariosPagina.length} hayMas={pagina * DEFAULT_PAGE_SIZE < visibles.length} etiqueta="usuarios" onPagina={setPagina} />}
                 {!cargando && visibles.length === 0 && <StatePanel type="empty" title="Sin usuarios para estos filtros" />}</div><aside className="card tk-dashboard-list"><h3>Roles de acceso</h3>{roles.map(item => <div key={item.id}><strong>{item.nombre}</strong><p>{item.descripcion ?? item.cod}</p></div>)}</aside></div>
         </>}

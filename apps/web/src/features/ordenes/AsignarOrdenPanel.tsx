@@ -27,7 +27,11 @@ export default function AsignarOrdenPanel({ orden, onCancel, onAssigned, compact
     const [cuadrillas, setCuadrillas] = useState<Cuadrilla[]>([]);
     const [cuadrillaId, setCuadrillaId] = useState('');
     const [motivo, setMotivo] = useState('Asignación inicial de la orden.');
-    const [fecha, setFecha] = useState('');
+    const [fecha, setFecha] = useState(() => {
+        if (!orden.fechaProgramada) return '';
+        const fechaOrden = new Date(orden.fechaProgramada);
+        return new Date(fechaOrden.getTime() - fechaOrden.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    });
     const [cargando, setCargando] = useState(true);
     const [guardando, setGuardando] = useState(false);
     const [error, setError] = useState('');
@@ -46,7 +50,7 @@ export default function AsignarOrdenPanel({ orden, onCancel, onAssigned, compact
 
     async function guardar(event: SyntheticEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!seleccionada || guardando) return;
+        if (!seleccionada || !fecha || guardando) return;
         setGuardando(true);
         onBusy?.(true);
         setError('');
@@ -54,7 +58,7 @@ export default function AsignarOrdenPanel({ orden, onCancel, onAssigned, compact
             const resultado = await asignarOrden(orden.id, {
                 cuadrillaId: seleccionada.id,
                 motivo: motivo.trim(),
-                ...(fecha ? { fechaProgramada: new Date(fecha).toISOString() } : {}),
+                fechaProgramada: new Date(fecha).toISOString(),
             });
             onAssigned(resultado);
         } catch (fallo) {
@@ -83,8 +87,8 @@ export default function AsignarOrdenPanel({ orden, onCancel, onAssigned, compact
                         <label>Técnico líder
                             <input aria-label="Técnico líder" readOnly value={seleccionada ? nombreLider(seleccionada) : 'Selecciona una cuadrilla'} />
                         </label>
-                        <label>Programación
-                            <input aria-label="Programación de asignación" type="datetime-local" value={fecha}
+                        <label>Programación *
+                            <input aria-label="Programación de asignación" type="datetime-local" required value={fecha}
                                 onChange={event => setFecha(event.target.value)} />
                         </label>
                         <label className="tk-assign-wide">Indicaciones para la cuadrilla *
@@ -96,7 +100,7 @@ export default function AsignarOrdenPanel({ orden, onCancel, onAssigned, compact
                 )}
                 <div className="tk-assign-actions">
                     <button type="button" className="secondary-button" disabled={guardando} onClick={onCancel}>Cancelar</button>
-                    <button type="submit" className="primary-button" disabled={guardando || cargando || !seleccionada}>
+                    <button type="submit" className="primary-button" disabled={guardando || cargando || !seleccionada || !fecha}>
                         {guardando ? 'Asignando…' : 'Confirmar asignación'}
                     </button>
                 </div>

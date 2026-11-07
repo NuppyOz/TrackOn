@@ -35,7 +35,7 @@ export async function registrarAsignacion(ordenId: number, datos: AsignarOrdenIn
             data: {
                 estadoCodigo: "ASIGNADA",
                 version: { increment: 1 },
-                ...(datos.fechaProgramada ? { fechaProgramada: new Date(datos.fechaProgramada) } : {}),
+                fechaProgramada: new Date(datos.fechaProgramada),
             },
         });
         if (cambio.count !== 1) {

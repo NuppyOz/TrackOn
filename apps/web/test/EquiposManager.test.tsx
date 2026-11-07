@@ -43,7 +43,9 @@ function pagina(items: Equipo[] = [equipo], hayMas = false) {
 }
 
 async function esperarListado() {
-  await screen.findByRole('cell', { name: /EQ-042/ })
+  // Buscar el código visible del inventario, no el nombre accesible de la celda:
+  // la etiqueta del grupo de botones también menciona EQ-042.
+  await screen.findByText('EQ-042', { exact: true })
 }
 
 afterEach(() => {

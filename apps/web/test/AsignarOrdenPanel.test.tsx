@@ -45,11 +45,22 @@ describe('Asignación visual de órdenes según Figma', () => {
         render(<AsignarOrdenPanel orden={orden} onCancel={vi.fn()} onAssigned={onAssigned} />);
         await screen.findByRole('option', { name: 'Cuadrilla Norte' });
         fireEvent.change(screen.getByRole('combobox', { name: 'Cuadrilla para asignación' }), { target: { value: '4' } });
+        fireEvent.change(screen.getByLabelText('Programación de asignación'), { target: { value: '2026-11-09T10:30' } });
         fireEvent.click(screen.getByRole('button', { name: 'Confirmar asignación' }));
         await waitFor(() => expect(mocks.asignarOrden).toHaveBeenCalledWith(8, {
             cuadrillaId: 4, motivo: 'Asignación inicial de la orden.',
+            fechaProgramada: new Date('2026-11-09T10:30').toISOString(),
         }));
         await waitFor(() => expect(onAssigned).toHaveBeenCalledWith(expect.objectContaining({ estadoCodigo: 'ASIGNADA' })));
+    });
+
+    it('requiere fecha de programación antes de confirmar', async () => {
+        render(<AsignarOrdenPanel orden={orden} onCancel={vi.fn()} onAssigned={vi.fn()} />);
+        await screen.findByRole('option', { name: 'Cuadrilla Norte' });
+        fireEvent.change(screen.getByRole('combobox', { name: 'Cuadrilla para asignación' }), { target: { value: '4' } });
+        expect(screen.getByRole('button', { name: 'Confirmar asignación' })).toHaveProperty('disabled', true);
+        fireEvent.change(screen.getByLabelText('Programación de asignación'), { target: { value: '2026-11-09T10:30' } });
+        expect(screen.getByRole('button', { name: 'Confirmar asignación' })).toHaveProperty('disabled', false);
     });
 
     it('rechaza cuadrillas sin líder habilitado', async () => {
@@ -72,7 +83,9 @@ describe('Asignación visual de órdenes según Figma', () => {
         render(<AsignarOrdenPanel orden={orden} onCancel={vi.fn()} onAssigned={vi.fn()} />);
         await screen.findByRole('option', { name: 'Cuadrilla Norte' });
         fireEvent.change(screen.getByRole('combobox', { name: 'Cuadrilla para asignación' }), { target: { value: '4' } });
+        fireEvent.change(screen.getByLabelText('Programación de asignación'), { target: { value: '2026-11-09T10:30' } });
         fireEvent.click(screen.getByRole('button', { name: 'Confirmar asignación' }));
+        await waitFor(() => expect(mocks.asignarOrden).toHaveBeenCalledOnce());
         expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Orden modificada por otro administrador');
     });
 
