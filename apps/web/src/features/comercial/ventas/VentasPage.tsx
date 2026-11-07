@@ -7,7 +7,7 @@ import { listarVentas, obtenerVenta } from './ventas.api'
 import type { VentaDetalle, VentaResumen } from './ventas.types'
 import './ventas.css'
 
-const LIMITE = 25
+const LIMITE = 10
 const money = (value: string) => {
   const [whole, fraction = ''] = value.split('.')
   return `C$ ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction.padEnd(2, '0')}`

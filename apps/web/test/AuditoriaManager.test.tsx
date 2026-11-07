@@ -23,9 +23,9 @@ describe('Auditoría', () => {
     it('pagina y actualiza los resultados', async () => {
         render(<AuditoriaManager />); await screen.findByText('ana.admin');
         fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
-        await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith('/api/auditoria?pagina=2&limite=25'));
+        await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith('/api/auditoria?pagina=2&limite=10'));
         fireEvent.click(screen.getByRole('button', { name: 'Anterior' }));
-        await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith('/api/auditoria?pagina=1&limite=25'));
+        await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith('/api/auditoria?pagina=1&limite=10'));
         fireEvent.click(screen.getByRole('button', { name: 'Actualizar' }));
         await waitFor(() => expect(mocks.api.mock.calls.length).toBeGreaterThan(2));
     });

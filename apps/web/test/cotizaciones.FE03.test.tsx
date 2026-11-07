@@ -45,7 +45,7 @@ describe('CotizacionesPage FE03', () => {
   it('consulta tabla, búsqueda, estado y páginas contra la API', async () => {
     render(<CotizacionesPage />)
     expect(await screen.findByRole('cell', { name: 'Taller Central' })).toBeTruthy()
-    expect(mocks.listarCotizaciones).toHaveBeenCalledWith({ pagina: 1, limite: 25, q: undefined, estado: undefined, clienteId: undefined, sortBy: 'id', sortDir: 'desc' })
+    expect(mocks.listarCotizaciones).toHaveBeenCalledWith({ pagina: 1, limite: 10, q: undefined, estado: undefined, clienteId: undefined, sortBy: 'id', sortDir: 'desc' })
     fireEvent.change(screen.getByRole('searchbox', { name: 'Buscar' }), { target: { value: 'Central' } })
     await waitFor(() => expect(mocks.listarCotizaciones).toHaveBeenCalledWith(expect.objectContaining({ q: 'Central', pagina: 1 })))
     fireEvent.change(screen.getByLabelText('Filtrar por estado'), { target: { value: 'BORRADOR' } })
@@ -141,6 +141,6 @@ describe('CotizacionesPage FE03', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Convertir a venta' }))
     expect(await screen.findByText('Venta registrada. La facturación se registra por separado.')).toBeTruthy()
     expect(mocks.convertirCotizacionEnVenta).toHaveBeenCalledWith(41, 2, 'uuid-intencion')
-    expect(screen.getByRole('button', { name: 'Ventas' }).getAttribute('aria-current')).toBe('page')
+    expect((screen.getByLabelText('Vista comercial') as HTMLSelectElement).value).toBe('ventas')
   })
 })

@@ -12,7 +12,7 @@ export default function Agenda({ onOrden }: Readonly<{ onOrden: (id: number) => 
     const [recarga, setRecarga] = useState(0);
     useEffect(() => {
         let vigente = true;
-        void listarOrdenes({ estado: '', buscar: '', pagina, limite: 25, desde: dia, hasta: dia })
+        void listarOrdenes({ estado: '', buscar: '', pagina, limite: 10, desde: dia, hasta: dia })
             .then(datos => { if (vigente) { setDatos(datos); setError(null); } })
             .catch(error => { if (vigente) setError(error instanceof Error ? error.message : 'No se pudo cargar la agenda.'); });
         return () => { vigente = false; };

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { listarClientes } from '../../../features/clientes/clientes.api';
 import { nombreCliente, type Cliente } from '../../../features/clientes/clientes.types';
 import { Button, StatePanel, StatusBadge } from '../../../shared/ui';
-import { ModuleHeader } from '../../erp-ui/components';
+import { ModuleHeader, SectionSelector } from '../../erp-ui/components';
 import { NotasDocumentosPanel } from './NotasDocumentosPanel';
 import { PerfilContactosPanel } from './PerfilContactosPanel';
 import { HistorialComercialPanel } from './HistorialComercialPanel';
@@ -41,9 +41,11 @@ export function CrmPage() {
       </section>
       {cliente && <section className="crm-detail" aria-label={`Ficha comercial de ${nombreCliente(cliente)}`}>
         <header className="crm-detail__header"><div><p className="crm-detail__code">{cliente.codigo}</p><h2>{nombreCliente(cliente)}</h2><p className="crm-detail__code">Identificación: {cliente.organizacion?.identificacionTributaria || cliente.persona?.numberDocument || 'No registrada'}</p></div><StatusBadge active={cliente.activo} /></header>
-        <nav className="crm-tabs" aria-label="Información comercial">
-          {([['resumen', 'Resumen'], ['contactos', 'Contactos'], ['notas', 'Notas'], ['documentos', 'Documentos'], ['historial', 'Historial comercial']] as const).map(([id, label]) => <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} onClick={() => setTab(id)}>{label}</button>)}
-        </nav>
+        <SectionSelector label="Información del cliente" value={tab} onChange={value => setTab(value as Tab)} options={[
+          { value: 'resumen', label: 'Resumen' }, { value: 'contactos', label: 'Contactos' },
+          { value: 'notas', label: 'Notas' }, { value: 'documentos', label: 'Documentos' },
+          { value: 'historial', label: 'Historial comercial' },
+        ]} />
         {tab === 'resumen' && <PerfilContactosPanel key={`${cliente.id}-perfil`} cliente={cliente} seccion="perfil" />}
         {tab === 'contactos' && <PerfilContactosPanel key={`${cliente.id}-contactos`} cliente={cliente} seccion="contactos" />}
         {tab === 'notas' && <NotasDocumentosPanel key={`${cliente.id}-notas`} clienteId={cliente.id} activo={cliente.activo} seccion="notas" />}

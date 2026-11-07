@@ -12,8 +12,9 @@ import EditarOrdenForm from './EditarOrdenForm';
 import DesactivarOrdenForm from './DesactivarOrdenForm';
 import OrdenAcciones from './OrdenAcciones';
 import { permiteAccionOrden, type AccionOrden } from './ordenes.acciones';
+import { WorkflowStepper } from '../erp-ui/components';
 
-const filtrosBase: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 25 };
+const filtrosBase: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 10 };
 const estados: EstadoOrden[] = [
     'BORRADOR', 'PENDIENTE', 'ASIGNADA', 'EN_EJECUCION', 'EN_REVISION', 'CERRADA', 'CANCELADA',
 ];
@@ -209,12 +210,14 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
         }
     }
 
-    function cambiarFiltroEstado(estado: EstadoOrden | '') {
-        filtrar({ ...filtros, estado });
-    }
-
     function contenidoDetalle() {
         if (!detalle) return null;
+        const estadoProgreso = detalle.estadoCodigo === 'CANCELADA'
+            ? [...detalle.historial].reverse().find(item => item.estadoNuevo !== 'CANCELADA')?.estadoNuevo ?? 'BORRADOR'
+            : detalle.estadoCodigo;
+        const etapaActual: Record<EstadoOrden, number> = {
+            BORRADOR: 0, PENDIENTE: 0, ASIGNADA: 1, EN_EJECUCION: 2, EN_REVISION: 3, CERRADA: 4, CANCELADA: 0,
+        };
         const opciones = (siguientes[detalle.estadoCodigo] ?? []).filter(estado => puedeGestionar || estado === 'EN_EJECUCION' || estado === 'EN_REVISION');
         const asignacion = detalle.asignaciones?.[0];
         const etiquetaCambio = (estado: EstadoOrden) => estado === 'PENDIENTE' ? 'Publicar orden'
@@ -222,6 +225,14 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                 : detalle.estadoCodigo === 'EN_REVISION' ? 'Devolver a ejecución' : 'Iniciar trabajo';
         return (
             <section className="tk-order-overview" aria-label="Resumen de la orden">
+                <WorkflowStepper activeIndex={etapaActual[estadoProgreso as EstadoOrden]} steps={[
+                    { id: 'solicitud', label: 'Solicitud' },
+                    { id: 'diagnostico', label: 'Diagnóstico' },
+                    { id: 'ejecucion', label: 'Ejecución' },
+                    { id: 'evidencias', label: 'Evidencias' },
+                    { id: 'cierre', label: 'Cierre' },
+                ]} />
+                {detalle.estadoCodigo === 'CANCELADA' && <p className="tk-order-cancelled-state">Orden cancelada</p>}
                 <div className="tk-order-state"><span className="tk-status-badge" data-status={detalle.estadoCodigo}>{nombreEstado(detalle.estadoCodigo)}</span><p>{indicacionesEstado[detalle.estadoCodigo]}</p></div>
                 <dl className="tk-order-summary">
                     <div><dt>Cliente</dt><dd>{detalle.clienteNombreRegistrado}</dd></div>
@@ -407,19 +418,6 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                             <input aria-label="Buscar órdenes" placeholder="Buscar cliente o solicitud"
                                 value={filtros.buscar}
                                 maxLength={150} onChange={event => filtrar({ ...filtros, buscar: event.target.value }, true)} />
-                        </div>
-                        <div className="tk-status-tabs" role="group" aria-label="Filtros rápidos de estado">
-                            {([
-                                { codigo: '', titulo: 'Todas' },
-                                { codigo: 'ASIGNADA', titulo: 'Asignadas' },
-                                { codigo: 'EN_EJECUCION', titulo: 'En ejecución' },
-                                { codigo: 'EN_REVISION', titulo: 'En revisión' },
-                                { codigo: 'CERRADA', titulo: 'Cerradas' },
-                            ] as const).map(item => (
-                                <button key={item.codigo} type="button" className="tk-status-tab"
-                                    aria-pressed={filtros.estado === item.codigo}
-                                    onClick={() => cambiarFiltroEstado(item.codigo)}>{item.titulo}</button>
-                            ))}
                         </div>
                         <select className="tk-advanced-state" aria-label="Filtrar estado de orden" value={filtros.estado}
                             onChange={event => filtrar({ ...filtros, estado: event.target.value as EstadoOrden | '' })}>

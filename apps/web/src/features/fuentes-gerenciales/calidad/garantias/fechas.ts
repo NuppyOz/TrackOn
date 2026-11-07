@@ -1,6 +1,6 @@
 import { createIdempotencyKey } from '../../../../shared/idempotency'
 
-export const LIMITE_CALIDAD = 25
+export const LIMITE_CALIDAD = 10
 export function managuaAhora(): string {
   const instant = new Date()
   return new Date(instant.getTime() - 6 * 60 * 60 * 1000).toISOString().slice(0, 16)

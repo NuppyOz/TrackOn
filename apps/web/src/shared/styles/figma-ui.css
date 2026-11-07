@@ -47,11 +47,11 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .figma-help-card small { font-size:10px; line-height:1.35; color:#d6d0e2; }
 .figma-help-card span { font-size:10px; color:#6cc4f0; font-weight:600; }
 .figma-version { padding:12px 6px 0; font-size:9px; border-top:1px solid #554b6c; color:#b5accd; }
-.workspace { padding:28px 30px 50px; min-width:0; overflow-x:hidden; }
+.workspace { padding:var(--tk-space-6) var(--tk-space-8) 48px; min-width:0; overflow-x:hidden; }
 .section-heading { align-items:flex-start; gap:16px; }
-.section-heading h2 { font-family:inherit; color:var(--tk-purple); font-weight:700; font-size:26px; letter-spacing:-.025em; }
-.section-heading p { font-size:13px; line-height:1.45; }
-.primary-button, .secondary-button { min-height:38px; font-size:12px; border-radius:6px; }
+.section-heading h2 { font-family:inherit; color:var(--tk-purple); font-weight:700; font-size:var(--tk-font-page-title); letter-spacing:-.025em; }
+.section-heading p { font-size:var(--tk-font-body); line-height:var(--tk-line-body); }
+.primary-button, .secondary-button { min-height:var(--tk-control-height); font-size:var(--tk-font-body); border-radius:6px; }
 .primary-button { background:var(--tk-blue); border-color:var(--tk-blue); color:#fff; }
 .primary-button:hover { background:var(--tk-blue-dark); color:#fff; }
 .secondary-button { color:var(--tk-purple); background:var(--tk-soft-purple); border-color:var(--tk-border); }
@@ -67,7 +67,7 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 /* Lista de órdenes — Desktop / Administración / Órdenes (Figma 95:1465) */
 .tk-orders { max-width:1320px; width:100%; margin:0 auto; }
 .tk-orders .tk-orders-heading { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:22px; }
-.tk-orders .tk-orders-heading h2 { margin:0 0 7px; font-size:28px; line-height:1.2; }
+.tk-orders .tk-orders-heading h2 { margin:0 0 7px; font-size:var(--tk-font-page-title); line-height:var(--tk-line-heading); }
 .tk-orders .tk-orders-heading p { margin:0; color:var(--tk-muted); font-size:13px; }
 .tk-orders .tk-breadcrumb { color:var(--tk-muted); font-size:11px; margin:0 0 10px; }
 .tk-orders .tk-breadcrumb span { color:var(--tk-purple); font-weight:600; }
@@ -76,9 +76,6 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
 .tk-orders .tk-search-group { display:flex; align-items:center; flex:1 1 300px; min-width:230px; max-width:430px; position:relative; }
 .tk-orders .tk-search-group input { width:100%; padding:0 12px 0 34px; height:40px; border:1px solid #dbdbdb; border-radius:6px; background:#fff; font-size:12px; color:var(--tk-text); }
 .tk-orders .tk-search-group::before { content:'⌕'; color:#8c8992; position:absolute; left:12px; font-size:20px; line-height:1; pointer-events:none; }
-.tk-orders .tk-status-tabs { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
-.tk-orders .tk-status-tab { border:1px solid var(--tk-border); background:#fff; color:var(--tk-muted); font-size:10px; padding:7px 11px; border-radius:99px; white-space:nowrap; line-height:1.2; font-weight:600; }
-.tk-orders .tk-status-tab[aria-pressed="true"] { background:var(--tk-purple); color:#fff; border-color:var(--tk-purple); }
 .tk-orders .tk-search-submit { background:#fff; border:1px solid var(--tk-border); color:var(--tk-purple); padding:0 14px; height:40px; }
 .tk-orders .tk-advanced-state { min-width:120px; width:auto; max-width:165px; height:40px; font-size:11px; background:#fff; border:1px solid var(--tk-border); border-radius:6px; padding:0 10px; color:var(--tk-muted); }
 .tk-orders .tk-table-card { overflow:hidden; }
@@ -139,7 +136,6 @@ body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSyst
     .figma-brand-tagline, .figma-brand-identity small { display:none; }
     .tk-orders .tk-filters { align-items:stretch; }
     .tk-orders .tk-search-group { max-width:none; }
-    .tk-orders .tk-status-tabs { order:3; width:100%; }
     .tk-orders .tk-order-form-layout { grid-template-columns:1fr; }
 }
 @media (max-width: 750px) {

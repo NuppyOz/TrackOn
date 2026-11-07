@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { listarClientes } from '../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../clientes/clientes.types'
 import { ActionMenu, Button } from '../../../shared/ui'
-import { DataTable, type DataTableColumn, type SortDirection } from '../../erp-ui/components'
+import { DataTable, SectionSelector, type DataTableColumn, type SortDirection } from '../../erp-ui/components'
 import { agregarNotaCotizacion, actualizarCotizacion, crearCotizacion, decidirCotizacion, enviarCotizacion, listarCotizaciones, obtenerCotizacion } from './cotizaciones.api'
 import { CotizacionDetalle } from './CotizacionDetalle'
 import { EstadoCotizacionBadge } from './EstadoCotizacionBadge'
@@ -13,7 +13,7 @@ import { VentasPage } from '../ventas/VentasPage'
 import type { VentaResumen } from '../ventas/ventas.types'
 import './cotizaciones.css'
 
-const LIMITE = 25
+const LIMITE = 10
 const money = (value: string) => {
   const [whole, fraction = ''] = value.split('.')
   return `C$ ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction.padEnd(2, '0')}`
@@ -175,7 +175,9 @@ export function CotizacionesPage() {
   } else content = <p role="status">Selecciona una cotización.</p>
 
   return <div className="comercial-scope cotizaciones"><header className="cotizaciones__header"><div><p>Comercial / Cotizaciones y ventas</p><h1>Cotizaciones y ventas</h1><span>Gestiona cotizaciones y consulta ventas confirmadas.</span></div>{view === 'list' && sectionTab === 'cotizaciones' && <Button variant="primary" disabled={busy} onClick={startNew}>Nueva cotización</Button>}</header>
-    <nav className="cotizaciones__tabs" aria-label="Cotizaciones y ventas"><button type="button" aria-current={sectionTab === 'cotizaciones' ? 'page' : undefined} disabled={busy} onClick={() => { setSectionTab('cotizaciones'); setVentaInicialId(null) }}>Cotizaciones</button><button type="button" aria-current={sectionTab === 'ventas' ? 'page' : undefined} disabled={busy} onClick={() => { setSectionTab('ventas'); setVentaInicialId(null) }}>Ventas</button></nav>
+    <SectionSelector label="Vista comercial" value={sectionTab} disabled={busy} onChange={value => { setSectionTab(value as 'cotizaciones' | 'ventas'); setVentaInicialId(null) }} options={[
+      { value: 'cotizaciones', label: 'Cotizaciones' }, { value: 'ventas', label: 'Ventas' },
+    ]} />
     {notice && <div role="status" className="cotizaciones__notice">{notice}</div>}{error && <p role="alert" className="cotizaciones__error">{error}</p>}{sectionTab === 'ventas' ? <VentasPage ventaInicialId={ventaInicialId ?? undefined} /> : content}
   </div>
 }

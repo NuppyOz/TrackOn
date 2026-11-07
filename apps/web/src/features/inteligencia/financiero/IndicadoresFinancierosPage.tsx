@@ -69,7 +69,7 @@ export function IndicadoresFinancierosPage() {
   }, [])
   useEffect(() => { let active = true; queueMicrotask(() => { if (active) void load(range.desde, range.hasta) }); return () => { active = false; reqId.current += 1 } }, [load, range])
   const rows = useMemo(() => (board?.desgloses ?? []).filter(row => (kind === 'TODOS' || row.tipo === kind) && (row.tipo !== 'RENTABILIDAD' || group === 'TODOS' || row.agrupacion === group) && rowSearch(row).includes(query.toLocaleLowerCase())), [board, kind, group, query])
-  const pageSize = 25
+  const pageSize = 10
   const shown = rows.slice((page - 1) * pageSize, page * pageSize)
   const metrics = metricDefs.map(([key, label]) => ({ key, label, metric: board?.metricas.find(item => item.clave === key) }))
   const missing = board ? metrics.filter(item => !item.metric).map(item => item.label) : []

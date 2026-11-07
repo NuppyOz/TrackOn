@@ -22,9 +22,10 @@ describe('contenedores de fuentes gerenciales', () => {
   it('navega por todas las secciones financieras', () => {
     render(<FinanzasFuentesPage />)
     expect(screen.getByText('panel comprobantes')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Servicios realizados' })); expect(screen.getByText('panel facturables')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Cobros' })); expect(screen.getByText('panel cobros')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Costos' })); expect(screen.getByText('panel costos')).toBeTruthy()
+    const selector = screen.getByLabelText('Tipo de registro')
+    fireEvent.change(selector, { target: { value: 'facturables' } }); expect(screen.getByText('panel facturables')).toBeTruthy()
+    fireEvent.change(selector, { target: { value: 'cobros' } }); expect(screen.getByText('panel cobros')).toBeTruthy()
+    fireEvent.change(selector, { target: { value: 'costos' } }); expect(screen.getByText('panel costos')).toBeTruthy()
   })
 
   it('selecciona la sección financiera indicada por query string', () => {
@@ -37,9 +38,10 @@ describe('contenedores de fuentes gerenciales', () => {
   it('navega por todas las secciones logísticas', () => {
     render(<LogisticaFuentesPage />)
     expect(screen.getByText('panel artículos')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Movimientos' })); expect(screen.getByText('panel movimientos')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Compras' })); expect(screen.getByText('panel compras')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Herramientas' })); expect(screen.getByText('panel herramientas')).toBeTruthy()
+    const selector = screen.getByLabelText('Tipo de registro')
+    fireEvent.change(selector, { target: { value: 'movimientos' } }); expect(screen.getByText('panel movimientos')).toBeTruthy()
+    fireEvent.change(selector, { target: { value: 'compras' } }); expect(screen.getByText('panel compras')).toBeTruthy()
+    fireEvent.change(selector, { target: { value: 'herramientas' } }); expect(screen.getByText('panel herramientas')).toBeTruthy()
   })
 
   it('selecciona movimientos desde la URL', () => {
@@ -51,8 +53,9 @@ describe('contenedores de fuentes gerenciales', () => {
   it('navega por las secciones de calidad y respeta sus enlaces directos', () => {
     render(<CalidadFuentesPage />)
     expect(screen.getByText('panel garantías')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Reclamos y calidad' })); expect(screen.getByText('panel casos')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Acciones correctivas' })); expect(screen.getByText('panel correctivas')).toBeTruthy()
+    const selector = screen.getByLabelText('Tipo de registro')
+    fireEvent.change(selector, { target: { value: 'casos' } }); expect(screen.getByText('panel casos')).toBeTruthy()
+    fireEvent.change(selector, { target: { value: 'correctivas' } }); expect(screen.getByText('panel correctivas')).toBeTruthy()
     cleanup()
     window.history.replaceState({}, '', '/?casoId=9')
     render(<CalidadFuentesPage />); expect(screen.getByText('panel casos')).toBeTruthy()

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Header } from "./Header";
 import { Sidebar, type Seccion } from "./Sidebar";
 
@@ -46,6 +46,38 @@ export function MainLayout({
     accionesHeader,
 }: Readonly<MainLayoutProps>) {
     const botonMenu = useRef<HTMLButtonElement>(null);
+    const [esMovil, setEsMovil] = useState(() => typeof window.matchMedia === 'function'
+        ? window.matchMedia('(max-width: 1199px)').matches
+        : window.innerWidth <= 1199);
+    const [sidebarColapsado, setSidebarColapsado] = useState(false);
+
+    useEffect(() => {
+        if (typeof window.matchMedia !== 'function') {
+            const actualizarAncho = () => {
+                const movil = window.innerWidth <= 1199;
+                setEsMovil(movil);
+                if (!movil) onCloseMenu();
+            };
+            window.addEventListener('resize', actualizarAncho);
+            return () => window.removeEventListener('resize', actualizarAncho);
+        }
+        const consulta = window.matchMedia('(max-width: 1199px)');
+        const actualizar = () => {
+            setEsMovil(consulta.matches);
+            if (!consulta.matches) onCloseMenu();
+        };
+        consulta.addEventListener('change', actualizar);
+        return () => consulta.removeEventListener('change', actualizar);
+    }, [onCloseMenu]);
+
+    function alternarNavegacion() {
+        if (esMovil) {
+            if (menuAbierto) onCloseMenu();
+            else onOpenMenu();
+            return;
+        }
+        setSidebarColapsado(valor => !valor);
+    }
 
     useEffect(() => {
         if (!menuAbierto) return;
@@ -61,12 +93,15 @@ export function MainLayout({
     }, [menuAbierto, onCloseMenu]);
 
     return (
-        <div className="app-shell">
+        <div className={`app-shell${sidebarColapsado ? ' sidebar-collapsed' : ''}`}>
             <Header
                 usuarioNombre={usuarioNombre}
                 onLogout={onLogout}
-                onOpenMenu={onOpenMenu}
-                menuAbierto={menuAbierto}
+                onOpenMenu={alternarNavegacion}
+                menuAbierto={esMovil ? menuAbierto : !sidebarColapsado}
+                etiquetaNavegacion={esMovil
+                    ? menuAbierto ? 'Cerrar navegación' : 'Abrir navegación'
+                    : sidebarColapsado ? 'Expandir navegación' : 'Contraer navegación'}
                 toggleRef={botonMenu}
                 acciones={accionesHeader}
             />
@@ -76,7 +111,6 @@ export function MainLayout({
             )}
             <Sidebar
                 seccion={seccion}
-                usuarioNombre={usuarioNombre}
                 abierto={menuAbierto}
                 onNavigate={onNavigate}
                 puedeGestionarCuadrillas={puedeGestionarCuadrillas}
@@ -84,7 +118,7 @@ export function MainLayout({
             />
             <main className="workspace">
                 <h1 className="sr-only">{etiquetas[seccion]}</h1>
-                {seccion !== "ordenes" && seccion !== "dashboard" && (
+                {!['ordenes', 'dashboard', 'comercial', 'inteligencia'].includes(seccion) && (
                     <div className="tk-context-breadcrumb">
                         {['agenda', 'operaciones', 'field'].includes(seccion) ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : ['comercial', 'inteligencia'].includes(seccion) ? 'TrackOn' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
                     </div>

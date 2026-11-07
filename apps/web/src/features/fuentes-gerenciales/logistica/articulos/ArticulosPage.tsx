@@ -9,7 +9,7 @@ import { listarMovimientos } from '../movimientos/movimientos.api'
 import type { Movimiento } from '../movimientos/movimientos.types'
 import './logistica.css'
 
-const LIMITE = 25
+const LIMITE = 10
 const intentKey = () => globalThis.crypto.randomUUID()
 const errorMessage = (cause: unknown) => cause instanceof Error ? cause.message : 'No se pudo completar la operación.'
 const groupDecimal = (value: string) => {

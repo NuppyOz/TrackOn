@@ -1,7 +1,7 @@
 /* TrackOn · Empleados: se conservan los tokens visuales de Figma High Fidelity. */
 .tk-employees { width: 100%; max-width: 1320px; margin: 0 auto; min-width: 0; color: var(--tk-text, #202124); }
 .tk-employee-heading { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin: 2px 0 24px; }
-.tk-employee-heading h2 { color: var(--tk-purple, #2f254d); font-size: 30px; font-weight: 700; line-height: 1.2; margin: 6px 0; }
+.tk-employee-heading h2 { color: var(--tk-purple, #2f254d); font-size: var(--tk-font-page-title); font-weight: 700; line-height: var(--tk-line-heading); margin: 6px 0; }
 .tk-employee-heading p { font-size: 13px; color: var(--tk-muted, #454b55); margin: 0; }
 .tk-employee-heading .tk-employee-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .06em; }
 .tk-employees button { cursor: pointer; font-family: inherit; font-weight: 600; }

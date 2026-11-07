@@ -33,7 +33,7 @@ export const portalApi = {
     me: () => request<PortalSesion>("/me"),
     logout: () => request<void>("/logout", { method: "POST" }),
     cotizaciones: (pagina = 1, estado?: string) => {
-        const q = new URLSearchParams({ pagina: String(pagina), limite: "25" });
+        const q = new URLSearchParams({ pagina: String(pagina), limite: "10" });
         if (estado) q.set("estado", estado);
         return request<PaginaCotizaciones>(`/cotizaciones?${q}`);
     },

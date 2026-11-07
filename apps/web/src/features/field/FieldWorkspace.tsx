@@ -3,6 +3,7 @@ import Agenda from '../agenda/Agenda';
 import { listarOrdenes } from '../ordenes/ordenes.api';
 import type { EstadoOrden, OrdenResumen } from '../ordenes/ordenes.types';
 import { irA } from '../../shared/navigation';
+import { SectionSelector } from '../erp-ui/components';
 import './field.css';
 
 type SeccionField = 'registro' | 'inspeccion' | 'creacion' | 'instalacion' | 'inicio-trabajo' |
@@ -59,10 +60,9 @@ export default function FieldWorkspace({ ruta, onOrden }: Readonly<{ ruta: strin
 
     return <section className="field-scope" aria-labelledby="field-titulo">
         <header className="field-header"><div><p>Operación móvil</p><h2 id="field-titulo">TrackOn Field</h2><span>{activa.ayuda}</span></div></header>
-        <nav className="field-nav" aria-label="Submódulos de TrackOn Field">
-            {secciones.map(item => <button key={item.id} type="button" aria-current={item.id === seccion ? 'page' : undefined}
-                onClick={() => { setCargando(true); irA(`/field/${item.id}`); }}>{item.etiqueta}</button>)}
-        </nav>
+        <SectionSelector label="Área de trabajo" value={seccion}
+            options={secciones.map(item => ({ value: item.id, label: item.etiqueta }))}
+            onChange={value => { setCargando(true); irA(`/field/${value}`); }} />
         {seccion === 'calendario' ? <Agenda onOrden={onOrden} /> : <div className="field-card">
             <div className="field-card-heading"><div><h3>{activa.etiqueta}</h3><p>{activa.ayuda}</p></div>
                 <button type="button" className="secondary-button" disabled={cargando} onClick={() => { setCargando(true); setRecarga(valor => valor + 1); }}>Actualizar</button></div>

@@ -1,17 +1,15 @@
 import UsuariosManager from './UsuariosManager';
 import RolesPermisos from './RolesPermisos';
 import { irA } from '../../shared/navigation';
+import { SectionSelector } from '../erp-ui/components';
 import './administracion.css';
 
 export default function AdministracionWorkspace({ ruta }: Readonly<{ ruta: string }>) {
     const seccion = ruta.split('/').filter(Boolean)[1] === 'roles' ? 'roles' : 'usuarios';
     return <section className="administracion-workspace" aria-label="Administración del sistema">
-        <nav className="administracion-nav" aria-label="Opciones de administración">
-            <button type="button" aria-current={seccion === 'usuarios' ? 'page' : undefined}
-                onClick={() => irA('/administracion/usuarios')}>Gestión de usuarios</button>
-            <button type="button" aria-current={seccion === 'roles' ? 'page' : undefined}
-                onClick={() => irA('/administracion/roles')}>Roles y permisos</button>
-        </nav>
+        <SectionSelector label="Configuración" value={seccion} onChange={value => irA(`/administracion/${value}`)} options={[
+            { value: 'usuarios', label: 'Usuarios' }, { value: 'roles', label: 'Roles y permisos' },
+        ]} />
         {seccion === 'usuarios' ? <UsuariosManager /> : <RolesPermisos />}
     </section>;
 }

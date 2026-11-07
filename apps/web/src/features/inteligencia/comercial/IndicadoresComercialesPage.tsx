@@ -51,7 +51,7 @@ export function IndicadoresComercialesPage() {
   const load = useCallback(async (from: string, until: string) => { const request = ++boardRequest.current; setLoading(true); setError(''); try { const value = await consultarTableroComercial(from, until); if (request === boardRequest.current) setBoard(value) } catch (cause) { if (request === boardRequest.current) setError(message(cause)) } finally { if (request === boardRequest.current) setLoading(false) } }, [])
   useEffect(() => { let active = true; queueMicrotask(() => { if (active) void load(range.desde, range.hasta) }); return () => { active = false; boardRequest.current += 1 } }, [load, range])
   const filtered = useMemo(() => (board?.desgloses ?? []).filter(row => (kind === 'TODOS' || row.tipo === kind) && `${row.referencia} ${row.clienteId} ${row.id} ${row.estado ?? ''}`.toLocaleLowerCase().includes(q.toLocaleLowerCase())), [board, kind, q])
-  const PAGE = 25
+  const PAGE = 10
   const pageItems = filtered.slice((page - 1) * PAGE, page * PAGE)
   const metrics = DEFAULT_METRICS.map(([key, label]) => ({ metric: board?.metricas.find(metric => metric.clave === key), key, label }))
   const missingMetrics = board ? metrics.filter(item => !item.metric).map(item => item.label) : []

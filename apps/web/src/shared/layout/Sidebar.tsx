@@ -4,8 +4,6 @@ import {
     CaretDownIcon,
     CubeIcon,
     GearSixIcon,
-    ListBulletsIcon,
-    NotebookIcon,
     SquaresFourIcon,
     ToolboxIcon,
     UsersIcon,
@@ -35,7 +33,6 @@ interface SidebarProps {
     abierto: boolean;
     puedeGestionarCuadrillas: boolean;
     puedeAdministrar?: boolean;
-    usuarioNombre?: string;
 }
 type Enlace = { id: Seccion; etiqueta: string; ruta?: string };
 export function Sidebar({
@@ -44,7 +41,6 @@ export function Sidebar({
     abierto,
     puedeGestionarCuadrillas,
     puedeAdministrar = false,
-    usuarioNombre = 'TrackOn',
 }: Readonly<SidebarProps>) {
     function enlaces(items: Enlace[]) {
         return items.map((item) => (
@@ -68,21 +64,18 @@ export function Sidebar({
     }
     function grupo(titulo: string, icono: Icon, items: Enlace[]) {
         const Icono = icono;
-        const activo = items.some((item) =>
-            item.ruta ? window.location.pathname.startsWith(item.ruta) : item.id === seccion,
-        );
+        const activo = items.some((item) => item.id === seccion || Boolean(item.ruta && window.location.pathname.startsWith(item.ruta)));
         return (
             <details className="erp-nav-group" key={titulo} open={activo || undefined}>
                 <summary>
                     <Icono size={20} aria-hidden="true" />
                     <span>{titulo}</span>
-                    <CaretDownIcon size={14} aria-hidden="true" />
+                    <CaretDownIcon className="erp-nav-caret" size={14} aria-hidden="true" />
                 </summary>
                 <nav aria-label={titulo}>{enlaces(items)}</nav>
             </details>
         );
     }
-    const [nombre, rol = 'Usuario'] = usuarioNombre.split(' · ');
     return (
         <aside className={`sidebar figma-sidebar ${abierto ? 'sidebar--open' : ''}`}>
             <a
@@ -111,21 +104,20 @@ export function Sidebar({
                         Resumen general
                     </button>
                 )}
-                <p className="erp-nav-caption">SUBSISTEMAS</p>
                 {puedeGestionarCuadrillas &&
                     grupo(
-                        'Gestión comercial y clientes',
+                        'Comercial',
                         UsersIcon,
                         [
                             {
                                 id: 'comercial' as Seccion,
-                                etiqueta: 'Clientes y CRM',
+                                etiqueta: 'CRM',
                                 ruta: '/comercial/crm',
                             },
-                            { id: 'clientes' as Seccion, etiqueta: 'Directorio de clientes' },
+                            { id: 'clientes' as Seccion, etiqueta: 'Clientes' },
                             {
                                 id: 'comercial' as Seccion,
-                                etiqueta: 'Cotizaciones y ventas',
+                                etiqueta: 'Ventas y cotizaciones',
                                 ruta: '/comercial/cotizaciones-ventas',
                             },
                             {
@@ -140,92 +132,42 @@ export function Sidebar({
                             },
                         ].filter((item) => puedeAdministrar || item.ruta !== '/comercial/portal-cuentas'),
                     )}
-                {grupo('Servicios y operaciones de campo', ToolboxIcon, [
+                {grupo('Operaciones', ToolboxIcon, [
                     ...(puedeGestionarCuadrillas
-                        ? [{ id: 'operaciones' as Seccion, etiqueta: 'Operaciones de servicio' }]
+                        ? [{ id: 'operaciones' as Seccion, etiqueta: 'Gestión de operaciones' }]
                         : []),
-                    { id: 'ordenes', etiqueta: 'Órdenes de trabajo' },
-                    { id: 'agenda', etiqueta: 'Agenda y planificación' },
+                    { id: 'ordenes', etiqueta: 'Órdenes' },
+                    { id: 'agenda', etiqueta: 'Agenda' },
                     { id: 'field', etiqueta: 'TrackOn Field' },
-                    { id: 'servicios', etiqueta: 'Tipos de servicio' },
                 ])}
                 {!puedeGestionarCuadrillas &&
-                    grupo('Clientes', UsersIcon, [{ id: 'clientes', etiqueta: 'Directorio de clientes' }])}
-                {grupo('Activos y mantenimiento', GearSixIcon, [
-                    { id: 'equipos', etiqueta: 'Equipos del cliente' },
+                    grupo('Clientes', UsersIcon, [{ id: 'clientes', etiqueta: 'Directorio' }])}
+                {grupo('Activos', GearSixIcon, [
+                    { id: 'equipos', etiqueta: 'Equipos' },
                 ])}
-                {grupo('Compras, inventario y logística', CubeIcon, [
+                {grupo('Inventario', CubeIcon, [
                     { id: 'materiales', etiqueta: 'Materiales' },
-                    ...(puedeGestionarCuadrillas
-                        ? [
-                              {
-                                  id: 'inteligencia' as Seccion,
-                                  etiqueta: 'Registros logísticos',
-                                  ruta: '/inteligencia/origen/logistica',
-                              },
-                          ]
-                        : []),
                 ])}
                 {puedeGestionarCuadrillas &&
-                    grupo('Finanzas y rentabilidad', NotebookIcon, [
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Registros financieros',
-                            ruta: '/inteligencia/origen/finanzas',
-                        },
-                    ])}
-                {puedeGestionarCuadrillas &&
-                    grupo('Recursos humanos', BuildingsIcon, [
+                    grupo('Personal', BuildingsIcon, [
                         { id: 'empleados', etiqueta: 'Empleados' },
                         { id: 'cuadrillas', etiqueta: 'Cuadrillas' },
                     ])}
-                {puedeAdministrar &&
-                    grupo('Administración y seguridad', ShieldCheckIcon, [
-                        { id: 'administracion', etiqueta: 'Usuarios y permisos' },
-                        { id: 'auditoria', etiqueta: 'Auditoría' },
-                    ])}
+                {grupo('Configuración', ShieldCheckIcon, [
+                    { id: 'servicios', etiqueta: 'Tipos de servicio' },
+                    ...(puedeAdministrar ? [
+                        { id: 'administracion' as Seccion, etiqueta: 'Usuarios y permisos' },
+                        { id: 'auditoria' as Seccion, etiqueta: 'Auditoría' },
+                    ] : []),
+                ])}
                 {puedeGestionarCuadrillas &&
-                    grupo('Inteligencia y control', ActivityIcon, [
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Indicadores comerciales',
-                            ruta: '/inteligencia/comercial',
-                        },
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Indicadores financieros',
-                            ruta: '/inteligencia/financiero',
-                        },
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Indicadores logísticos',
-                            ruta: '/inteligencia/logistico',
-                        },
-                        {
-                            id: 'inteligencia',
-                            etiqueta: 'Indicadores de calidad',
-                            ruta: '/inteligencia/calidad',
-                        },
+                    grupo('Inteligencia', ActivityIcon, [
                         {
                             id: 'inteligencia',
                             etiqueta: 'IA y negocio',
                             ruta: '/inteligencia/operacion/resumen',
                         },
                     ])}
-            </div>
-            <div className="erp-sidebar-account">
-                <span className="erp-account-avatar">
-                    {nombre
-                        .split(' ')
-                        .map((p) => p[0])
-                        .slice(0, 2)
-                        .join('')}
-                </span>
-                <span>
-                    <strong>{nombre}</strong>
-                    <small>{rol}</small>
-                </span>
-                <ListBulletsIcon size={18} aria-hidden="true" />
             </div>
         </aside>
     );

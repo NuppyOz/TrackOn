@@ -1,14 +1,11 @@
 .field-scope { display:grid; gap:16px; }
 .field-header { padding:18px 20px; border-radius:12px; color:#fff; background:linear-gradient(125deg,var(--tk-purple),#315a78); }
 .field-header p { margin:0 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:.08em; opacity:.8; }
-.field-header h2 { margin:0 0 5px; font-size:24px; }
+.field-header h2 { margin:0 0 5px; font-size:var(--tk-font-page-title); }
 .field-header span { font-size:13px; opacity:.9; }
-.field-nav { display:flex; gap:7px; padding-bottom:5px; overflow-x:auto; }
-.field-nav button { min-height:40px; padding:8px 12px; border:1px solid var(--tk-border); border-radius:999px; color:var(--tk-purple); background:#fff; font:inherit; font-size:12px; font-weight:600; white-space:nowrap; cursor:pointer; }
-.field-nav button[aria-current="page"] { color:#fff; border-color:var(--tk-purple); background:var(--tk-purple); }
 .field-card { padding:18px; border:1px solid var(--tk-border); border-radius:12px; background:#fff; }
 .field-card-heading { display:flex; justify-content:space-between; align-items:start; gap:12px; margin-bottom:14px; }
-.field-card-heading h3 { margin:0 0 4px; color:var(--tk-purple); font-size:17px; }
+.field-card-heading h3 { margin:0 0 4px; color:var(--tk-purple); font-size:var(--tk-font-subtitle); }
 .field-card-heading p { margin:0; color:var(--tk-muted); font-size:13px; }
 .field-orders { display:grid; gap:10px; }
 .field-orders article { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px; border:1px solid var(--tk-border); border-radius:9px; }

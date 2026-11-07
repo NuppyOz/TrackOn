@@ -59,7 +59,7 @@ describe("Layout responsive de TrackOn", () => {
             onLogout={vi.fn()}
         ><p>Contenido</p></MainLayout>);
 
-        const disparador = screen.getByRole("button", { name: "Abrir navegación" });
+        const disparador = screen.getAllByRole("button", { name: "Cerrar navegación" })[0];
         expect(disparador.getAttribute("aria-expanded")).toBe("true");
         fireEvent.keyDown(document, { key: "Escape" });
         expect(onCloseMenu).toHaveBeenCalledTimes(1);
@@ -72,9 +72,9 @@ describe("Layout responsive de TrackOn", () => {
         const sidebar = document.querySelector('aside')!;
         const opciones = within(sidebar).getAllByRole('button', { hidden: true });
         expect(opciones[0].textContent).toContain('Resumen general');
-        expect(within(sidebar).getByRole('navigation', {name: 'Inteligencia y control', hidden: true}).textContent).toContain('IA y negocio');
-        expect(within(sidebar).getByRole('navigation', { name: 'Gestión comercial y clientes', hidden: true })).toBeTruthy();
-        expect(within(sidebar).getByRole('navigation', { name: 'Inteligencia y control', hidden: true })).toBeTruthy();
+        expect(within(sidebar).getByRole('navigation', { name: 'Inteligencia', hidden: true }).textContent).toContain('IA y negocio');
+        expect(within(sidebar).getByRole('navigation', { name: 'Comercial', hidden: true })).toBeTruthy();
+        expect(within(sidebar).getByRole('button', { name: 'IA y negocio', hidden: true })).toBeTruthy();
         fireEvent.click(within(sidebar).getByRole('button', { name: 'IA y negocio', hidden: true }));
         expect(onNavigate).toHaveBeenCalledWith('inteligencia');
     });
@@ -136,7 +136,7 @@ describe("Layout responsive de TrackOn", () => {
             onLogout={vi.fn()}
         ><div>Operaciones</div></MainLayout>);
         expect(document.querySelector("aside.sidebar--open")).not.toBeNull();
-        fireEvent.click(screen.getByRole("button", { name: "Cerrar navegación" }));
+        fireEvent.click(document.querySelector(".nav-backdrop") as HTMLButtonElement);
         expect(onCloseMenu).toHaveBeenCalledTimes(1);
         fireEvent.click(screen.getByRole("button", { name: /Tipos de servicio/, hidden: true }));
         expect(onNavigate).toHaveBeenCalledWith("servicios");

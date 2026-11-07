@@ -22,6 +22,22 @@ export function ModuleHeader({ breadcrumb, title, description, action }: ModuleH
   )
 }
 
+export type SectionOption = Readonly<{ value: string; label: string }>
+export function SectionSelector({ label, value, options, onChange, disabled = false }: Readonly<{
+  label: string
+  value: string
+  options: readonly SectionOption[]
+  onChange: (value: string) => void
+  disabled?: boolean
+}>) {
+  return <label className="erp-ui__section-selector">
+    <span>{label}</span>
+    <select value={value} disabled={disabled} onChange={event => onChange(event.currentTarget.value)}>
+      {options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+    </select>
+  </label>
+}
+
 export type Metric = Readonly<{ label: string; value: ReactNode; description?: string }>
 
 export function MetricSummary({ metrics, label = 'Resumen' }: Readonly<{ metrics: readonly Metric[]; label?: string }>) {
@@ -43,6 +59,21 @@ export type BadgeVariant = 'neutral' | 'success' | 'warning' | 'danger' | 'info'
 const badgeIcons: Record<BadgeVariant, string> = { neutral: '○', success: '✓', warning: '!', danger: '×', info: 'i' }
 export function SemanticBadge({ label, variant, icon }: Readonly<{ label: string; variant: BadgeVariant; icon?: ReactNode }>) {
   return <span className={`erp-ui__badge erp-ui__badge--${variant}`}><span aria-hidden="true">{icon ?? badgeIcons[variant]}</span>{label}</span>
+}
+
+export type WorkflowStep = Readonly<{ id: string; label: string }>
+export function WorkflowStepper({ steps, activeIndex, label = 'Avance del proceso' }: Readonly<{ steps: readonly WorkflowStep[]; activeIndex: number; label?: string }>) {
+  return <nav className="erp-ui__stepper" aria-label={label}>
+    <ol>
+      {steps.map((step, index) => {
+        const state = index < activeIndex ? 'complete' : index === activeIndex ? 'current' : 'upcoming'
+        return <li key={step.id} data-state={state} aria-current={state === 'current' ? 'step' : undefined}>
+          <span className="erp-ui__step-marker" aria-hidden="true">{state === 'complete' ? '✓' : index + 1}</span>
+          <span className="erp-ui__step-label">{step.label}</span>
+        </li>
+      })}
+    </ol>
+  </nav>
 }
 
 export type SortDirection = 'asc' | 'desc'

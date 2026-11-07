@@ -8,7 +8,7 @@ import { crearContrato, listarContratos, obtenerContrato, renovarContrato, termi
 import type { ContratoGerencial, ContratoNuevo, PaginaContratos } from './contratos.types'
 import '../procedencia/h5-sources.css'
 
-const LIMITE = 25
+const LIMITE = 10
 const when = (value: string) => new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(new Date(value))
 const money = (value: string) => `C$ ${value}`
 const err = (cause: unknown) => cause instanceof Error ? cause.message : 'No se pudo completar la operación.'

@@ -4,6 +4,7 @@ import { listarOrdenes } from '../../ordenes/ordenes.api';
 import type { EstadoOrden, OrdenResumen } from '../../ordenes/ordenes.types';
 import { Button, StatePanel } from '../../../shared/ui';
 import { irA } from '../../../shared/navigation';
+import { SectionSelector } from '../../erp-ui/components';
 import './operativo.css';
 
 type Vista = 'resumen' | 'centro' | 'seguimiento' | 'indicadores';
@@ -37,10 +38,10 @@ export default function OperacionInteligentePage({ ruta, onOrden }: Readonly<{ r
         .sort((a, b) => (a.fechaProgramada ?? '').localeCompare(b.fechaProgramada ?? '')), [ordenes]);
     function actualizar() { setCargando(true); setRecarga(valor => valor + 1); }
     return <section className="operativo-inteligente" aria-labelledby="operativo-titulo">
-        <header className="operativo-heading"><div><p>IA y negocio</p><h1 id="operativo-titulo">Información operativa</h1>
+        <header className="operativo-heading"><div><h1 id="operativo-titulo">Información operativa</h1>
             <span>Decisiones basadas en el estado real de las órdenes.</span></div><Button disabled={cargando} onClick={actualizar}>Actualizar</Button></header>
-        <nav className="operativo-nav" aria-label="Vistas de información operativa">{vistas.map(item => <button key={item.id} type="button"
-            aria-current={item.id === vista ? 'page' : undefined} onClick={() => irA(`/inteligencia/operacion/${item.id}`)}>{item.nombre}</button>)}</nav>
+        <SectionSelector label="Vista operativa" value={vista} options={vistas.map(item => ({ value: item.id, label: item.nombre }))}
+            onChange={value => irA(`/inteligencia/operacion/${value}`)} />
         {error && <StatePanel type="error" title={error} action={<Button onClick={actualizar}>Reintentar</Button>} />}
         {cargando && <StatePanel type="loading" title="Actualizando información operativa…" />}
         {!cargando && resumen && vista === 'resumen' && <Resumen datos={resumen} onOrden={onOrden} />}

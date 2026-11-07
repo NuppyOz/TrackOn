@@ -7,7 +7,7 @@ describe('FuentesGerencialesModule FE00', () => {
   it('expone navegación disponible y fallback informativo', () => {
     const onNavigate = vi.fn();
     render(<FuentesGerencialesModule section="contratos" availableSections={['contratos', 'calidad']} onNavigate={onNavigate} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Registros de calidad' }));
+    fireEvent.change(screen.getByLabelText('Área de registros'), { target: { value: 'calidad' } });
     expect(onNavigate).toHaveBeenCalledWith('calidad');
     expect(screen.getByText(/se están implementando/i)).toBeTruthy();
   });

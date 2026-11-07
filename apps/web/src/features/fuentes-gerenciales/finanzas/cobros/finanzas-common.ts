@@ -1,6 +1,6 @@
 import { createIdempotencyKey } from '../../../../shared/idempotency'
 
-export const LIMITE_FINANZAS = 25
+export const LIMITE_FINANZAS = 10
 export const textoError = (error: unknown) => error instanceof Error ? error.message : 'No se pudo completar la operación.'
 export const claveIntencion = createIdempotencyKey
 export const isoManagua = (value: string) => new Date(`${value}:00-06:00`).toISOString()

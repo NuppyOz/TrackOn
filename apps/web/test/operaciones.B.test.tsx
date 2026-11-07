@@ -26,16 +26,14 @@ afterEach(cleanup);
 describe('Módulos operativos B.1–B.9', () => {
     it('expone los nueve módulos y resuelve la vista activa', () => {
         render(<OperacionesWorkspace ruta="/operaciones/diagnostico" puedeGestionar onOrden={vi.fn()} />);
-        expect(screen.getAllByRole('button', { name: /B\./ })).toHaveLength(9);
+        expect(screen.queryByRole('navigation', { name: /módulos/i })).toBeNull();
         expect(screen.getByText('Vista de órdenes: diagnostico')).toBeTruthy();
-        fireEvent.click(screen.getByRole('button', { name: /B\.8\s*Despacho/ }));
-        expect(mocks.irA).toHaveBeenCalledWith('/operaciones/despacho');
     });
 
     it('muestra los nueve submódulos Field y abre una orden asignada', async () => {
         const onOrden = vi.fn();
         render(<FieldWorkspace ruta="/field/inicio-trabajo" onOrden={onOrden} />);
-        expect(screen.getByRole('navigation', { name: 'Submódulos de TrackOn Field' }).querySelectorAll('button')).toHaveLength(9);
+        expect(screen.getByLabelText('Área de trabajo')).toBeTruthy();
         expect(await screen.findByText(/OT-004/)).toBeTruthy();
         fireEvent.click(screen.getByRole('button', { name: 'Abrir orden' }));
         expect(onOrden).toHaveBeenCalledWith(4);

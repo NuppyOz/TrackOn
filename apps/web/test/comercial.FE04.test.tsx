@@ -67,7 +67,7 @@ describe('FE04 ventas e historial comercial', () => {
     render(<HistorialComercialPanel clienteId={3} />)
     expect(await screen.findByText('Venta V-12')).toBeTruthy()
     fireEvent.change(screen.getByLabelText('Filtrar historial por tipo'), { target: { value: 'VENTA' } })
-    await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith(expect.stringContaining('/api/comercial/clientes/3/historial?pagina=1&limite=25&tipo=VENTA')))
+    await waitFor(() => expect(mocks.api).toHaveBeenLastCalledWith(expect.stringContaining('/api/comercial/clientes/3/historial?pagina=1&limite=10&tipo=VENTA')))
     expect(screen.getByText(/no incluye servicios, finanzas ni contratos/i)).toBeTruthy()
   })
 })

@@ -3,7 +3,7 @@ import { cambiarEstadoEquipo, crearEquipo, editarEquipo, listarEquipos, listarUb
 import type { Equipo, EquipoFiltros, EquipoInput, Ubicacion } from "./equipos.types";
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
 
-const LIMITE = 25;
+const LIMITE = 10;
 const filtrosIniciales: EquipoFiltros = {
     clienteId: "",
     ubicacionId: "",

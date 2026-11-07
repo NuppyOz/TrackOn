@@ -2,7 +2,6 @@ import Agenda from '../agenda/Agenda';
 import OrdenesManager, { type VistaOrdenes } from '../ordenes/OrdenesManager';
 import ServiciosManager from '../servicios/ServiciosManager';
 import FieldWorkspace from '../field/FieldWorkspace';
-import { irA } from '../../shared/navigation';
 import { seccionesOperacion, type SeccionOperacion } from './operaciones.types';
 import './operaciones.css';
 
@@ -26,20 +25,7 @@ export default function OperacionesWorkspace({ ruta, puedeGestionar, onOrden }: 
     const seccion = seccionesOperacion.find(item => item.id === segmento)?.id ?? 'solicitudes';
     const vista = vistasOrdenes[seccion];
 
-    return <section className="operaciones-scope" aria-labelledby="operaciones-titulo">
-        <header className="operaciones-header">
-            <div>
-                <p>TrackOn · Gestión operativa</p>
-                <h1 id="operaciones-titulo">Operaciones de servicio</h1>
-            </div>
-        </header>
-        <nav className="operaciones-nav" aria-label="Módulos operativos">
-            {seccionesOperacion.map(item => <button key={item.id} type="button"
-                aria-current={item.id === seccion ? 'page' : undefined}
-                onClick={() => irA(`/operaciones/${item.id}`)}>
-                <span>{item.codigo}</span>{item.etiqueta}
-            </button>)}
-        </nav>
+    return <section className="operaciones-scope" aria-label="Operaciones de servicio">
         <div className="operaciones-content">
             {vista && <OrdenesManager key={seccion} puedeGestionar={puedeGestionar} vista={vista} />}
             {seccion === 'tipos-servicio' && <ServiciosManager puedeGestionar={puedeGestionar} />}

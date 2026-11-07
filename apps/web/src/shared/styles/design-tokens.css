@@ -1,0 +1,42 @@
+:root {
+  --tk-font-page-title: 24px;
+  --tk-font-section-title: 18px;
+  --tk-font-subtitle: 16px;
+  --tk-font-body: 14px;
+  --tk-font-table: 14px;
+  --tk-font-secondary: 12px;
+  --tk-font-breadcrumb: 12px;
+  --tk-line-body: 1.5;
+  --tk-line-heading: 1.25;
+  --tk-space-1: 4px;
+  --tk-space-2: 8px;
+  --tk-space-3: 12px;
+  --tk-space-4: 16px;
+  --tk-space-5: 20px;
+  --tk-space-6: 24px;
+  --tk-space-8: 32px;
+  --tk-control-height: 40px;
+}
+
+body { font-size: var(--tk-font-body); line-height: var(--tk-line-body); }
+.workspace :is(h1, .page-header h1, .section-heading h2, .tk-orders-heading h2, .tk-employee-heading h2),
+.portal h1, .auth-panel h2 { font-size: var(--tk-font-page-title) !important; line-height: var(--tk-line-heading); }
+.workspace :is(h2, .page-header h2), .portal h2 { font-size: var(--tk-font-section-title) !important; line-height: var(--tk-line-heading); }
+.tk-modal h2 { font-size: var(--tk-font-section-title) !important; line-height: var(--tk-line-heading); }
+.workspace h3, .portal h3 { font-size: var(--tk-font-subtitle) !important; line-height: var(--tk-line-heading); }
+.tk-modal h3 { font-size: var(--tk-font-subtitle) !important; line-height: var(--tk-line-heading); }
+.workspace p:not(.erp-ui__metric-value), .portal p { font-size: var(--tk-font-body) !important; line-height: var(--tk-line-body); }
+.tk-modal p { font-size: var(--tk-font-body) !important; line-height: var(--tk-line-body); }
+.workspace :is(label, small, .tk-muted, .breadcrumb, .tk-context-breadcrumb, .tk-breadcrumb, .erp-ui__breadcrumb),
+.portal :is(small, dt, th) { font-size: var(--tk-font-secondary) !important; }
+.workspace :is(input, select, textarea, button), .portal :is(input, select, textarea, button) { font-size: var(--tk-font-body) !important; }
+.tk-modal :is(input, select, textarea, button) { font-size: var(--tk-font-body) !important; }
+.workspace .table-wrap :is(th, td),
+.workspace .erp-ui__table :is(th, td),
+.workspace .tk-orders-table :is(th, td),
+.workspace .tk-employee-table :is(th, td),
+.portal table :is(th, td) { font-size: var(--tk-font-table) !important; }
+.workspace .erp-ui__breadcrumb { font-size: var(--tk-font-breadcrumb) !important; }
+.workspace :is(.table-wrap, .erp-ui__table-scroll) { max-width: 100%; }
+.workspace .list-card .table-wrap :is(th, td) { padding: var(--tk-space-3) var(--tk-space-4) !important; }
+

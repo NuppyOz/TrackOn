@@ -40,7 +40,7 @@ describe('CRM FE01', () => {
   it('crea contactos y actualiza la lista del servidor', async () => {
     apiMocks.listarClientes.mockResolvedValue([cliente]); apiMocks.obtenerPerfil.mockResolvedValue(perfil); apiMocks.listarContactos.mockResolvedValue({ items: [], pagina: 1, limite: 100, hayMas: false }); apiMocks.crearContacto.mockResolvedValue(contacto);
     render(<CrmPage />); fireEvent.change(await screen.findByLabelText('Cliente'), { target: { value: '7' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Contactos' }));
+    fireEvent.change(screen.getByLabelText('Información del cliente'), { target: { value: 'contactos' } });
     fireEvent.click(await screen.findByRole('button', { name: 'Agregar contacto' }));
     fireEvent.change(screen.getByLabelText('Nombre *'), { target: { value: 'Ana Ruiz' } });
     fireEvent.change(screen.getByLabelText('Correo'), { target: { value: 'ana@example.com' } });
@@ -51,7 +51,7 @@ describe('CRM FE01', () => {
   it('muestra acciones del contacto en menú y permite desactivarlo', async () => {
     apiMocks.listarClientes.mockResolvedValue([cliente]); apiMocks.obtenerPerfil.mockResolvedValue(perfil); apiMocks.listarContactos.mockResolvedValue({ items: [contacto], pagina: 1, limite: 100, hayMas: false }); apiMocks.actualizarContacto.mockResolvedValue({ ...contacto, activo: false, version: 2 });
     render(<CrmPage />); fireEvent.change(await screen.findByLabelText('Cliente'), { target: { value: '7' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Contactos' }));
+    fireEvent.change(screen.getByLabelText('Información del cliente'), { target: { value: 'contactos' } });
     fireEvent.click(await screen.findByLabelText('Acciones para Ana Ruiz'));
     fireEvent.click(screen.getByRole('button', { name: 'Desactivar' }));
     await waitFor(() => expect(apiMocks.actualizarContacto).toHaveBeenCalledWith(7, 2, { version: 1, activo: false }));

@@ -26,6 +26,14 @@ body, #root { min-width: 0; max-width: 100%; }
 /* Mantener la barra principal visible también en escritorio. */
 .figma-topbar { position: sticky; top: 0; align-self: start; }
 
+@media (min-width: 1200px) {
+  .figma-topbar .menu-toggle { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border-radius: 8px; }
+  .figma-topbar .menu-toggle:hover,
+  .figma-topbar .menu-toggle:focus-visible { background: #f1eff5; }
+  .app-shell.sidebar-collapsed { grid-template-columns: 0 minmax(0, 1fr); }
+  .app-shell.sidebar-collapsed .figma-sidebar { visibility: hidden; width: 0; padding: 0; }
+}
+
 /* Tablet Figma: menú desplegable en lugar de sidebar que consuma 232px. */
 @media (max-width: 1199px) {
   :root { --tk-responsive-header-height: 72px; }
@@ -101,7 +109,7 @@ body, #root { min-width: 0; max-width: 100%; }
     grid-column: 1;
     grid-row: 2;
     width: 100%;
-    padding: 28px 24px 48px;
+    padding: 24px 24px 48px;
     min-height: calc(100dvh - var(--tk-responsive-header-height));
   }
   .figma-brand-tagline { display: none; }
@@ -141,7 +149,6 @@ body, #root { min-width: 0; max-width: 100%; }
   .workspace .list-card .table-wrap table:not(.tk-orders-table) { min-width: 600px; }
   .tk-orders .tk-filters { display: flex; flex-wrap: wrap; gap: 12px; }
   .tk-orders .tk-search-group { flex: 1 1 320px; min-width: 0; max-width: none; }
-  .tk-orders .tk-status-tabs { flex: 1 1 400px; min-width: 0; }
   .tk-orders .tk-advanced-state { flex: 0 1 170px; max-width: none; }
   .tk-orders .tk-order-form-layout { grid-template-columns: minmax(0, 1fr); }
   .tk-orders .tk-summary-panel { width: 100%; }
@@ -280,8 +287,6 @@ body, #root { min-width: 0; max-width: 100%; }
   .tk-orders .tk-filters { align-items: stretch; gap: 12px; }
   .tk-orders .tk-search-group { flex: 1 1 100%; min-width: 0; }
   .tk-orders .tk-search-group input { height: 44px; }
-  .tk-orders .tk-status-tabs { flex: 1 1 100%; display: flex; gap: 8px; overflow-x: auto; flex-wrap: nowrap; padding: 4px 1px 8px; scrollbar-width: thin; }
-  .tk-orders .tk-status-tab { flex: 0 0 auto; padding: 9px 12px; }
   .tk-orders .tk-advanced-state { flex: 1 1 100%; min-width: 0; height: 44px; max-width: none; }
   .tk-orders .tk-search-submit { flex: 1 1 100%; width: 100%; min-height: 44px; }
   .tk-orders .tk-table-card { background: transparent; box-shadow: none; border: 0; overflow: visible; }

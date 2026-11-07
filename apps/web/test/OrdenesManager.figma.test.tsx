@@ -38,7 +38,7 @@ const orden: OrdenResumen = {
 
 beforeEach(() => {
     vi.resetAllMocks();
-    mocks.listarOrdenes.mockResolvedValue({ items: [orden], pagina: 1, limite: 25, hayMas: false });
+    mocks.listarOrdenes.mockResolvedValue({ items: [orden], pagina: 1, limite: 10, hayMas: false });
     mocks.listarUbicaciones.mockResolvedValue([]);
 });
 afterEach(cleanup);
@@ -58,11 +58,11 @@ describe('Presentación de Órdenes según Figma y backend', () => {
     it('los filtros rápidos envían estados reales del backend', async () => {
         render(<OrdenesManager />);
         await screen.findByText('OT-140');
-        fireEvent.click(screen.getByRole('button', { name: 'Asignadas' }));
+        fireEvent.change(screen.getByLabelText('Filtrar estado de orden'), { target: { value: 'ASIGNADA' } });
         await waitFor(() => expect(mocks.listarOrdenes).toHaveBeenCalledWith({
-            buscar: '', estado: 'ASIGNADA', pagina: 1, limite: 25,
+            buscar: '', estado: 'ASIGNADA', pagina: 1, limite: 10,
         }));
-        expect(screen.getByRole('button', { name: 'Asignadas' }).getAttribute('aria-pressed')).toBe('true');
+        expect((screen.getByLabelText('Filtrar estado de orden') as HTMLSelectElement).value).toBe('ASIGNADA');
     });
 
     it('mantiene los permisos para técnicos en la nueva interfaz', async () => {

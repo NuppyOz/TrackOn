@@ -7,6 +7,7 @@ interface HeaderProps {
     onLogout: () => void;
     onOpenMenu: () => void;
     menuAbierto?: boolean;
+    etiquetaNavegacion?: string;
     toggleRef?: Ref<HTMLButtonElement>;
     acciones?: ReactNode;
 }
@@ -17,7 +18,13 @@ const destinos = [
     { nombre: 'Catálogo y tarifas', ruta: '/comercial/catalogo-tarifas' },
     { nombre: 'Portal del cliente', ruta: '/comercial/portal-cuentas' },
     { nombre: 'Órdenes de trabajo', ruta: '/ordenes' },
+    { nombre: 'Solicitudes de servicio', ruta: '/operaciones/solicitudes' },
+    { nombre: 'Diagnóstico técnico', ruta: '/operaciones/diagnostico' },
+    { nombre: 'Ejecución técnica', ruta: '/operaciones/ejecucion' },
+    { nombre: 'Evidencias del servicio', ruta: '/operaciones/evidencias' },
+    { nombre: 'Despacho y asignación', ruta: '/operaciones/despacho' },
     { nombre: 'Agenda y planificación', ruta: '/agenda' },
+    { nombre: 'Tipos de servicio', ruta: '/servicios' },
     { nombre: 'Equipos', ruta: '/equipos' },
     { nombre: 'Materiales', ruta: '/materiales' },
     { nombre: 'Indicadores comerciales', ruta: '/inteligencia/comercial' },
@@ -25,7 +32,7 @@ const destinos = [
     { nombre: 'Indicadores logísticos', ruta: '/inteligencia/logistico' },
     { nombre: 'Indicadores de calidad', ruta: '/inteligencia/calidad' },
 ];
-export function Header({ usuarioNombre, onLogout, onOpenMenu, menuAbierto = false, toggleRef, acciones }: Readonly<HeaderProps>) {
+export function Header({ usuarioNombre, onLogout, onOpenMenu, menuAbierto = false, etiquetaNavegacion, toggleRef, acciones }: Readonly<HeaderProps>) {
     const [busqueda, setBusqueda] = useState('');
     return (
         <header className="topbar figma-topbar">
@@ -33,7 +40,7 @@ export function Header({ usuarioNombre, onLogout, onOpenMenu, menuAbierto = fals
                 ref={toggleRef}
                 type="button"
                 className="menu-toggle"
-                aria-label="Abrir navegación"
+                aria-label={etiquetaNavegacion ?? (menuAbierto ? 'Cerrar navegación' : 'Abrir navegación')}
                 aria-expanded={menuAbierto}
                 aria-controls="navegacion-principal"
                 onClick={onOpenMenu}

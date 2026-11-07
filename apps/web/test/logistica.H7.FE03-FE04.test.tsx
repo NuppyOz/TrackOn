@@ -52,7 +52,7 @@ describe('H7 bloque 2 compras y herramientas', () => {
     const updated = { ...summary, lineas: [{ ...line, recibido: '1.000', pendiente: '1.000', version: 3 }], recepciones: [{ id: 50, lineaId: 30, articuloId: 7, articuloCodigo: 'ART-7', unidad: 'unidad', cantidad: '1.000', fechaEfectiva: '2026-10-20T16:00:00.000Z', referencia: 'REC-6', movimientoId: 70, observacion: null }] }
     let receiveTries = 0
     apiMock.mockImplementation(async (url, init) => {
-      if (url === '/api/fuentes-gerenciales/logistica/compras?pagina=1&limite=25') return { items: [summary], pagina: 1, limite: 25, hayMas: false } as never
+      if (url === '/api/fuentes-gerenciales/logistica/compras?pagina=1&limite=10') return { items: [summary], pagina: 1, limite: 10, hayMas: false } as never
       if (url === '/api/fuentes-gerenciales/logistica/compras/6') return purchase as never
       if (url === '/api/fuentes-gerenciales/logistica/compras/lineas/30/recibir' && init?.method === 'POST') { receiveTries += 1; if (receiveTries === 1) throw new ApiError('La compra cambió; revisa la versión.', 409); return updated as never }
       return emptyPage as never
@@ -80,7 +80,7 @@ describe('H7 bloque 2 compras y herramientas', () => {
     const loan = { id: 32, herramientaId: 9, empleadoId: 14, empleadoNombre: 'Ana Ruiz', prestadaEn: '2026-10-20T16:00:00.000Z', previstaEn: '2026-10-21T16:00:00.000Z', devueltaEn: null, referencia: 'PRE-9', observacion: null }
     const borrowed = { ...tool, estado: 'PRESTADA' as const, prestamos: [loan] }
     apiMock.mockImplementation(async (url, init) => {
-      if (url === '/api/fuentes-gerenciales/logistica/herramientas?pagina=1&limite=25') return { items: [tool], pagina: 1, limite: 25, hayMas: false } as never
+      if (url === '/api/fuentes-gerenciales/logistica/herramientas?pagina=1&limite=10') return { items: [tool], pagina: 1, limite: 10, hayMas: false } as never
       if (url === '/api/fuentes-gerenciales/logistica/herramientas/9' && init?.method !== 'POST') return { ...tool, prestamos: [] } as never
       if (url === '/api/empleados') return [employee] as never
       if (url === '/api/fuentes-gerenciales/logistica/herramientas/9/prestar' && init?.method === 'POST') return borrowed as never

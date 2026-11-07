@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { listarClientes } from '../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../clientes/clientes.types'
-import { DataTable, type DataTableColumn, type SortDirection } from '../../erp-ui/components'
+import { DataTable, SectionSelector, type DataTableColumn, type SortDirection } from '../../erp-ui/components'
 import {
   actualizarConcepto, cambiarEstadoTarifa, crearConcepto, crearTarifa, listarConceptos, listarTarifas, resolverPrecio,
   type ConceptoComercial, type EstadoCatalogo, type Pagina, type PrecioResuelto, type TarifaComercial, type TipoConcepto,
@@ -10,7 +10,7 @@ import './tarifas.css'
 
 type Seccion = 'conceptos' | 'tarifas'
 type Carga = 'loading' | 'ready' | 'error'
-const LIMITE = 25
+const LIMITE = 10
 const tipos: Array<{ value: TipoConcepto; label: string }> = [
   { value: 'SERVICIO', label: 'Servicio' }, { value: 'MANO_OBRA', label: 'Mano de obra' }, { value: 'EQUIPO', label: 'Equipo' },
   { value: 'REPUESTO', label: 'Repuesto' }, { value: 'INSUMO', label: 'Insumo' },
@@ -207,10 +207,9 @@ export function TarifasPage() {
       {!formulario && <button type="button" className="tarifas__primary" onClick={() => { setEditar(null); setFormulario(true); setFormError('') }}>+ {seccion === 'conceptos' ? 'Nuevo concepto' : 'Nueva tarifa'}</button>}
     </header>
     {exito && <p className="tarifas__success" role="status">✓ {exito}</p>}
-    <div className="tarifas__tabs" role="tablist" aria-label="Catálogo comercial">
-      <button type="button" role="tab" aria-selected={seccion === 'conceptos'} aria-controls="catalogo-panel" disabled={saving} onClick={() => cambiarSeccion('conceptos')}>Conceptos</button>
-      <button type="button" role="tab" aria-selected={seccion === 'tarifas'} aria-controls="catalogo-panel" disabled={saving} onClick={() => cambiarSeccion('tarifas')}>Tarifas</button>
-    </div>
+    <SectionSelector label="Catálogo" value={seccion} disabled={saving} onChange={value => cambiarSeccion(value as Seccion)} options={[
+      { value: 'conceptos', label: 'Conceptos' }, { value: 'tarifas', label: 'Tarifas' },
+    ]} />
     {formulario && <form className="tarifas__form" aria-label={editar ? 'Editar concepto' : seccion === 'conceptos' ? 'Nuevo concepto' : 'Nueva tarifa'} onSubmit={seccion === 'conceptos' ? guardarConcepto : guardarTarifa}>
       <div className="tarifas__form-heading"><div><span className="tarifas__form-icon" aria-hidden="true">{seccion === 'conceptos' ? '◇' : '₦'}</span><div><h2>{editar ? 'Editar concepto' : seccion === 'conceptos' ? 'Crear concepto' : 'Crear tarifa'}</h2><p>{seccion === 'conceptos' ? 'Define un elemento reutilizable del catálogo.' : 'El precio se guarda en córdobas y conserva su historial.'}</p></div></div><button type="button" className="tarifas__close" aria-label="Cerrar formulario" disabled={saving} onClick={resetForm}>×</button></div>
       {seccion === 'conceptos' ? <div className="tarifas__fields">
@@ -232,7 +231,7 @@ export function TarifasPage() {
     {pendiente && <div className="tarifas__confirm" role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-copy"><span aria-hidden="true">!</span><div><strong id="confirm-title">{pendiente.activo ? 'Activar' : 'Desactivar'} {pendiente.type === 'conceptos' ? 'concepto' : 'tarifa'} {pendiente.name}?</strong><p id="confirm-copy">El historial se conserva. Solo las tarifas activas participan al resolver precios.</p></div><button type="button" className="tarifas__secondary" disabled={saving} onClick={() => setPendiente(null)}>Cancelar</button><button type="button" className={pendiente.activo ? 'tarifas__primary' : 'tarifas__danger'} disabled={saving} onClick={() => void confirmarDesactivacion()}>{saving ? 'Guardando…' : pendiente.activo ? 'Activar' : 'Desactivar'}</button></div>}
     {errorAccion && <p className="tarifas__error" role="alert">{errorAccion}</p>}
     {error && <p className="tarifas__error" role="alert">{error}</p>}
-    <section className="tarifas__catalog" id="catalogo-panel" role="tabpanel" aria-label={seccion === 'conceptos' ? 'Catálogo de conceptos' : 'Listado de tarifas'}>
+    <section className="tarifas__catalog" id="catalogo-panel" aria-label={seccion === 'conceptos' ? 'Catálogo de conceptos' : 'Listado de tarifas'}>
       <div className="tarifas__catalog-head"><div><h2>{seccion === 'conceptos' ? 'Catálogo de conceptos' : 'Tarifas registradas'}</h2><p>{seccion === 'conceptos' ? 'Servicios y productos disponibles para cotizar.' : 'Precios de venta estándar y por cliente.'}</p></div><label className="tarifas__status">Estado<select aria-label="Filtrar por estado" value={estadoFiltro} onChange={event => { setEstadoFiltro(event.currentTarget.value as EstadoCatalogo); setPagina(1) }}><option value="activos">Activos</option><option value="inactivos">Inactivos</option><option value="todos">Todos</option></select></label></div>
       <DataTable<ConceptoComercial | TarifaComercial> columns={seccion === 'conceptos' ? columnasConceptos as readonly DataTableColumn<ConceptoComercial | TarifaComercial>[] : columnasTarifas as readonly DataTableColumn<ConceptoComercial | TarifaComercial>[]} rows={rows} getRowKey={row => row.id}
         search={{ value: q, onChange: value => { setQ(value.slice(0, 100)); setPagina(1) }, placeholder: 'Buscar por código o concepto', label: 'Buscar' }}

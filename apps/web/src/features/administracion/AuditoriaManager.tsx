@@ -11,7 +11,7 @@ export default function AuditoriaManager() {
     const [recarga, setRecarga] = useState(0);
     useEffect(() => {
         let vigente = true;
-        void api<Pagina<RegistroAuditoria>>(`/api/auditoria?pagina=${pagina}&limite=25`).then(datos => { if (vigente) { setDatos(datos); setError(null); } })
+        void api<Pagina<RegistroAuditoria>>(`/api/auditoria?pagina=${pagina}&limite=10`).then(datos => { if (vigente) { setDatos(datos); setError(null); } })
             .catch(error => { if (vigente) setError(error instanceof Error ? error.message : 'No se pudo consultar la auditoría.'); });
         return () => { vigente = false; };
     }, [pagina, recarga]);

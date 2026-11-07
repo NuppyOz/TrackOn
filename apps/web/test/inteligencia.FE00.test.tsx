@@ -7,7 +7,7 @@ describe('InteligenciaModule FE00', () => {
   it('solo navega a tableros disponibles', () => {
     const onNavigate = vi.fn();
     render(<InteligenciaModule section="comercial" availableSections={['comercial', 'calidad']} onNavigate={onNavigate} />);
-    fireEvent.click(screen.getByRole('button', { name: /calidad/i }));
+    fireEvent.change(screen.getByLabelText('Indicadores'), { target: { value: 'calidad' } });
     expect(onNavigate).toHaveBeenCalledWith('calidad');
     expect(screen.queryByRole('button', { name: /financiero/i })).toBeNull();
   });

@@ -7,7 +7,7 @@ describe('ComercialModule FE00', () => {
   it('muestra secciones disponibles y navega por callback', () => {
     const onNavigate = vi.fn();
     render(<ComercialModule section="crm" availableSections={['crm', 'cotizaciones-ventas']} onNavigate={onNavigate} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Cotizaciones y ventas' }));
+    fireEvent.change(screen.getByLabelText('Área comercial'), { target: { value: 'cotizaciones-ventas' } });
     expect(onNavigate).toHaveBeenCalledWith('cotizaciones-ventas');
     expect(screen.queryByRole('button', { name: 'Catálogo y tarifas' })).toBeNull();
   });

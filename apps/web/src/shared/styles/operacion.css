@@ -1,6 +1,6 @@
 .tk-dashboard { max-width:1320px; margin:auto; }
 .tk-dashboard .card { padding:16px; border:1px solid var(--tk-border); border-radius:10px; }
-.tk-dashboard h3 { color:var(--tk-purple); font-size:15px; margin:0 0 10px; }
+.tk-dashboard h3 { color:var(--tk-purple); font-size:var(--tk-font-subtitle); margin:0 0 10px; }
 .tk-dashboard p, .tk-dashboard small { color:var(--tk-muted); font-size:12px; }
 .tk-dashboard-context { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:16px; }
 .tk-dashboard-context strong, .tk-dashboard-row small { display:block; }

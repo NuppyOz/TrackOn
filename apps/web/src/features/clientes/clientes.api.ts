@@ -17,7 +17,7 @@ export function cambiarEstadoCliente(id: number, activo: boolean) {
 
 export function listarUbicacionesCliente(clienteId: number, pagina = 1) {
     const query = new URLSearchParams({
-        clienteId: String(clienteId), estado: "todos", pagina: String(pagina), limite: "25",
+        clienteId: String(clienteId), estado: "todos", pagina: String(pagina), limite: "10",
     });
     return api<PaginaUbicaciones>(`/api/ubicaciones?${query}`);
 }

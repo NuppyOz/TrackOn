@@ -33,10 +33,11 @@ describe('rutas del espacio de inteligencia', () => {
 
   it('navega entre operación, indicadores, origen y cobertura', () => {
     render(<InteligenciaWorkspace ruta="/inteligencia/financiero" />)
-    fireEvent.click(screen.getByRole('button', { name: 'Operación' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Indicadores de negocio' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Registros de origen' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Cobertura de los datos' }))
+    const area = screen.getByLabelText('Área')
+    fireEvent.change(area, { target: { value: 'operacion' } })
+    fireEvent.change(area, { target: { value: 'indicadores' } })
+    fireEvent.change(area, { target: { value: 'origen' } })
+    fireEvent.change(area, { target: { value: 'cobertura' } })
     expect(vi.mocked(irA).mock.calls).toEqual([
       ['/inteligencia/operacion/resumen'], ['/inteligencia/financiero'], ['/inteligencia/origen/finanzas'], ['/inteligencia/cobertura'],
     ])
