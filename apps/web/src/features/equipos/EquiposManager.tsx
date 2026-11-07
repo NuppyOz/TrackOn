@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
 import { cambiarEstadoEquipo, crearEquipo, editarEquipo, listarEquipos, listarUbicaciones } from "./equipos.api";
 import type { Equipo, EquipoFiltros, EquipoInput, Ubicacion } from "./equipos.types";
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
-import { DataTable, TablePagination } from '../../shared/ui';
+import { DataTable, RowActions, TablePagination } from '../../shared/ui';
+import TableActionButton from '../../shared/TableActionButton';
 import { DEFAULT_PAGE_SIZE } from '../../shared/pagination';
 import ConfirmDialog from '../../shared/ConfirmDialog';
 
@@ -502,25 +503,17 @@ export default function EquiposManager({ puedeGestionar = true }: Readonly<Equip
                                                         {equipo.activo ? "Activo" : "Inactivo"}
                                                     </span>
                                                 </td>
-                                                <td data-label="Acciones" data-align="actions" className="actions">
+                                                <td data-label="Acciones" data-align="actions" className="tk-shared-actions-cell">
                                                     {puedeGestionar && (
-                                                        <>
-                                                            <button
-                                                                type="button"
+                                                        <RowActions className="tk-table-actions" label={`Acciones de equipo ${equipo.codigo}`}>
+                                                            <TableActionButton action="edit" disabled={cambiandoEstadoId !== null}
+                                                                onClick={() => comenzarEdicion(equipo)}>Editar</TableActionButton>
+                                                            <TableActionButton action={equipo.activo ? 'deactivate' : 'activate'}
                                                                 disabled={cambiandoEstadoId !== null}
-                                                                onClick={() => comenzarEdicion(equipo)}
-                                                            >
-                                                                Editar
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                disabled={cambiandoEstadoId !== null}
-                                                                onClick={() => equipo.activo ? setConfirmacionEstado(equipo) : void cambiarEstado(equipo)}
-                                                            >
+                                                                onClick={() => equipo.activo ? setConfirmacionEstado(equipo) : void cambiarEstado(equipo)}>
                                                                 {textoAccionEstado(equipo, cambiandoEstadoId)}
-                                                            </button>
-                                                        </>
+                                                            </TableActionButton>
+                                                        </RowActions>
                                                     )}
                                                 </td>
                                             </tr>
