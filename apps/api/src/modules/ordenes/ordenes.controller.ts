@@ -21,17 +21,22 @@ export async function crear(req: Request, res: Response, next: NextFunction) {
 
 export async function listar(req: Request, res: Response, next: NextFunction) {
     try {
-        usuarioActual(req);
+        const actor = obtenerActorOrden(req);
         const filtros = listarOrdenesSchema.parse(req.query);
-        res.json({ data: await cached('ordenes', { tipo: 'lista', filtros }, 30, () => service.listar(filtros)) });
+        const data = actor.rol === 'TEC'
+            ? await service.listar(filtros, actor)
+            : await cached('ordenes', { tipo: 'lista', filtros }, 30, () => service.listar(filtros));
+        res.json({ data });
     } catch (error) { next(error); }
 }
 
 export async function obtener(req: Request, res: Response, next: NextFunction) {
     try {
-        usuarioActual(req);
+        const actor = obtenerActorOrden(req);
         const { id } = ordenParamsSchema.parse(req.params);
-        res.json({ data: await cached('ordenes', { tipo: 'detalle', id }, 30, () => service.obtener(id)) });
+        const data = actor.rol === 'TEC' ? await service.obtener(id)
+            : await cached('ordenes', { tipo: 'detalle', id }, 30, () => service.obtener(id));
+        res.json({ data });
     } catch (error) { next(error); }
 }
 
