@@ -40,6 +40,7 @@ const segundo = {
 
 beforeEach(() => {
     vi.resetAllMocks();
+    window.history.replaceState(null, "", "/empleados");
     mocks.listarEmpleados.mockResolvedValue([empleado, segundo]);
     mocks.obtenerEmpleado.mockResolvedValue(empleado);
     mocks.crearEmpleado.mockResolvedValue(empleado);

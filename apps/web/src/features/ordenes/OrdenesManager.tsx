@@ -5,14 +5,15 @@ import { listarUbicaciones } from '../equipos/equipos.api';
 import type { Ubicacion } from '../equipos/equipos.types';
 import { cambiarEstadoOrden, ejecutarOrden, crearOrden, listarOrdenes, obtenerOrden } from './ordenes.api';
 import type { EstadoOrden, FiltrosOrdenes, OrdenDetalle, OrdenNueva, OrdenResumen, PrioridadOrden } from './ordenes.types';
-import { irA } from '../../shared/navigation';
+import { irA, RUTAS } from '../../shared/navigation';
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
+import { Paginacion } from '../../shared/Paginacion';
 import Modal from '../../shared/Modal';
 import EditarOrdenForm from './EditarOrdenForm';
 import DesactivarOrdenForm from './DesactivarOrdenForm';
 import OrdenAcciones from './OrdenAcciones';
 import { permiteAccionOrden, type AccionOrden } from './ordenes.acciones';
-import { WorkflowStepper } from '../erp-ui/components';
+import { ModuleHeader, WorkflowStepper, type Miga } from '../erp-ui/components';
 
 const filtrosBase: FiltrosOrdenes = { estado: '', buscar: '', pagina: 1, limite: 10 };
 const estados: EstadoOrden[] = [
@@ -49,13 +50,13 @@ const configuracionVista: Record<VistaOrdenes, { titulo: string; descripcion: st
     despacho: { titulo: 'Despacho y asignación', descripcion: 'Asigna cuadrillas y programa las solicitudes pendientes de atención.', estado: 'PENDIENTE', permiteCrear: false },
 };
 
-interface Props { puedeGestionar?: boolean; ordenInicial?: number; crearInicial?: boolean; vista?: VistaOrdenes }
+interface Props { puedeGestionar?: boolean; ordenInicial?: number; crearInicial?: boolean; vista?: VistaOrdenes; /** Migas del módulo que lo contiene (Operaciones). */ migas?: readonly Miga[] }
 
-export default function OrdenesManager({ puedeGestionar = true, ordenInicial, crearInicial = false, vista = 'ordenes' }: Readonly<Props>) {
+export default function OrdenesManager({ puedeGestionar = true, ordenInicial, crearInicial = false, vista = 'ordenes', migas }: Readonly<Props>) {
     const configuracion = configuracionVista[vista];
     const filtrosIniciales: FiltrosOrdenes = { ...filtrosBase, estado: configuracion.estado };
     const { filtros, aplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales);
-    const [pagina, setPagina] = useState<{ items: OrdenResumen[]; hayMas: boolean }>({ items: [], hayMas: false });
+    const [pagina, setPagina] = useState<{ items: OrdenResumen[]; hayMas: boolean; total?: number }>({ items: [], hayMas: false });
     const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
     const [detalle, setDetalle] = useState<OrdenDetalle | null>(null);
     const [creando, setCreando] = useState(crearInicial);
@@ -232,8 +233,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                     { id: 'evidencias', label: 'Evidencias' },
                     { id: 'cierre', label: 'Cierre' },
                 ]} />
-                {detalle.estadoCodigo === 'CANCELADA' && <p className="tk-order-cancelled-state">Orden cancelada</p>}
-                <div className="tk-order-state"><span className="tk-status-badge" data-status={detalle.estadoCodigo}>{nombreEstado(detalle.estadoCodigo)}</span><p>{indicacionesEstado[detalle.estadoCodigo]}</p></div>
+                <div className="tk-order-state" data-cancelada={detalle.estadoCodigo === 'CANCELADA'}><span className="tk-status-badge" data-status={detalle.estadoCodigo}>{nombreEstado(detalle.estadoCodigo)}</span><p>{indicacionesEstado[detalle.estadoCodigo]}</p></div>
                 <dl className="tk-order-summary">
                     <div><dt>Cliente</dt><dd>{detalle.clienteNombreRegistrado}</dd></div>
                     <div><dt>Ubicación</dt><dd>{detalle.ubicacionNombreRegistrado}<span>{detalle.direccionRegistrada}</span></dd></div>
@@ -395,19 +395,13 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
     }
 
     return (
-        <section className="tk-orders" aria-labelledby="ordenes-titulo">
-            <div className="tk-breadcrumb">Gestión operativa › <span>Órdenes</span></div>
-            <div className="tk-orders-heading">
-                <div>
-                    <h2 id="ordenes-titulo">{configuracion.titulo}</h2>
-                    <p>{configuracion.descripcion}</p>
-                </div>
-                <div className="tk-order-toolbar"><button type="button" className="secondary-button" aria-label="Actualizar órdenes" disabled={cargando} onClick={() => { setMensaje(null); cargar(); }}>Actualizar</button>
+        <section className="tk-orders" aria-label={configuracion.titulo}>
+            <ModuleHeader breadcrumb={migas ?? [{ label: 'Operaciones', ruta: RUTAS.operaciones.inicio }, { label: configuracion.titulo }]} title={configuracion.titulo} description={configuracion.descripcion}
+                action={<div className="tk-order-toolbar"><button type="button" className="secondary-button" aria-label="Actualizar órdenes" disabled={cargando} onClick={() => { setMensaje(null); cargar(); }}>Actualizar</button>
                 {puedeGestionar && configuracion.permiteCrear && !creando && !detalle && !ordenInicial && (
                     <button type="button" className="primary-button tk-order-create"
                         onClick={() => { setMensaje(null); setDetalle(null); setOperacion(null); setCreando(true); }}>+ Nueva orden</button>
-                )}</div>
-            </div>
+                )}</div>} />
             {mensaje && !creando && !operacion && !detalle && !ordenInicial && <div className={`notice ${mensaje.tipo}`} role="alert">{mensaje.texto}</div>}
             {(
                 <>
@@ -438,11 +432,9 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                     <div className="card tk-table-card">
                         {contenidoLista()}
                         <div className="tk-table-pagination">
-                            <button type="button" className="secondary-button" disabled={cargando || aplicados.pagina === 1}
-                                onClick={() => cargar({ ...aplicados, pagina: aplicados.pagina - 1 })}>Anterior</button>
-                            <span>Página {aplicados.pagina}</span>
-                            <button type="button" className="secondary-button" disabled={cargando || !pagina.hayMas}
-                                onClick={() => cargar({ ...aplicados, pagina: aplicados.pagina + 1 })}>Siguiente</button>
+                            <Paginacion pagina={aplicados.pagina} limite={aplicados.limite} hayMas={pagina.hayMas} total={pagina.total} cargando={cargando}
+                                etiqueta="Paginación de órdenes" onPagina={nueva => cargar({ ...aplicados, pagina: nueva })}
+                                onLimite={limite => cargar({ ...aplicados, limite, pagina: 1 })} />
                         </div>
                     </div>
                 </>

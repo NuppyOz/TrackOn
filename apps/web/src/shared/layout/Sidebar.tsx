@@ -10,7 +10,7 @@ import {
     ShieldCheckIcon,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
-import { irA, RUTAS } from '../navigation';
+import { RUTAS } from '../navigation';
 export type Seccion =
     | 'agenda'
     | 'administracion'
@@ -29,12 +29,12 @@ export type Seccion =
     | 'field';
 interface SidebarProps {
     seccion: Seccion;
-    onNavigate: (seccion: Seccion) => void;
+    onNavigate: (seccion: Seccion, ruta?: string) => void;
     abierto: boolean;
     puedeGestionarCuadrillas: boolean;
     puedeAdministrar?: boolean;
 }
-type Enlace = { id: Seccion; etiqueta: string; ruta?: string };
+type Enlace = { id: Seccion; etiqueta: string; ruta?: string; /** Se despliegan cuando la ruta actual cuelga de `ruta`. */ hijos?: Enlace[] };
 export function Sidebar({
     seccion,
     onNavigate,
@@ -42,26 +42,28 @@ export function Sidebar({
     puedeGestionarCuadrillas,
     puedeAdministrar = false,
 }: Readonly<SidebarProps>) {
-    function enlaces(items: Enlace[]) {
-        return items.map((item) => {
+    function enlaces(items: Enlace[], nivel = 0): React.ReactNode[] {
+        return items.flatMap((item) => {
             const path = window.location.pathname;
+            const desplegado = Boolean(item.hijos && item.ruta && (path === item.ruta || path.startsWith(`${item.ruta}/`)));
             const activo = item.ruta
-                ? path === item.ruta
+                ? path === item.ruta || desplegado
+                    || (item.ruta === RUTAS.dashboard && path === RUTAS.insights.inicio)
+                    || (item.ruta === RUTAS.insights.reportes && path === RUTAS.insights.historial)
                     || (item.ruta === RUTAS.comercial.crm && path === RUTAS.comercial.inicio)
                     || (item.ruta === RUTAS.inteligencia.operacion.resumen && path === RUTAS.inteligencia.inicio)
                 : seccion === item.id;
-            return <button
+            const boton = <button
                 key={item.ruta ?? item.id}
                 type="button"
-                className={`figma-nav-link ${activo ? 'selected' : ''}`}
-                aria-current={activo ? 'page' : undefined}
-                onClick={() => {
-                    onNavigate(item.id);
-                    if (item.ruta) irA(item.ruta);
-                }}
+                className={`figma-nav-link ${nivel ? 'figma-nav-sublink' : ''} ${activo ? 'selected' : ''}`}
+                aria-current={activo && !desplegado ? 'page' : undefined}
+                aria-expanded={item.hijos ? desplegado : undefined}
+                onClick={() => item.ruta ? onNavigate(item.id, item.ruta) : onNavigate(item.id)}
             >
                 {item.etiqueta}
             </button>;
+            return desplegado && item.hijos ? [boton, <div key={`${item.ruta}-hijos`} className="figma-nav-children">{enlaces(item.hijos, nivel + 1)}</div>] : [boton];
         });
     }
     function grupo(titulo: string, icono: Icon, items: Enlace[]) {
@@ -95,22 +97,15 @@ export function Sidebar({
             >
                 <img src="/logo-multicas.png" alt="MULTICAS" />
                 <span>
-                    <strong>TRACKON</strong>
+                    <strong>MultiCore ERP</strong>
                     <small>by MULTICAS</small>
                 </span>
             </a>
             <div className="erp-sidebar-scroll">
-                {puedeGestionarCuadrillas && (
-                    <button
-                        type="button"
-                        aria-current={seccion === 'dashboard' ? 'page' : undefined}
-                    className={`erp-home-link ${seccion === 'dashboard' ? 'selected' : ''}`}
-                        onClick={() => onNavigate('dashboard')}
-                    >
-                        <SquaresFourIcon size={21} aria-hidden="true" />
-                        Resumen general
-                    </button>
-                )}
+                {puedeGestionarCuadrillas && grupo('Análisis', SquaresFourIcon, [
+                    { id: 'dashboard', etiqueta: 'Dashboards', ruta: RUTAS.dashboard },
+                    { id: 'dashboard', etiqueta: 'Reportes', ruta: RUTAS.insights.reportes },
+                ])}
                 {puedeGestionarCuadrillas &&
                     grupo(
                         'Comercial',
@@ -120,32 +115,56 @@ export function Sidebar({
                                 id: 'comercial' as Seccion,
                                 etiqueta: 'CRM',
                                 ruta: RUTAS.comercial.crm,
-                            },
-                            { id: 'clientes' as Seccion, etiqueta: 'Clientes' },
-                            {
-                                id: 'comercial' as Seccion,
-                                etiqueta: 'Ventas y cotizaciones',
-                                ruta: RUTAS.comercial['cotizaciones-ventas'],
+                                hijos: [
+                                    { id: 'comercial' as Seccion, etiqueta: 'Contactos', ruta: RUTAS.comercial['crm-contactos'] },
+                                    { id: 'comercial' as Seccion, etiqueta: 'Ubicaciones y sucursales', ruta: RUTAS.comercial['crm-ubicaciones'] },
+                                ],
                             },
                             {
                                 id: 'comercial' as Seccion,
-                                etiqueta: 'Catálogo y tarifas',
-                                ruta: RUTAS.comercial['catalogo-tarifas'],
+                                etiqueta: 'Gestión de ventas',
+                                ruta: RUTAS.comercial.ventas,
+                                hijos: [
+                                    { id: 'comercial' as Seccion, etiqueta: 'Oportunidades', ruta: RUTAS.comercial['ventas-oportunidades'] },
+                                    { id: 'comercial' as Seccion, etiqueta: 'Cotizaciones', ruta: RUTAS.comercial['ventas-cotizaciones'] },
+                                    { id: 'comercial' as Seccion, etiqueta: 'Ventas registradas', ruta: RUTAS.comercial['ventas-registradas'] },
+                                ],
                             },
                             {
                                 id: 'comercial' as Seccion,
-                                etiqueta: 'Portal del cliente',
+                                etiqueta: 'Catálogo comercial',
+                                ruta: RUTAS.comercial.catalogo,
+                                hijos: [
+                                    { id: 'comercial' as Seccion, etiqueta: 'Conceptos', ruta: RUTAS.comercial['catalogo-conceptos'] },
+                                    { id: 'comercial' as Seccion, etiqueta: 'Tarifas', ruta: RUTAS.comercial['catalogo-tarifas'] },
+                                ],
+                            },
+                            {
+                                id: 'comercial' as Seccion,
+                                etiqueta: 'Accesos de clientes',
                                 ruta: RUTAS.comercial['portal-cuentas'],
                             },
                         ].filter((item) => puedeAdministrar || item.ruta !== RUTAS.comercial['portal-cuentas']),
                     )}
                 {grupo('Operaciones', ToolboxIcon, [
                     ...(puedeGestionarCuadrillas
-                        ? [{ id: 'operaciones' as Seccion, etiqueta: 'Gestión de operaciones' }]
+                        ? [{
+                            id: 'operaciones' as Seccion,
+                            etiqueta: 'Gestión de operaciones',
+                            ruta: RUTAS.operaciones.inicio,
+                            hijos: [
+                                { id: 'operaciones' as Seccion, etiqueta: 'Solicitudes', ruta: RUTAS.operaciones.solicitudes },
+                                { id: 'operaciones' as Seccion, etiqueta: 'Despacho y asignación', ruta: RUTAS.operaciones.despacho },
+                                { id: 'operaciones' as Seccion, etiqueta: 'Diagnóstico', ruta: RUTAS.operaciones.diagnostico },
+                                { id: 'operaciones' as Seccion, etiqueta: 'Ejecución', ruta: RUTAS.operaciones.ejecucion },
+                                { id: 'operaciones' as Seccion, etiqueta: 'Evidencias', ruta: RUTAS.operaciones.evidencias },
+                                { id: 'operaciones' as Seccion, etiqueta: 'Tipos de servicio', ruta: RUTAS.operaciones.tiposServicio },
+                            ],
+                        }]
                         : []),
                     { id: 'ordenes', etiqueta: 'Órdenes' },
                     { id: 'agenda', etiqueta: 'Agenda' },
-                    { id: 'field', etiqueta: 'TrackOn Field' },
+                    { id: 'field', etiqueta: 'MultiCore ERP Field' },
                 ])}
                 {!puedeGestionarCuadrillas &&
                     grupo('Clientes', UsersIcon, [{ id: 'clientes', etiqueta: 'Directorio' }])}

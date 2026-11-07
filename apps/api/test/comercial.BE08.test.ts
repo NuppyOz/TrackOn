@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const db = vi.hoisted(() => ({
     cotizacionComercial: { findUnique: vi.fn() },
-    ventaComercial: { findUnique: vi.fn(), findUniqueOrThrow: vi.fn(), create: vi.fn(), findMany: vi.fn() },
+    ventaComercial: { findUnique: vi.fn(), findUniqueOrThrow: vi.fn(), create: vi.fn(), findMany: vi.fn(), count: vi.fn(async () => 0) },
 }));
 
 vi.mock('../src/infrastructure/prisma.js', () => ({ prisma: db }));

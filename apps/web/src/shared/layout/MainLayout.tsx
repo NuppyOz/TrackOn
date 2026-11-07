@@ -9,7 +9,7 @@ interface MainLayoutProps {
     menuAbierto: boolean;
     puedeGestionarCuadrillas: boolean;
     puedeAdministrar?: boolean;
-    onNavigate: (seccion: Seccion) => void;
+    onNavigate: (seccion: Seccion, ruta?: string) => void;
     onOpenMenu: () => void;
     onCloseMenu: () => void;
     onLogout: () => void;
@@ -18,7 +18,7 @@ interface MainLayoutProps {
 
 const etiquetas: Record<Seccion, string> = {
     agenda: "Agenda", administracion: "Usuarios y permisos", auditoria: "Auditoría",
-    dashboard: "Dashboard",
+    dashboard: "Análisis",
     materiales: "Materiales",
     clientes: "Clientes",
     empleados: "Empleados",
@@ -29,7 +29,7 @@ const etiquetas: Record<Seccion, string> = {
     comercial: "Comercial",
     inteligencia: "IA y negocio",
     operaciones: "Operaciones de servicio",
-    field: "TrackOn Field",
+    field: "MultiCore ERP Field",
 };
 
 export function MainLayout({
@@ -118,11 +118,6 @@ export function MainLayout({
             />
             <main className="workspace">
                 <h1 className="sr-only">{etiquetas[seccion]}</h1>
-                {!['ordenes', 'dashboard', 'comercial', 'inteligencia'].includes(seccion) && (
-                    <div className="tk-context-breadcrumb">
-                        {['agenda', 'operaciones', 'field'].includes(seccion) ? 'Operaciones' : ['administracion', 'auditoria'].includes(seccion) ? 'Administración' : ['comercial', 'inteligencia'].includes(seccion) ? 'TrackOn' : 'Recursos'} <span aria-hidden="true">›</span> <strong>{etiquetas[seccion]}</strong>
-                    </div>
-                )}
                 {children}
             </main>
         </div>

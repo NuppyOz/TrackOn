@@ -1,7 +1,9 @@
+import { useSyncExternalStore } from 'react';
 import type { Seccion } from './layout/Sidebar';
 
 export const RUTAS = {
     dashboard: '/dashboard',
+    insights: { inicio: '/insights', reportes: '/insights/reportes', historial: '/insights/historial' },
     clientes: '/clientes',
     empleados: '/empleados',
     equipos: '/equipos',
@@ -19,9 +21,17 @@ export const RUTAS = {
     comercial: {
         inicio: '/comercial',
         crm: '/comercial/crm',
-        'cotizaciones-ventas': '/comercial/cotizaciones-ventas',
-        'catalogo-tarifas': '/comercial/catalogo-tarifas',
-        'portal-cuentas': '/comercial/portal-cuentas',
+        'crm-nuevo': '/comercial/crm/nuevo',
+        'crm-contactos': '/comercial/crm/contactos',
+        'crm-ubicaciones': '/comercial/crm/ubicaciones',
+        ventas: '/comercial/ventas',
+        'ventas-oportunidades': '/comercial/ventas/oportunidades',
+        'ventas-cotizaciones': '/comercial/ventas/cotizaciones',
+        'ventas-registradas': '/comercial/ventas/registradas',
+        catalogo: '/comercial/catalogo',
+        'catalogo-conceptos': '/comercial/catalogo/conceptos',
+        'catalogo-tarifas': '/comercial/catalogo/tarifas',
+        'portal-cuentas': '/comercial/accesos-clientes',
     },
     inteligencia: {
         inicio: '/inteligencia',
@@ -90,6 +100,7 @@ export const RUTA_INICIAL_POR_SECCION: Readonly<Record<Seccion, string>> = {
 
 const rutasRaiz: Readonly<Record<string, Seccion>> = {
     '/': 'dashboard',
+    '/insights': 'dashboard',
     [RUTAS.dashboard]: 'dashboard',
     [RUTAS.clientes]: 'clientes',
     [RUTAS.empleados]: 'empleados',
@@ -134,7 +145,10 @@ export function leerRuta(pathname = window.location.pathname): RutaLeida {
     if (ruta in rutasRaiz) {
         return { seccion: rutasRaiz[ruta], ruta, ordenNueva: false, valida: true };
     }
-    if (rutasComerciales.has(ruta)) {
+    if (ruta === RUTAS.insights.reportes || ruta === RUTAS.insights.historial) {
+        return { seccion: 'dashboard', ruta, ordenNueva: false, valida: true };
+    }
+    if (rutasComerciales.has(ruta) || /^\/comercial\/crm\/[1-9]\d*$/.test(ruta)) {
         return { seccion: 'comercial', ruta, ordenNueva: false, valida: true };
     }
     if (rutasInteligencia.has(ruta)) {
@@ -145,6 +159,9 @@ export function leerRuta(pathname = window.location.pathname): RutaLeida {
     }
     if (rutasField.has(ruta)) {
         return { seccion: 'field', ruta, ordenNueva: false, valida: true };
+    }
+    if ((segmento === 'clientes' || segmento === 'empleados') && leerDetalle(ruta, `/${segmento}`).vista !== 'listado') {
+        return { seccion: segmento, ruta, ordenNueva: false, valida: true };
     }
     if (segmento === 'ordenes' && detalle === 'nueva' && ruta === '/ordenes/nueva') {
         return { seccion: 'ordenes', ruta, ordenNueva: true, valida: true };
@@ -157,6 +174,28 @@ export function leerRuta(pathname = window.location.pathname): RutaLeida {
     }
 
     return { seccion: 'dashboard', ruta, ordenNueva: false, valida: false };
+}
+
+export type DetalleRuta = Readonly<{ vista: 'listado' | 'crear' | 'detalle' | 'editar'; id?: number }>;
+
+/** `/base/nuevo`, `/base/:id` y `/base/:id/editar` (solo empleados admite editar). */
+export function leerDetalle(ruta: string, base: string): DetalleRuta {
+    const coincidencia = new RegExp(`^${base}/(nuevo|[1-9]\\d*)(/editar)?$`).exec(ruta.replace(/\/+$/, ''));
+    if (!coincidencia) return { vista: 'listado' };
+    if (coincidencia[1] === 'nuevo') return coincidencia[2] ? { vista: 'listado' } : { vista: 'crear' };
+    if (coincidencia[2] && base !== RUTAS.empleados) return { vista: 'listado' };
+    return { vista: coincidencia[2] ? 'editar' : 'detalle', id: Number(coincidencia[1]) };
+}
+
+function suscribirRuta(notificar: () => void) {
+    window.addEventListener('popstate', notificar);
+    window.addEventListener('trackon:navigate', notificar);
+    return () => { window.removeEventListener('popstate', notificar); window.removeEventListener('trackon:navigate', notificar); };
+}
+
+/** Ruta actual reactiva a `irA` y al botón atrás. */
+export function useRuta(): string {
+    return useSyncExternalStore(suscribirRuta, () => window.location.pathname);
 }
 
 export function irA(ruta: string) {

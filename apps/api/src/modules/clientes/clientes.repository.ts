@@ -1,6 +1,10 @@
 import { prisma } from "../../infrastructure/prisma.js";
 
-import type { CreateClienteInput, UpdateClienteInput } from "./clientes.schema.js";
+import type { Prisma } from "@prisma/client";
+
+import type { CreateClienteInput, ListarClientesInput, UpdateClienteInput } from "./clientes.schema.js";
+
+import { paginaDesde } from "../../shared/pagination.js";
 
 const clienteSelect = {
     id: true,
@@ -163,6 +167,40 @@ export function listarClientes() {
             id: "asc",
         },
     });
+}
+
+export async function listarClientesPaginados(filtros: ListarClientesInput) {
+    const contiene = (texto: string) => ({ contains: texto, mode: "insensitive" as const });
+    const where: Prisma.ClienteWhereInput = {
+        ...(filtros.estado !== "todos" ? { activo: filtros.estado === "activos" } : {}),
+        ...(filtros.tipo === "NATURAL" ? { personaId: { not: null } } : {}),
+        ...(filtros.tipo === "EMPRESA" ? { organizacionId: { not: null } } : {}),
+        ...(filtros.buscar ? { OR: [
+            { codigo: contiene(filtros.buscar) },
+            { correoComercial: contiene(filtros.buscar) },
+            { persona: { is: { OR: [
+                { firstName: contiene(filtros.buscar) },
+                { firstLastName: contiene(filtros.buscar) },
+                { numberDocument: contiene(filtros.buscar) },
+            ] } } },
+            { organizacion: { is: { OR: [
+                { razonSocial: contiene(filtros.buscar) },
+                { nombreComercial: contiene(filtros.buscar) },
+                { identificacionTributaria: contiene(filtros.buscar) },
+            ] } } },
+        ] } : {}),
+    };
+    const [items, total] = await Promise.all([
+        prisma.cliente.findMany({
+            where,
+            select: clienteSelect,
+            orderBy: { id: "asc" },
+            skip: (filtros.pagina - 1) * filtros.limite,
+            take: filtros.limite + 1,
+        }),
+        prisma.cliente.count({ where }),
+    ]);
+    return paginaDesde(items, filtros, total);
 }
 
 export function buscarClientePorId(id: number) {

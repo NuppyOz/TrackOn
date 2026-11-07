@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ClientesManager from "../src/features/clientes/ClientesManager";
-import type { Cliente, UbicacionCliente } from "../src/features/clientes/clientes.types";
+import { nombreCliente, type Cliente, type UbicacionCliente } from "../src/features/clientes/clientes.types";
 
 const mocks = vi.hoisted(() => ({
-    listarClientes: vi.fn(), crearCliente: vi.fn(), cambiarEstadoCliente: vi.fn(),
+    listarClientesPagina: vi.fn(), obtenerCliente: vi.fn(), crearCliente: vi.fn(), cambiarEstadoCliente: vi.fn(),
     listarUbicacionesCliente: vi.fn(), crearUbicacion: vi.fn(), cambiarEstadoUbicacion: vi.fn(),
 }));
 vi.mock("../src/features/clientes/clientes.api", () => mocks);
@@ -30,9 +30,19 @@ const pagina = (items: UbicacionCliente[] = [ubicacion], hayMas = false) => ({
     items, pagina: 1, limite: 25, hayMas,
 });
 
+// Imita el filtrado del BE sobre los dos clientes de prueba.
+const filtrar = (filtros: { buscar: string; tipo: string; estado: string }) => [empresa, persona].filter(cliente =>
+    (!filtros.buscar || nombreCliente(cliente).toLocaleLowerCase("es").includes(filtros.buscar.toLocaleLowerCase("es")))
+    && (!filtros.tipo || (filtros.tipo === "EMPRESA" ? Boolean(cliente.organizacion) : Boolean(cliente.persona)))
+    && (filtros.estado === "todos" || cliente.activo === (filtros.estado === "activos")));
+
 beforeEach(() => {
     vi.resetAllMocks();
-    mocks.listarClientes.mockResolvedValue([empresa, persona]);
+    window.history.replaceState(null, "", "/clientes");
+    mocks.listarClientesPagina.mockImplementation(async (filtros: { buscar: string; tipo: string; estado: string }) => {
+        const items = filtrar(filtros);
+        return { items, pagina: 1, limite: 10, hayMas: false, total: items.length };
+    });
     mocks.listarUbicacionesCliente.mockResolvedValue(pagina());
     mocks.crearCliente.mockResolvedValue({ ...empresa, id: 10 });
     mocks.crearUbicacion.mockResolvedValue(ubicacion);
@@ -56,7 +66,7 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         render(<ClientesManager puedeGestionar />);
         expect(await screen.findByText("Clínica Santa María S.A.")).toBeTruthy();
         expect(screen.getByText("Ana López")).toBeTruthy();
-        expect(mocks.listarClientes).toHaveBeenCalledTimes(1);
+        expect(mocks.listarClientesPagina).toHaveBeenCalledTimes(1);
     });
 
     it("filtra por nombre de cliente", async () => {
@@ -65,8 +75,9 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         fireEvent.change(screen.getByRole("textbox", { name: "Buscar cliente" }), {
             target: { value: "Clínica" },
         });
-        expect(screen.getByText("Clínica Santa María S.A.")).toBeTruthy();
-        expect(screen.queryByText("Ana López")).toBeNull();
+        await waitFor(() => expect(screen.queryByText("Ana López")).toBeNull());
+        expect(await screen.findByText("Clínica Santa María S.A.")).toBeTruthy();
+        expect(mocks.listarClientesPagina).toHaveBeenLastCalledWith(expect.objectContaining({ buscar: "Clínica", pagina: 1 }));
     });
 
     it("filtra por tipo y estado", async () => {
@@ -75,15 +86,15 @@ describe("Clientes y ubicaciones en TrackOn", () => {
         fireEvent.change(screen.getByRole("combobox", { name: "Filtrar tipo de cliente" }), {
             target: { value: "NATURAL" },
         });
-        expect(screen.queryByText("Clínica Santa María S.A.")).toBeNull();
+        await waitFor(() => expect(screen.queryByText("Clínica Santa María S.A.")).toBeNull());
         fireEvent.change(screen.getByRole("combobox", { name: "Filtrar estado de cliente" }), {
             target: { value: "activos" },
         });
-        expect(screen.getByText("No hay clientes que coincidan con los filtros.")).toBeTruthy();
+        expect(await screen.findByText("No hay clientes que coincidan con los filtros.")).toBeTruthy();
     });
 
     it("muestra fallos de consulta", async () => {
-        mocks.listarClientes.mockRejectedValue(new Error("Sin conexión"));
+        mocks.listarClientesPagina.mockRejectedValue(new Error("Sin conexión"));
         render(<ClientesManager puedeGestionar />);
         expect(await screen.findByRole("alert")).toHaveProperty("textContent", "Sin conexión");
     });

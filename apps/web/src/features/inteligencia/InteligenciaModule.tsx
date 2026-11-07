@@ -15,7 +15,7 @@ export function InteligenciaModule({ section, children, availableSections = [sec
   const active = seccionesInteligencia.find(item => item.id === section);
   const available = seccionesInteligencia.filter(item => availableSections.includes(item.id));
   return <div className={`inteligencia-scope inteligencia-module${children ? ' inteligencia-module--content' : ''}`} aria-labelledby={showHeading ? 'inteligencia-title' : undefined}>
-    {showHeading && <header className="inteligencia-module__header"><p className="inteligencia-module__eyebrow">TrackOn · Inteligencia</p><h1 id="inteligencia-title">{active?.label ?? 'Inteligencia'}</h1></header>}
+    {showHeading && <header className="inteligencia-module__header"><p className="inteligencia-module__eyebrow">MultiCore ERP · Inteligencia</p><h1 id="inteligencia-title">{active?.label ?? 'Inteligencia'}</h1></header>}
     {onNavigate && available.length > 1 && <SectionSelector label="Indicadores" value={section}
       options={available.map(item => ({ value: item.id, label: item.label }))}
       onChange={value => onNavigate(value as SeccionInteligencia)} />}

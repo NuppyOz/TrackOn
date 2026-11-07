@@ -6,8 +6,8 @@ const db = vi.hoisted(() => ({
     cliente: { findUnique: vi.fn() },
     servicio: { findUnique: vi.fn() },
     material: { findUnique: vi.fn() },
-    conceptoComercial: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
-    tarifaComercial: { findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
+    conceptoComercial: { findMany: vi.fn(), count: vi.fn(async () => 0), findUnique: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
+    tarifaComercial: { findMany: vi.fn(), count: vi.fn(async () => 0), findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
     $transaction: vi.fn(),
 }));
 
@@ -68,7 +68,7 @@ describe('BE04 conceptos y tarifas comerciales', () => {
     it('filtra y ordena conceptos en backend antes de paginar y rechaza filtros desconocidos', async () => {
         const response = await request(app).get('/api/comercial/conceptos?q=mtto&estado=activos&pagina=2&limite=5&sortBy=codigo&sortDir=desc');
         expect(response.status).toBe(200);
-        expect(response.body.data).toEqual({ items: [], pagina: 2, limite: 5, hayMas: false });
+        expect(response.body.data).toEqual({ items: [], pagina: 2, limite: 5, hayMas: false, total: 0 });
         expect(db.conceptoComercial.findMany).toHaveBeenCalledWith(expect.objectContaining({
             where: expect.objectContaining({ activo: true, OR: expect.any(Array) }),
             orderBy: [{ codigo: 'desc' }, { id: 'desc' }], skip: 5, take: 6,

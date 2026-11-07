@@ -91,3 +91,6 @@
   .tarifas__confirm .tarifas__secondary, .tarifas__confirm .tarifas__danger { flex: 1; }
   .tarifas__resolver { padding: var(--erp-space-6); }
 }
+
+/* Confirmación sobre el contenido, no al inicio de la página. */
+.tarifas__confirm { position: fixed; top: 28%; left: 50%; z-index: 60; width: min(92vw, 540px); transform: translateX(-50%); background: #fff; box-shadow: 0 16px 40px rgb(0 0 0 / 22%); }

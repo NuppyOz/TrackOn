@@ -20,7 +20,7 @@ import { cerrarSesion, puedeAdministrarCatalogos, renovarSesion, type UsuarioSes
 import { MainLayout } from "./shared/layout/MainLayout";
 import type { Seccion } from "./shared/layout/Sidebar";
 import MaterialesManager from "./features/materiales/MaterialesManager";
-import Dashboard from "./features/dashboard/Dashboard";
+import InsightsPage from "./features/insights/InsightsPage";
 import { irA, leerRuta, RUTA_INICIAL_POR_SECCION, RUTAS } from './shared/navigation';
 import Agenda from './features/agenda/Agenda';
 import AdministracionWorkspace from './features/administracion/AdministracionWorkspace';
@@ -36,7 +36,6 @@ interface ModuleContentProps {
     puedeGestionar: boolean;
     ordenInicial?: number;
     onOrden: (id?: number) => void;
-    onCuadrillas: () => void;
     ruta: string;
     rutaValida: boolean;
     ordenNueva: boolean;
@@ -48,18 +47,18 @@ function protectedContent(allowed: boolean, content: React.ReactNode) {
     return allowed ? content : accessDenied;
 }
 
-function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, onCuadrillas, ruta, rutaValida, ordenNueva, puedeAdministrar }: Readonly<ModuleContentProps>) {
-    if (!rutaValida) return <section aria-labelledby="ruta-no-encontrada"><h2 id="ruta-no-encontrada">No encontramos esta página</h2><p>Revisa la dirección o vuelve al inicio del sistema.</p><button type="button" onClick={() => irA(RUTAS.dashboard)}>Ir al resumen general</button></section>;
+function ModuleContent({ seccion, puedeGestionar, ordenInicial, onOrden, ruta, rutaValida, ordenNueva, puedeAdministrar }: Readonly<ModuleContentProps>) {
+    if (!rutaValida) return <section aria-labelledby="ruta-no-encontrada"><h2 id="ruta-no-encontrada">No encontramos esta página</h2><p>Revisa la dirección o vuelve al inicio del sistema.</p><button type="button" onClick={() => irA(RUTAS.dashboard)}>Ir a Insights</button></section>;
     switch (seccion) {
         case "comercial": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando Comercial…</p>}><ComercialWorkspace ruta={ruta} puedeAdministrar={puedeAdministrar} /></Suspense>);
         case "inteligencia": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando IA y negocio…</p>}><InteligenciaWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense>);
         case "operaciones": return protectedContent(puedeGestionar, <Suspense fallback={<p role="status">Cargando operaciones…</p>}><OperacionesWorkspace ruta={ruta} puedeGestionar={puedeGestionar} onOrden={onOrden} /></Suspense>);
-        case "field": return <Suspense fallback={<p role="status">Cargando TrackOn Field…</p>}><FieldWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense>;
+        case "field": return <Suspense fallback={<p role="status">Cargando MultiCore ERP Field…</p>}><FieldWorkspace ruta={ruta} onOrden={id => onOrden(id)} /></Suspense>;
         case "agenda": return <Agenda onOrden={onOrden} />;
         case "administracion": return protectedContent(puedeAdministrar, <AdministracionWorkspace ruta={ruta} />);
         case "auditoria": return protectedContent(puedeAdministrar, <AuditoriaManager />);
         case "dashboard":
-            return protectedContent(puedeGestionar, <Dashboard onOrden={onOrden} onCuadrillas={onCuadrillas} />);
+            return protectedContent(puedeGestionar, <InsightsPage ruta={ruta} />);
         case "materiales":
             return <MaterialesManager puedeGestionar={puedeGestionar} />;
         case "clientes":
@@ -138,7 +137,7 @@ export default function App() {
         };
     }, []);
 
-    function navegar(destino: Seccion) {
+    function navegar(destino: Seccion, ruta = RUTA_INICIAL_POR_SECCION[destino]) {
         if (['administracion', 'auditoria'].includes(destino) && !puedeAdministrar) return;
         if (["dashboard", "cuadrillas", "empleados", "comercial", "inteligencia", "operaciones"].includes(destino) && !puedeGestionar) {
             return;
@@ -146,7 +145,7 @@ export default function App() {
 
         setSeccion(destino);
         setOrdenInicial(undefined);
-        irA(RUTA_INICIAL_POR_SECCION[destino]);
+        irA(ruta);
         setMenuAbierto(false);
     }
 
@@ -211,7 +210,7 @@ export default function App() {
             <ModuleContent seccion={seccion} puedeGestionar={puedeGestionar} ordenInicial={ordenInicial}
                 ruta={ruta} rutaValida={rutaValida} ordenNueva={ruta === '/ordenes/nueva'}
                 puedeAdministrar={puedeAdministrar}
-                onOrden={id => { navegar("ordenes"); setOrdenInicial(id); if (id) irA(`/ordenes/${id}`); }} onCuadrillas={() => navegar("cuadrillas")} />
+                onOrden={id => { navegar("ordenes", id ? `/ordenes/${id}` : RUTAS.ordenes); setOrdenInicial(id); }} />
         </MainLayout>
         {confirmandoSalida && <ConfirmDialog
             titulo="¿Quieres cerrar sesión?"

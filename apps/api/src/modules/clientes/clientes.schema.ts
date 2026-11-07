@@ -1,6 +1,8 @@
 import { z } from "zod";
+import { correoOpcionalSchema, telefonoNicaraguenseSchema } from "../../shared/contacto.schema.js";
 
 import { createPersonaSchema, updatePersonaSchema } from "../personas/personas.schema.js";
+import { paginacionQueryShape } from "../../shared/pagination.js";
 
 const codigoClienteSchema = z
     .string({
@@ -15,33 +17,9 @@ const codigoClienteSchema = z
     })
     .toUpperCase();
 
-const telefonoComercialSchema = z
-    .string({
-        error: "El teléfono comercial debe ser texto.",
-    })
-    .trim()
-    .min(1, {
-        error: "El teléfono comercial no puede estar vacío.",
-    })
-    .max(25, {
-        error: "El teléfono comercial no debe superar 25 caracteres.",
-    })
-    .nullish();
+const telefonoComercialSchema = telefonoNicaraguenseSchema;
 
-const correoComercialSchema = z
-    .string({
-        error: "El correo comercial debe ser texto.",
-    })
-    .trim()
-    .max(254, {
-        error: "El correo comercial no debe superar 254 caracteres.",
-    })
-    .pipe(
-        z.email({
-            error: "El correo comercial no tiene un formato válido.",
-        }),
-    )
-    .nullish();
+const correoComercialSchema = correoOpcionalSchema("El correo comercial");
 
 const organizacionSchema = z.strictObject({
     razonSocial: z
@@ -209,6 +187,15 @@ export const updateEstadoClienteSchema = z.strictObject({
         error: "El estado del cliente debe ser verdadero o falso.",
     }),
 });
+
+export const listarClientesQuerySchema = z.strictObject({
+    buscar: z.string().trim().max(200).optional(),
+    tipo: z.enum(["NATURAL", "EMPRESA"]).optional(),
+    estado: z.enum(["activos", "inactivos", "todos"]).default("todos"),
+    ...paginacionQueryShape,
+});
+
+export type ListarClientesInput = z.infer<typeof listarClientesQuerySchema>;
 
 export type CreateClienteInput = z.infer<typeof createClienteSchema>;
 

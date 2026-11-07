@@ -9,7 +9,7 @@ const textoPlano = (max: number, min = 0) => z.string().trim().min(min).max(max)
 
 export const idParamsSchema = z.object({ id });
 export const crearCotizacionSchema = z.strictObject({
-  clienteId: id, contactoId: id.optional(), venceEn: fecha,
+  clienteId: id, contactoId: id.optional(), oportunidadId: id.optional(), venceEn: fecha,
   lineas: z.array(z.strictObject({ conceptoId: id, cantidad: cantidad3, descuento: decimal2 })).max(100).default([]),
   nota: textoPlano(2000).optional(),
 });

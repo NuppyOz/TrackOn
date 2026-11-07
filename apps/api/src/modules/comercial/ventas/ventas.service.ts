@@ -75,6 +75,16 @@ async function convertirEnTransaccion(cotizacionId: number, version: number, usu
         total: decimalFijo(cotizacion.total, 2),
     });
     if (!venta) throw new AppError(409, 'No se pudo recuperar la venta confirmada.');
+    if (cotizacion.oportunidadId) {
+        const oportunidad = await tx.oportunidadComercial.findUnique({ where: { id: cotizacion.oportunidadId }, select: { id: true, etapa: true, version: true } });
+        if (!oportunidad || oportunidad.etapa !== 'PROPUESTA') throw new AppError(409, 'La oportunidad vinculada cambió y no se pudo cerrar la venta.');
+        const actualizada = await tx.oportunidadComercial.updateMany({ where: { id: oportunidad.id, etapa: 'PROPUESTA', version: oportunidad.version }, data: { etapa: 'GANADA', version: { increment: 1 } } });
+        if (!actualizada.count) throw new AppError(409, 'La oportunidad vinculada cambió y no se pudo cerrar la venta.');
+        await tx.auditoria.create({ data: {
+            usuarioId, tipoActor: 'USUARIO', entidad: 'OPORTUNIDAD_COMERCIAL', entidadId: String(oportunidad.id), accion: 'GANAR',
+            datosAnteriores: { etapa: oportunidad.etapa, version: oportunidad.version }, datosNuevos: { etapa: 'GANADA', version: oportunidad.version + 1, ventaId: venta.id },
+        } });
+    }
     return cabeceraDto(venta);
 }
 
@@ -108,13 +118,14 @@ export async function convertirVenta(cotizacionId: number, version: number, usua
 }
 
 export async function listarVentas(filtros: ListarVentas) {
-    const rows = await repository.listar(filtros);
+    const [rows, total] = await Promise.all([repository.listar(filtros), repository.contar(filtros)]);
     const hayMas = rows.length > filtros.limite;
     return {
         items: rows.slice(0, filtros.limite).map(row => cabeceraDto(row)),
         pagina: filtros.pagina,
         limite: filtros.limite,
         hayMas,
+        total,
     };
 }
 

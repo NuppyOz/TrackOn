@@ -66,17 +66,19 @@ describe("Layout responsive de TrackOn", () => {
         expect(document.activeElement).toBe(disparador);
     });
 
-    it("presenta Resumen general e Inteligencia como último subsistema del administrador", () => {
+    it("presenta Análisis con tableros y reportes, e Inteligencia", () => {
         const onNavigate = vi.fn();
         render(<Sidebar seccion="inteligencia" abierto puedeGestionarCuadrillas puedeAdministrar onNavigate={onNavigate} />);
         const sidebar = document.querySelector('aside')!;
         const opciones = within(sidebar).getAllByRole('button', { hidden: true });
-        expect(opciones[0].textContent).toContain('Resumen general');
+        expect(opciones[0].textContent).toContain('Tableros');
+        const analisis = within(sidebar).getByRole('navigation', { name: 'Análisis', hidden: true });
+        expect(within(analisis).getByRole('button', { name: 'Reportes', hidden: true })).toBeTruthy();
         expect(within(sidebar).getByRole('navigation', { name: 'Inteligencia', hidden: true }).textContent).toContain('IA y negocio');
         expect(within(sidebar).getByRole('navigation', { name: 'Comercial', hidden: true })).toBeTruthy();
         expect(within(sidebar).getByRole('button', { name: 'IA y negocio', hidden: true })).toBeTruthy();
         fireEvent.click(within(sidebar).getByRole('button', { name: 'IA y negocio', hidden: true }));
-        expect(onNavigate).toHaveBeenCalledWith('inteligencia');
+        expect(onNavigate.mock.calls[0][0]).toBe('inteligencia');
     });
 
     it("marca la sección seleccionada y permite navegar a los catálogos", () => {

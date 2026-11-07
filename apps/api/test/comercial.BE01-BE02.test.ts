@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const db = vi.hoisted(() => ({
     cliente: { findUnique: vi.fn() },
     perfilComercialCliente: { findUnique: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
-    contactoComercial: { findMany: vi.fn(), create: vi.fn(), findFirst: vi.fn(), updateMany: vi.fn() },
+    contactoComercial: { findMany: vi.fn(), count: vi.fn(async () => 0), create: vi.fn(), findFirst: vi.fn(), updateMany: vi.fn() },
     $transaction: vi.fn(),
 }));
 
@@ -69,7 +69,7 @@ describe('BE01–BE02 perfil y contactos comerciales', () => {
     it('lista contactos con búsqueda y orden en la consulta de base antes de paginar', async () => {
         const response = await request(app).get('/api/comercial/clientes/7/contactos?q=ana&pagina=2&limite=10&sortBy=nombre&sortDir=asc');
         expect(response.status).toBe(200);
-        expect(response.body.data).toEqual({ items: [], pagina: 2, limite: 10, hayMas: false });
+        expect(response.body.data).toEqual({ items: [], pagina: 2, limite: 10, hayMas: false, total: 0 });
         expect(db.contactoComercial.findMany).toHaveBeenCalledWith(expect.objectContaining({
             where: expect.objectContaining({ clienteId: 7, OR: expect.any(Array) }),
             orderBy: [{ nombre: 'asc' }, { id: 'desc' }], skip: 10, take: 11,

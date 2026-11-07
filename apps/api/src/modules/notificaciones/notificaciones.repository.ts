@@ -22,17 +22,15 @@ export function contarNoLeidas(usuarioId: number) {
     return prisma.notificacion.count({ where: { usuarioId, leidaEn: null } });
 }
 
+// La tabla exige leidaEn >= creadaEn; las notificaciones programadas a futuro se marcan con su propia fecha.
 export async function marcarTodasLeidas(usuarioId: number) {
-    const result = await prisma.notificacion.updateMany({
-        where: { usuarioId, leidaEn: null },
-        data: { leidaEn: new Date() },
-    });
-    return { actualizadas: result.count };
+    const actualizadas = await prisma.$executeRaw`UPDATE notificaciones SET "leidaEn" = GREATEST("creadaEn", now()) WHERE "usuarioId" = ${usuarioId} AND "leidaEn" IS NULL`;
+    return { actualizadas };
 }
 
 export async function marcarLeida(usuarioId: number, id: number) {
     const notification = await prisma.notificacion.findFirst({ where: { id, usuarioId }, select: { id: true, leidaEn: true } });
     if (!notification) return null;
-    if (!notification.leidaEn) await prisma.notificacion.updateMany({ where: { id, usuarioId, leidaEn: null }, data: { leidaEn: new Date() } });
+    if (!notification.leidaEn) await prisma.$executeRaw`UPDATE notificaciones SET "leidaEn" = GREATEST("creadaEn", now()) WHERE id = ${id} AND "usuarioId" = ${usuarioId} AND "leidaEn" IS NULL`;
     return { id: notification.id };
 }

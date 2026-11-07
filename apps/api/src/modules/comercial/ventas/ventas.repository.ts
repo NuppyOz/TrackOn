@@ -34,7 +34,7 @@ export function obtenerVenta(id: number) {
 export function obtenerCotizacionParaVenta(id: number, db: Prisma.TransactionClient) {
     return db.cotizacionComercial.findUnique({
         where: { id },
-        select: { id: true, clienteId: true, estado: true, version: true, moneda: true, total: true },
+        select: { id: true, clienteId: true, oportunidadId: true, estado: true, version: true, moneda: true, total: true },
     });
 }
 
@@ -46,15 +46,23 @@ export async function crearEn(tx: Prisma.TransactionClient, datos: { cotizacionI
     return tx.ventaComercial.findUniqueOrThrow({ where: { id: creada.id }, include: ventaDetalleInclude });
 }
 
-export async function listar(filtros: ListarVentas) {
+function whereListar(filtros: ListarVentas): Prisma.VentaComercialWhereInput {
     const numero = filtros.q && /^[1-9]\d*$/.test(filtros.q) && Number(filtros.q) <= 2_147_483_647 ? Number(filtros.q) : undefined;
-    const where: Prisma.VentaComercialWhereInput = {
+    return {
         ...(filtros.clienteId !== undefined ? { clienteId: filtros.clienteId } : {}),
         ...(filtros.q ? { OR: [
             ...(numero !== undefined ? [{ id: numero }, { cotizacionId: numero }] : []),
             { cotizacion: { is: { clienteNombreRegistrado: { contains: filtros.q, mode: 'insensitive' } } } },
         ] } : {}),
     };
+}
+
+export function contar(filtros: ListarVentas) {
+    return prisma.ventaComercial.count({ where: whereListar(filtros) });
+}
+
+export async function listar(filtros: ListarVentas) {
+    const where = whereListar(filtros);
     const orderBy: Prisma.VentaComercialOrderByWithRelationInput[] = filtros.sortBy === 'id'
         ? [{ id: filtros.sortDir }]
         : [{ confirmadaEn: filtros.sortDir }, { id: filtros.sortDir }];

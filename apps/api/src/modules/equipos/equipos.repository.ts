@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../../infrastructure/prisma.js';
 import type { CreateEquipoInput, EquipoFilters, UpdateEquipoInput } from './equipos.schema.js';
 import { paginaDesde } from '../../shared/pagination.js';
@@ -47,20 +48,21 @@ export function crearEquipo(datos: CreateEquipoInput) {
 }
 
 export async function listarEquipos(filtros: EquipoFilters) {
-    const items = await prisma.equipo.findMany({
-        where: {
-            ...(filtros.estado !== 'todos' ? { activo: filtros.estado === 'activos' } : {}),
-            ...(filtros.ubicacionId ? { ubicacionId: filtros.ubicacionId } : {}),
-            ...(filtros.clienteId ? { ubicacion: { clienteId: filtros.clienteId } } : {}),
-            ...(filtros.codigo ? { codigo: { contains: filtros.codigo, mode: 'insensitive' } } : {}),
-            ...(filtros.numeroSerie ? { numeroSerie: { contains: filtros.numeroSerie, mode: 'insensitive' } } : {}),
-        },
+    const where: Prisma.EquipoWhereInput = {
+        ...(filtros.estado !== 'todos' ? { activo: filtros.estado === 'activos' } : {}),
+        ...(filtros.ubicacionId ? { ubicacionId: filtros.ubicacionId } : {}),
+        ...(filtros.clienteId ? { ubicacion: { clienteId: filtros.clienteId } } : {}),
+        ...(filtros.codigo ? { codigo: { contains: filtros.codigo, mode: 'insensitive' } } : {}),
+        ...(filtros.numeroSerie ? { numeroSerie: { contains: filtros.numeroSerie, mode: 'insensitive' } } : {}),
+    };
+    const [items, total] = await Promise.all([prisma.equipo.findMany({
+        where,
         select: equipoSelect,
         orderBy: { codigo: 'asc' },
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite + 1,
-    });
-    return paginaDesde(items, filtros);
+    }), prisma.equipo.count({ where })]);
+    return paginaDesde(items, filtros, total);
 }
 
 export function buscarEquipoPorId(id: number) {

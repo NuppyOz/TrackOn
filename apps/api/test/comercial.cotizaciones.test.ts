@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const repo = vi.hoisted(() => ({ detalle: vi.fn(), actualizar: vi.fn(), listar: vi.fn() }));
+const repo = vi.hoisted(() => ({ detalle: vi.fn(), actualizar: vi.fn(), listar: vi.fn(), contar: vi.fn(async () => 0) }));
 vi.mock('../src/modules/comercial/cotizaciones/infrastructure/cotizaciones.repository.js', () => repo);
 vi.mock('../src/infrastructure/idempotencia.js', () => ({ claveIdempotencia: (v: string) => v, ejecutarIdempotente: vi.fn() }));
 

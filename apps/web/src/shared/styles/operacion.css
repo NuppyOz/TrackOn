@@ -94,3 +94,20 @@
 .tk-work-form input:not([type="file"]),
 .tk-work-form textarea { width:100%; font:inherit; color:var(--tk-text); border:1px solid var(--tk-border); border-radius:6px; padding:10px 12px; background:white; }
 .tk-orders .tk-state-form textarea { min-height:80px; max-height:none; }
+
+/* Resumen de orden: estado como banda y datos en tarjetas, para leerse de un vistazo. */
+.tk-order-state { padding:12px 14px; border-radius:8px; background:#f5f6f8; border-left:4px solid var(--tk-blue); }
+.tk-order-state[data-cancelada="true"] { border-left-color:#c62828; background:#fdecea; }
+.tk-order-summary { grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; }
+.tk-order-summary > div { padding:12px 14px; border:1px solid var(--tk-border); border-radius:8px; background:#fff; }
+.tk-order-summary dt { text-transform:uppercase; letter-spacing:.6px; font-size:11px; }
+.tk-order-request { padding:12px 14px; border:1px solid var(--tk-border); border-radius:8px; background:#fff; margin-bottom:12px; }
+.tk-order-request h3 { margin:0 0 6px; font-size:12px; letter-spacing:.6px; text-transform:uppercase; color:var(--tk-muted); }
+.tk-order-request p { margin:0; font-size:14px; line-height:1.5; }
+.tk-order-section { padding:0; margin-bottom:10px; border:1px solid var(--tk-border); border-radius:8px; background:#fff; }
+.tk-order-section > summary { padding:12px 14px; list-style:none; display:flex; align-items:center; gap:8px; }
+.tk-order-section > summary::-webkit-details-marker { display:none; }
+.tk-order-section > summary::before { content:'›'; display:inline-block; transition:transform .15s; color:var(--tk-muted); }
+.tk-order-section[open] > summary::before { transform:rotate(90deg); }
+.tk-order-section[open] > summary { border-bottom:1px solid var(--tk-border); }
+.tk-order-section > :not(summary) { padding:12px 14px; }

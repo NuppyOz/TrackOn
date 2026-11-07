@@ -26,19 +26,19 @@ describe('Acceso a las nuevas áreas', () => {
         window.history.replaceState(null, '', '/comercial/crm');
         mocks.renovarSesion.mockResolvedValue({ id: 2, identificador: 'admin', rol: { cod: 'ADMIN', nombre: 'Administrador' }, empleado: {} });
         render(<App />);
-        expect(await screen.findByRole('heading', { name: 'Clientes y CRM' })).toBeTruthy();
+        expect(await screen.findByRole('heading', { name: 'Gestión de clientes (CRM)' })).toBeTruthy();
     });
 
     it('conserva la ruta comercial directa después del inicio de sesión', async () => {
-        window.history.replaceState(null, '', '/comercial/cotizaciones-ventas');
+        window.history.replaceState(null, '', '/comercial/ventas/cotizaciones');
         mocks.renovarSesion.mockResolvedValue(null);
         render(<App />);
         fireEvent.click(await screen.findByRole('button', { name: 'Entrar en prueba' }));
-        expect(window.location.pathname).toBe('/comercial/cotizaciones-ventas');
+        expect(window.location.pathname).toBe('/comercial/ventas/cotizaciones');
     });
 
     it('reserva la administración de cuentas de portal al administrador', async () => {
-        window.history.replaceState(null, '', '/comercial/portal-cuentas');
+        window.history.replaceState(null, '', '/comercial/accesos-clientes');
         mocks.renovarSesion.mockResolvedValue({ id: 3, identificador: 'gerente', rol: { cod: 'GTE_OPE', nombre: 'Gerente' }, empleado: {} });
         render(<App />);
         expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Solo un administrador puede gestionar el acceso al portal.');

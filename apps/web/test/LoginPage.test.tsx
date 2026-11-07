@@ -129,6 +129,19 @@ describe("Login de TrackOn", () => {
         );
     });
 
+    it("muestra un mensaje claro cuando la API no está disponible", async () => {
+        mocks.iniciarSesion.mockRejectedValue(new TypeError("Failed to fetch"));
+
+        render(<LoginPage onLogin={vi.fn()} />);
+        escribirCredenciales();
+        fireEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
+
+        expect(await screen.findByRole("alert")).toHaveProperty(
+            "textContent",
+            "No se pudo conectar con el servidor. Comprueba que la API esté disponible e inténtalo de nuevo.",
+        );
+    });
+
     it("no llama a la API con campos vacíos", () => {
         const onLogin = vi.fn();
 

@@ -2,7 +2,7 @@ import { api } from '../../../shared/api'
 
 export type EstadoCatalogo = 'activos' | 'inactivos' | 'todos'
 export type TipoConcepto = 'SERVICIO' | 'MANO_OBRA' | 'EQUIPO' | 'REPUESTO' | 'INSUMO'
-export type Pagina<T> = Readonly<{ items: T[]; pagina: number; limite: number; hayMas: boolean }>
+export type Pagina<T> = Readonly<{ items: T[]; pagina: number; limite: number; hayMas: boolean; total?: number }>
 export type ConceptoComercial = Readonly<{
   id: number; codigo: string; tipo: TipoConcepto; nombre: string; unidad: string; servicioId: number | null; materialId: number | null;
   activo: boolean; version: number; creadoEn: string; actualizadoEn: string

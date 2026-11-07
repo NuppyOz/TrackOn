@@ -2,16 +2,23 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import { cambiarEstadoServicio, crearServicio, editarServicio, listarServicios } from "./servicios.api";
 import type { EstadoServicio, Servicio, ServicioInput } from "./servicios.types";
 import { useFiltrosListado } from '../../shared/useFiltrosListado';
+import { AccionesFila, IconButton } from '../../shared/ui';
+import { CheckCircleIcon, PencilSimpleIcon, ProhibitIcon } from '@phosphor-icons/react';
+import { Paginacion } from '../../shared/Paginacion';
+import type { Pagina } from '../../shared/pagination';
 
 const vacio = { codigo: "", nombre: "", descripcion: "" };
-const filtrosIniciales = { estado: 'todos' as EstadoServicio, buscar: '' };
+const filtrosIniciales = { estado: 'todos' as EstadoServicio, buscar: '', pagina: 1, limite: 10 };
 
 interface ServiciosManagerProps {
     puedeGestionar?: boolean;
+    /** false cuando el módulo contenedor ya pinta el encabezado. */
+    encabezado?: boolean;
 }
 
-export default function ServiciosManager({ puedeGestionar = true }: Readonly<ServiciosManagerProps>) {
+export default function ServiciosManager({ puedeGestionar = true, encabezado = true }: Readonly<ServiciosManagerProps>) {
     const [servicios, setServicios] = useState<Servicio[]>([]);
+    const [paginado, setPaginado] = useState<Pick<Pagina<Servicio>, 'hayMas' | 'total'>>({ hayMas: false });
     const [formulario, setFormulario] = useState(vacio);
     const [editando, setEditando] = useState<number | null>(null);
     const { filtros, aplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales);
@@ -27,8 +34,8 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
     }
     useEffect(() => {
         let vigente = true;
-        void listarServicios(aplicados.estado, aplicados.buscar)
-            .then(pagina => { if (vigente) setServicios(pagina.items); })
+        void listarServicios(aplicados.estado, aplicados.buscar, aplicados.pagina, aplicados.limite)
+            .then(pagina => { if (vigente) { setServicios(pagina.items); setPaginado(pagina); } })
             .catch(error => {
                 if (!vigente) return;
                 setServicios([]);
@@ -43,7 +50,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
 
     function filtrar(nuevos: typeof filtrosIniciales, esperar = false) {
         setMensaje(null); setCargando(true);
-        cambiarFiltros(nuevos, esperar);
+        cambiarFiltros({ ...nuevos, pagina: 1 }, esperar);
     }
 
     function cancelar() {
@@ -137,18 +144,12 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                                         {servicio.activo ? "Activo" : "Inactivo"}
                                     </span>
                                 </td>
-                                <td className="actions">
-                                    {puedeGestionar && (
-                                        <>
-                                            <button type="button" onClick={() => editar(servicio)}>
-                                                Ver / editar
-                                            </button>
-
-                                            <button type="button" onClick={() => void cambiarEstado(servicio)}>
-                                                {servicio.activo ? "Desactivar" : "Activar"}
-                                            </button>
-                                        </>
-                                    )}
+                                <td data-label="Acciones">
+                                    {puedeGestionar && <AccionesFila>
+                                        <IconButton icon={PencilSimpleIcon} label="Ver / editar" onClick={() => editar(servicio)} />
+                                        <IconButton icon={servicio.activo ? ProhibitIcon : CheckCircleIcon} variant={servicio.activo ? "danger" : "secondary"}
+                                            label={servicio.activo ? "Desactivar" : "Activar"} onClick={() => void cambiarEstado(servicio)} />
+                                    </AccionesFila>}
                                 </td>
                             </tr>
                         ))}
@@ -160,7 +161,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
 
     return (
         <section aria-labelledby="servicios-titulo">
-            <div className="section-heading">
+            {encabezado &&             <div className="section-heading">
                 <div>
                     <p className="eyebrow">Configuración</p>
                     <h2 id="servicios-titulo">{titulo}</h2>
@@ -178,7 +179,7 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                         + Crear servicio
                     </button>
                 )}
-            </div>
+            </div>}
             {mensaje && (
                 <div className={`notice ${mensaje.tipo}`} role="alert">
                     {mensaje.texto}
@@ -256,6 +257,10 @@ export default function ServiciosManager({ puedeGestionar = true }: Readonly<Ser
                             <button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
                         </form>
                         {contenidoLista()}
+                        <Paginacion pagina={aplicados.pagina} limite={aplicados.limite} hayMas={paginado.hayMas} total={paginado.total} cargando={cargando}
+                            etiqueta="Paginación de servicios"
+                            onPagina={pagina => { setCargando(true); aplicarFiltros({ ...aplicados, pagina }); }}
+                            onLimite={limite => { setCargando(true); aplicarFiltros({ ...aplicados, limite, pagina: 1 }); }} />
                     </div>
                 )}
             </div>

@@ -24,6 +24,7 @@ import { comercialRouter } from './modules/comercial/comercial.routes.js';
 import { portalRouter } from './modules/comercial/portal/portal.routes.js';
 import { fuentesGerencialesRouter } from './modules/fuentes-gerenciales/fuentes-gerenciales.routes.js';
 import { inteligenciaRouter } from './modules/inteligencia/inteligencia.routes.js';
+import { insightsRouter } from './modules/insights/insights.routes.js';
 
 export const app = express();
 
@@ -35,7 +36,7 @@ app.use(requestObservability);
 app.get("/api/health", (_req, res) => {
     res.json({
         status: "ok",
-        message: "API de TrackOn funcionando correctamente",
+        message: "API de MultiCore ERP funcionando correctamente",
     });
 });
 
@@ -79,6 +80,7 @@ app.use('/api/comercial', comercialRouter);
 app.use('/api/portal', portalRouter);
 app.use('/api/fuentes-gerenciales', fuentesGerencialesRouter);
 app.use('/api/inteligencia', inteligenciaRouter);
+app.use('/api/insights', insightsRouter);
 
 // Manejador de errores
 app.use(manageErrors)

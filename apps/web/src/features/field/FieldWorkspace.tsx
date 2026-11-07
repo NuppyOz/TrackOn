@@ -59,7 +59,7 @@ export default function FieldWorkspace({ ruta, onOrden }: Readonly<{ ruta: strin
         .map(item => `${item.persona.firstName} ${item.persona.firstLastName}`))).sort((a, b) => a.localeCompare(b)), [ordenes]);
 
     return <section className="field-scope" aria-labelledby="field-titulo">
-        <header className="field-header"><div><p>Operación móvil</p><h2 id="field-titulo">TrackOn Field</h2><span>{activa.ayuda}</span></div></header>
+        <h2 id="field-titulo" className="sr-only">{activa.etiqueta}</h2>
         <SectionSelector label="Área de trabajo" value={seccion}
             options={secciones.map(item => ({ value: item.id, label: item.etiqueta }))}
             onChange={value => { setCargando(true); irA(`/field/${value}`); }} />

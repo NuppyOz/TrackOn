@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from "express";
 import {
     createClienteSchema,
     clienteParamsSchema,
+    listarClientesQuerySchema,
     updateClienteSchema,
     updateEstadoClienteSchema,
 } from "./clientes.schema.js";
@@ -23,9 +24,12 @@ export async function crearCliente(req: Request, res: Response, next: NextFuncti
     }
 }
 
-export async function listarClientes(_req: Request, res: Response, next: NextFunction) {
+export async function listarClientes(req: Request, res: Response, next: NextFunction) {
     try {
-        const clientes = await clientesService.listarClientes();
+        // Sin `pagina` se conserva la lista completa que usan los selectores de cliente.
+        const clientes = req.query.pagina === undefined
+            ? await clientesService.listarClientes()
+            : await clientesService.listarClientesPaginados(listarClientesQuerySchema.parse(req.query));
 
         res.status(200).json({
             data: clientes,

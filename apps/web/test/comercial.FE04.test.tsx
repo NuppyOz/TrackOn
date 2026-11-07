@@ -47,11 +47,10 @@ describe('FE04 ventas e historial comercial', () => {
     mocks.obtenerCotizacion.mockResolvedValue({ ...approved, ventaId: 12, accionesPermitidas: { ...approved.accionesPermitidas, convertirVenta: false } })
     render(<CotizacionesPage />)
     await screen.findByRole('cell', { name: 'Taller Central' })
-    fireEvent.click(screen.getByText('⋮'))
     fireEvent.click(screen.getByRole('button', { name: 'Convertir a venta' }))
     await waitFor(() => expect(mocks.convertirCotizacionEnVenta).toHaveBeenCalledWith(8, 4, 'intencion-conversion-1'))
     expect(await screen.findByText(/Venta registrada\. La facturación se registra por separado\./)).toBeTruthy()
-    expect(await screen.findByText(/V-12 · Taller Central/)).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'Venta V-12' })).toBeTruthy()
     expect(mocks.obtenerCotizacion).toHaveBeenCalledTimes(1)
   })
 

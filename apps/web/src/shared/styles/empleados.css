@@ -25,7 +25,7 @@
 .tk-employee-list-caption { padding: 17px 20px; color: var(--tk-muted, #454b55); font-size: 12px; }
 .tk-employee-table-wrap { width: 100%; overflow-x: auto; }
 .tk-employee-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.tk-employee-table th { background: #f3f1f6; color: var(--color-neutral-600, #454b55); font-size: 12px; text-align: left; font-weight: 600; padding: 14px 18px; }
+.tk-employee-table th { border-bottom: 1px solid #d9d9d9; }
 .tk-employee-table td { padding: 15px 18px; border-top: 1px solid #e6e2ec; vertical-align: middle; }
 .tk-employee-table tr:hover td { background: #fbfaff; }
 .tk-employee-table td:first-child { white-space: nowrap; }

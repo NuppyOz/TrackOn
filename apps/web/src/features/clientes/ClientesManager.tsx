@@ -1,13 +1,21 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
     cambiarEstadoCliente, cambiarEstadoUbicacion, crearCliente, crearUbicacion,
-    listarClientes, listarUbicacionesCliente,
+    listarClientesPagina, listarUbicacionesCliente, obtenerCliente, type FiltrosClientes,
 } from "./clientes.api";
+import type { Pagina } from "../../shared/pagination";
+import { Paginacion } from "../../shared/Paginacion";
+import { irA, leerDetalle, RUTAS, useRuta } from "../../shared/navigation";
+import { useFiltrosListado } from "../../shared/useFiltrosListado";
+import { AccionesFila, IconButton } from "../../shared/ui";
+import { EyeIcon } from "@phosphor-icons/react";
+import { NicaraguanPhoneField } from "../../shared/ui/NicaraguanPhoneField";
 import { nombreCliente, type Cliente, type ClienteNuevo, type TipoCliente,
     type TipoDocumento, type UbicacionCliente, type UbicacionNueva } from "./clientes.types";
 
-interface Props { puedeGestionar: boolean }
-type Vista = "listado" | "crear" | "detalle";
+interface Props { puedeGestionar: boolean; /** Base de las rutas nuevo/:id; CRM lo monta bajo /comercial/crm. */ rutaBase?: string }
+const filtrosIniciales: FiltrosClientes = { buscar: "", tipo: "", estado: "todos", pagina: 1, limite: 10 };
+const listadoVacio: Pagina<Cliente> = { items: [], pagina: 1, limite: 10, hayMas: false };
 
 interface FormCliente {
     tipo: TipoCliente; codigo: string; primerNombre: string; segundoNombre: string;
@@ -29,9 +37,10 @@ const ubicacionVacia = {
 type FormUbicacion = typeof ubicacionVacia;
 
 function datosCliente(formulario: FormCliente): ClienteNuevo {
+    const telefono = formulario.telefono ? `+505${formulario.telefono}` : "";
     const comunes = {
         codigo: formulario.codigo.trim().toUpperCase(),
-        ...(formulario.telefono.trim() && { telefonoComercial: formulario.telefono.trim() }),
+        ...(telefono && { telefonoComercial: telefono }),
         ...(formulario.correo.trim() && { correoComercial: formulario.correo.trim() }),
     };
     if (formulario.tipo === "EMPRESA") {
@@ -55,18 +64,19 @@ function datosCliente(formulario: FormCliente): ClienteNuevo {
             numberDocument: formulario.numeroDocumento.trim(),
             ...(formulario.segundoNombre.trim() && { secondName: formulario.segundoNombre.trim() }),
             ...(formulario.segundoApellido.trim() && { secondLastName: formulario.segundoApellido.trim() }),
-            ...(formulario.telefono.trim() && { telephone: formulario.telefono.trim() }),
+            ...(telefono && { telephone: telefono }),
             ...(formulario.correo.trim() && { correo: formulario.correo.trim() }),
         },
     };
 }
 
 function datosUbicacion(clienteId: number, formulario: FormUbicacion): UbicacionNueva {
+    const telefono = formulario.contactoTelefono ? `+505${formulario.contactoTelefono}` : "";
     return {
         clienteId, nombre: formulario.nombre.trim(), direccion: formulario.direccion.trim(),
         ...(formulario.referencia.trim() && { referencia: formulario.referencia.trim() }),
         ...(formulario.contactoNombre.trim() && { contactoNombre: formulario.contactoNombre.trim() }),
-        ...(formulario.contactoTelefono.trim() && { contactoTelefono: formulario.contactoTelefono.trim() }),
+        ...(telefono && { contactoTelefono: telefono }),
     };
 }
 
@@ -74,14 +84,13 @@ function etiquetaTipo(cliente: Cliente) {
     return cliente.organizacion ? "Persona jurídica" : "Persona natural";
 }
 
-export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
-    const [clientes, setClientes] = useState<Cliente[]>([]);
-    const [vista, setVista] = useState<Vista>("listado");
-    const [clienteId, setClienteId] = useState<number | null>(null);
-    const [busqueda, setBusqueda] = useState("");
-    const [filtroTipo, setFiltroTipo] = useState("todos");
-    const [filtroEstado, setFiltroEstado] = useState("todos");
-    const [cargando, setCargando] = useState(true);
+export default function ClientesManager({ puedeGestionar, rutaBase = RUTAS.clientes }: Readonly<Props>) {
+    const { vista, id: clienteId = null } = leerDetalle(useRuta(), rutaBase);
+    const [listado, setListado] = useState<Pagina<Cliente>>(listadoVacio);
+    const [detalle, setDetalle] = useState<Cliente | null>(null);
+    const { filtros, aplicados, pendiente, cambiarFiltros, aplicarFiltros } = useFiltrosListado(filtrosIniciales);
+    const [consultando, setCargando] = useState(true);
+    const cargando = consultando || pendiente;
     const [guardando, setGuardando] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [mensaje, setMensaje] = useState<string | null>(null);
@@ -89,6 +98,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
     const [ubicaciones, setUbicaciones] = useState<UbicacionCliente[]>([]);
     const [pagina, setPagina] = useState(1);
     const [hayMas, setHayMas] = useState(false);
+    const [totalUbicaciones, setTotalUbicaciones] = useState<number>();
     const [versionUbicaciones, setVersionUbicaciones] = useState(0);
     const [cargandoUbicaciones, setCargandoUbicaciones] = useState(false);
     const [errorUbicaciones, setErrorUbicaciones] = useState<string | null>(null);
@@ -97,15 +107,27 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
 
     useEffect(() => {
         let vigente = true;
-        void listarClientes().then(items => {
-            if (vigente) setClientes(items);
+        void listarClientesPagina(aplicados).then(resultado => {
+            if (vigente) setListado(resultado);
         }).catch((e: unknown) => {
             if (vigente) setError((e as Error).message);
         }).finally(() => {
             if (vigente) setCargando(false);
         });
         return () => { vigente = false; };
-    }, []);
+    }, [aplicados]);
+
+    const seleccionado = listado.items.find(cliente => cliente.id === clienteId)
+        ?? (detalle?.id === clienteId ? detalle : undefined);
+
+    // Enlace directo a /clientes/:id cuando el cliente no está en la página cargada.
+    useEffect(() => {
+        if (vista !== "detalle" || clienteId === null || seleccionado) return;
+        let vigente = true;
+        void obtenerCliente(clienteId).then(cliente => { if (vigente) setDetalle(cliente); })
+            .catch((e: unknown) => { if (vigente) setError((e as Error).message); });
+        return () => { vigente = false; };
+    }, [vista, clienteId, seleccionado]);
 
     useEffect(() => {
         if (vista !== "detalle" || clienteId === null) return;
@@ -114,6 +136,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
             if (!vigente) return;
             setUbicaciones(resultado.items);
             setHayMas(resultado.hayMas);
+            setTotalUbicaciones(resultado.total);
         }).catch((e: unknown) => {
             if (vigente) setErrorUbicaciones((e as Error).message);
         }).finally(() => {
@@ -122,25 +145,18 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
         return () => { vigente = false; };
     }, [vista, clienteId, pagina, versionUbicaciones]);
 
-    const seleccionado = clientes.find(cliente => cliente.id === clienteId);
-    const filtrados = clientes.filter(cliente => {
-        if (filtroEstado === "activos" && !cliente.activo) return false;
-        if (filtroEstado === "inactivos" && cliente.activo) return false;
-        if (filtroTipo === "NATURAL" && !cliente.persona) return false;
-        if (filtroTipo === "EMPRESA" && !cliente.organizacion) return false;
-        const texto = [cliente.codigo, nombreCliente(cliente),
-            cliente.persona?.numberDocument, cliente.organizacion?.identificacionTributaria]
-            .join(" ").toLocaleLowerCase("es");
-        return texto.includes(busqueda.toLocaleLowerCase("es").trim());
-    });
+    function filtrar(nuevos: FiltrosClientes, esperar = false) {
+        setError(null); setCargando(true);
+        cambiarFiltros({ ...nuevos, pagina: 1 }, esperar);
+    }
 
     function volver() {
-        setVista("listado"); setError(null); setMensaje(null);
+        irA(rutaBase); setError(null); setMensaje(null);
         setRegistrandoUbicacion(false); setFormUbicacion(ubicacionVacia);
     }
 
     function abrirCliente(id: number) {
-        setClienteId(id); setPagina(1); setVista("detalle");
+        setPagina(1); irA(`${rutaBase}/${id}`);
         setError(null); setMensaje(null); setRegistrandoUbicacion(false);
         setCargandoUbicaciones(true); setErrorUbicaciones(null);
     }
@@ -155,7 +171,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
         setGuardando(true); setError(null); setMensaje(null);
         try {
             const creado = await crearCliente(datosCliente(formulario));
-            setClientes(actual => [...actual, creado]);
+            setDetalle(creado);
             setFormulario(formularioVacio);
             abrirCliente(creado.id);
             setMensaje("Cliente registrado correctamente. Ahora registra su ubicación.");
@@ -188,7 +204,8 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
         setGuardando(true); setError(null); setMensaje(null);
         try {
             const actualizado = await cambiarEstadoCliente(cliente.id, !cliente.activo);
-            setClientes(actual => actual.map(c => c.id === cliente.id ? actualizado : c));
+            setListado(actual => ({ ...actual, items: actual.items.map(c => c.id === cliente.id ? actualizado : c) }));
+            setDetalle(actualizado);
             setMensaje(actualizado.activo ? "Cliente activado." : "Cliente desactivado.");
         } catch (e) {
             setError((e as Error).message);
@@ -221,7 +238,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                             "Administra las personas y empresas atendidas por MULTICAS."}</p>
                 </div>
                 {vista === "listado" && puedeGestionar && <button className="primary-button" type="button"
-                    onClick={() => { setFormulario(formularioVacio); setError(null); setMensaje(null); setVista("crear"); }}>
+                    onClick={() => { setFormulario(formularioVacio); setError(null); setMensaje(null); irA(`${rutaBase}/nuevo`); }}>
                     + Registrar cliente
                 </button>}
                 {vista !== "listado" && <button className="secondary-button" type="button" onClick={volver}>← Clientes</button>}
@@ -232,40 +249,44 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
             {vista === "listado" && <>
                 <div className="card tk-clientes-filtros">
                     <label>Buscar
-                        <input aria-label="Buscar cliente" value={busqueda} onChange={e => setBusqueda(e.target.value)}
+                        <input aria-label="Buscar cliente" value={filtros.buscar} onChange={e => filtrar({ ...filtros, buscar: e.target.value }, true)}
                             placeholder="Código, nombre o identificación" />
                     </label>
                     <label>Tipo de cliente
-                        <select aria-label="Filtrar tipo de cliente" value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)}>
-                            <option value="todos">Todos</option><option value="NATURAL">Persona natural</option>
+                        <select aria-label="Filtrar tipo de cliente" value={filtros.tipo} onChange={e => filtrar({ ...filtros, tipo: e.target.value })}>
+                            <option value="">Todos</option><option value="NATURAL">Persona natural</option>
                             <option value="EMPRESA">Persona jurídica</option>
                         </select>
                     </label>
                     <label>Estado
-                        <select aria-label="Filtrar estado de cliente" value={filtroEstado}
-                            onChange={e => setFiltroEstado(e.target.value)}>
+                        <select aria-label="Filtrar estado de cliente" value={filtros.estado}
+                            onChange={e => filtrar({ ...filtros, estado: e.target.value })}>
                             <option value="todos">Todos</option><option value="activos">Activos</option>
                             <option value="inactivos">Inactivos</option>
                         </select>
                     </label>
-                    <button type="button" className="text-button" onClick={() => { setBusqueda(''); setFiltroTipo('todos'); setFiltroEstado('todos'); }}>Limpiar</button>
+                    <button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
                 </div>
                 <div className="card list-card">
-                    {cargando ? <p className="empty">Cargando clientes…</p> : filtrados.length === 0 ?
+                    {cargando ? <p className="empty">Cargando clientes…</p> : listado.items.length === 0 ?
                         <p className="empty">No hay clientes que coincidan con los filtros.</p> :
                         <div className="table-wrap"><table className="tk-clientes-tabla">
                             <thead><tr><th>Código</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr></thead>
-                            <tbody>{filtrados.map(cliente => <tr key={cliente.id}>
+                            <tbody>{listado.items.map(cliente => <tr key={cliente.id}>
                                 <td data-label="Código"><strong>{cliente.codigo}</strong></td>
                                 <td data-label="Cliente"><strong>{nombreCliente(cliente)}</strong>
                                     <span>{cliente.correoComercial || cliente.telefonoComercial || "Sin contacto comercial"}</span></td>
                                 <td data-label="Tipo">{etiquetaTipo(cliente)}</td>
                                 <td data-label="Estado"><span className={`status ${cliente.activo ? "active" : "inactive"}`}>
                                     {cliente.activo ? "Activo" : "Inactivo"}</span></td>
-                                <td data-label="Acción"><button type="button" className="secondary-button"
-                                    onClick={() => abrirCliente(cliente.id)}>Ver detalle</button></td>
+                                <td data-label="Acciones"><AccionesFila>
+                                    <IconButton icon={EyeIcon} label="Ver detalle" onClick={() => abrirCliente(cliente.id)} /></AccionesFila></td>
                             </tr>)}</tbody>
                         </table></div>}
+                    <Paginacion pagina={aplicados.pagina} limite={aplicados.limite} hayMas={listado.hayMas} total={listado.total} cargando={cargando}
+                        etiqueta="Paginación de clientes"
+                        onPagina={nueva => { setCargando(true); aplicarFiltros({ ...aplicados, pagina: nueva }); }}
+                        onLimite={limite => { setCargando(true); aplicarFiltros({ ...aplicados, limite, pagina: 1 }); }} />
                 </div>
             </>}
 
@@ -319,8 +340,8 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                 </>}
                 <p className="tk-clientes-section-title">DATOS DE CONTACTO</p>
                 <div className="two-columns">
-                    <label>Teléfono<input maxLength={25} value={formulario.telefono}
-                        onChange={e => actualizarFormulario("telefono", e.target.value)} /></label>
+                    <NicaraguanPhoneField id="cliente-telefono" label="Teléfono" value={formulario.telefono}
+                        onChange={value => actualizarFormulario("telefono", value)} />
                     <label>Correo electrónico<input type="email" maxLength={254} value={formulario.correo}
                         onChange={e => actualizarFormulario("correo", e.target.value)} /></label>
                 </div>
@@ -356,8 +377,8 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                         <div className="two-columns">
                             <label>Nombre del contacto<input maxLength={200} value={formUbicacion.contactoNombre}
                                 onChange={e => setFormUbicacion(f => ({ ...f, contactoNombre: e.target.value }))} /></label>
-                            <label>Teléfono del contacto<input maxLength={25} value={formUbicacion.contactoTelefono}
-                                onChange={e => setFormUbicacion(f => ({ ...f, contactoTelefono: e.target.value }))} /></label>
+                            <NicaraguanPhoneField id="ubicacion-telefono" label="Teléfono del contacto" value={formUbicacion.contactoTelefono}
+                                onChange={value => setFormUbicacion(f => ({ ...f, contactoTelefono: value }))} />
                         </div>
                         <label>Referencia<textarea maxLength={2000} rows={2} value={formUbicacion.referencia}
                             onChange={e => setFormUbicacion(f => ({ ...f, referencia: e.target.value }))} /></label>
@@ -378,13 +399,8 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                                         {ubicacion.activa ? "Desactivar" : "Activar"}</button>}</div>
                             </article>)}
                         </div>}
-                    <div className="tk-clientes-pagination">
-                        <button className="secondary-button" type="button" disabled={pagina <= 1 || cargandoUbicaciones}
-                            onClick={() => { setCargandoUbicaciones(true); setPagina(p => Math.max(1, p - 1)); }}>Anterior</button>
-                        <span>Página {pagina}</span>
-                        <button className="secondary-button" type="button" disabled={!hayMas || cargandoUbicaciones}
-                            onClick={() => { setCargandoUbicaciones(true); setPagina(p => p + 1); }}>Siguiente</button>
-                    </div>
+                    <Paginacion pagina={pagina} limite={10} hayMas={hayMas} total={totalUbicaciones} cargando={cargandoUbicaciones}
+                        etiqueta="Paginación de ubicaciones" onPagina={nueva => { setCargandoUbicaciones(true); setPagina(nueva); }} />
                 </div>
             </>}
         </section>

@@ -5,7 +5,7 @@ import FieldWorkspace from '../src/features/field/FieldWorkspace';
 
 const mocks = vi.hoisted(() => ({ listarOrdenes: vi.fn(), irA: vi.fn() }));
 vi.mock('../src/features/ordenes/ordenes.api', () => ({ listarOrdenes: mocks.listarOrdenes }));
-vi.mock('../src/shared/navigation', () => ({ irA: mocks.irA }));
+vi.mock('../src/shared/navigation', async (importOriginal) => ({ ...(await importOriginal<typeof import('../src/shared/navigation')>()), irA: mocks.irA }));
 vi.mock('../src/features/ordenes/OrdenesManager', () => ({
     default: ({ vista }: { vista: string }) => <p>Vista de órdenes: {vista}</p>,
 }));

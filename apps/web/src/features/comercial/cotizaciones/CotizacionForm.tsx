@@ -14,11 +14,11 @@ function fechaLocal(value: string) {
   return Number.isNaN(date.getTime()) ? '' : new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 19)
 }
 
-export function CotizacionForm({ quote, clients, busy, onSave, onCancel }: Readonly<{
-  quote: Cotizacion | null; clients: Cliente[]; busy: boolean; onSave: (draft: CotizacionDraft | CotizacionPatch) => Promise<void>; onCancel: () => void
+export function CotizacionForm({ quote, clients, busy, onSave, onCancel, oportunidadId, clienteInicialId }: Readonly<{
+  quote: Cotizacion | null; clients: Cliente[]; busy: boolean; onSave: (draft: CotizacionDraft | CotizacionPatch) => Promise<void>; onCancel: () => void; oportunidadId?: number; clienteInicialId?: number
 }>) {
   const editing = quote !== null
-  const [clientId, setClientId] = useState(quote ? String(quote.clienteId) : '')
+  const [clientId, setClientId] = useState(quote ? String(quote.clienteId) : clienteInicialId ? String(clienteInicialId) : '')
   const [contactId, setContactId] = useState(quote?.contactoId ? String(quote.contactoId) : '')
   const [contacts, setContacts] = useState<ContactoComercial[]>([])
   const [contactPage, setContactPage] = useState(1); const [contactMore, setContactMore] = useState(false)
@@ -66,13 +66,13 @@ export function CotizacionForm({ quote, clients, busy, onSave, onCancel }: Reado
       if (Object.keys(patch).length === 1) { setError('No hay cambios para guardar.'); return }
       await onSave(patch)
     } else {
-      const draft: CotizacionDraft = { clienteId: customerId, ...(contactId ? { contactoId: Number(contactId) } : {}), venceEn: iso, lineas: inputLines, ...(nota.trim() ? { nota: nota.trim() } : {}) }
+      const draft: CotizacionDraft = { clienteId: customerId, ...(contactId ? { contactoId: Number(contactId) } : {}), ...(oportunidadId ? { oportunidadId } : {}), venceEn: iso, lineas: inputLines, ...(nota.trim() ? { nota: nota.trim() } : {}) }
       await onSave(draft)
     }
   }
 
   return <section className="cotizaciones__panel"><h2>{quote ? `Editar C-${quote.id}` : 'Nueva cotización'}</h2>{error && <p role="alert">{error}</p>}<form aria-label={quote ? 'Editar cotización' : 'Nueva cotización'} onSubmit={event => void handleSubmit(event)}>
-    <fieldset disabled={busy} className="cotizaciones__form-fields"><label>Cliente<select aria-label="Cliente" value={clientId} disabled={editing} onChange={event => { setClientId(event.target.value); setContactId(''); setContacts([]); setContactPage(1) }} required><option value="">Selecciona un cliente</option>{clients.filter(client => client.activo).map(client => <option key={client.id} value={client.id}>{nombreCliente(client)} · {client.codigo}</option>)}</select></label>
+    <fieldset disabled={busy} className="cotizaciones__form-fields"><label>Cliente<select aria-label="Cliente" value={clientId} disabled={editing || Boolean(oportunidadId)} onChange={event => { setClientId(event.target.value); setContactId(''); setContacts([]); setContactPage(1) }} required><option value="">Selecciona un cliente</option>{clients.filter(client => client.activo).map(client => <option key={client.id} value={client.id}>{nombreCliente(client)} · {client.codigo}</option>)}</select></label>
     <label>Contacto<select name="contactoId" aria-label="Contacto" value={contactId} onChange={event => setContactId(event.target.value)}><option value="">Sin contacto</option>{quote?.contactoId && !contacts.some(contact => contact.id === quote.contactoId) && <option value={quote.contactoId}>Contacto actual (histórico)</option>}{contacts.map(contact => <option key={contact.id} value={contact.id}>{contact.nombre}</option>)}</select></label>
     {contactMore && <Button type="button" onClick={() => setContactPage(value => value + 1)}>Más contactos</Button>}
     <label>Vence en<input name="venceEn" type="datetime-local" step="1" required value={venceEn} onChange={event => setVenceEn(event.target.value)} /></label>

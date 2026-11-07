@@ -78,6 +78,7 @@ export interface PaginaUbicaciones {
     pagina: number;
     limite: number;
     hayMas: boolean;
+    total?: number;
 }
 
 export function nombreCliente(cliente: Cliente): string {

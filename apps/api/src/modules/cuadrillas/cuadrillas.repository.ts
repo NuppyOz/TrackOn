@@ -29,17 +29,18 @@ export async function listarCuadrillas(filtros: CuadrillaFilters) {
     if (filtros.estado === 'activas') estadoWhere = { activa: true };
     else if (filtros.estado === 'inactivas') estadoWhere = { activa: false };
 
-    const items = await prisma.cuadrilla.findMany({
-        where: {
-            ...estadoWhere,
-            ...(filtros.nombre ? { nombre: { contains: filtros.nombre, mode: 'insensitive' } } : {}),
-        },
+    const where: Prisma.CuadrillaWhereInput = {
+        ...estadoWhere,
+        ...(filtros.nombre ? { nombre: { contains: filtros.nombre, mode: 'insensitive' } } : {}),
+    };
+    const [items, total] = await Promise.all([prisma.cuadrilla.findMany({
+        where,
         select: cuadrillaSelect,
         orderBy: { nombre: 'asc' },
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite + 1,
-    });
-    return paginaDesde(items, filtros);
+    }), prisma.cuadrilla.count({ where })]);
+    return paginaDesde(items, filtros, total);
 }
 
 export function buscarCuadrillaPorId(id: number) { return prisma.cuadrilla.findUnique({ where: { id }, select: cuadrillaSelect }); }

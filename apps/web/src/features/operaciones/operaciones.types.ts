@@ -22,5 +22,5 @@ export const seccionesOperacion: ReadonlyArray<{
     { id: 'evidencias', codigo: 'B.6', etiqueta: 'Evidencias del servicio' },
     { id: 'agenda', codigo: 'B.7', etiqueta: 'Agenda y planificación' },
     { id: 'despacho', codigo: 'B.8', etiqueta: 'Despacho y asignación' },
-    { id: 'field', codigo: 'B.9', etiqueta: 'TrackOn Field' },
+    { id: 'field', codigo: 'B.9', etiqueta: 'MultiCore ERP Field' },
 ];

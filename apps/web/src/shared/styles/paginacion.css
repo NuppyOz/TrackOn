@@ -1,0 +1,16 @@
+/* Paginador al estilo DataTables usado en la consola PMS. */
+.tk-paginacion { display: grid; grid-template-columns: 1fr; align-items: center; gap: 12px; margin-top: 16px; color: #424242; font-size: 14px; }
+.tk-paginacion-limite { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: #424242; }
+.tk-paginacion-limite select { width: auto; min-height: 32px; padding: 4px 28px 4px 10px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff; color: #212529; font-size: 14px; }
+.tk-paginacion-paginas { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px; }
+.tk-paginacion-paginas > span { padding: 0 4px; }
+.tk-paginacion-boton { min-width: 36px; height: 36px; padding: 0 12px; border: 1px solid transparent; border-radius: 18px; background: transparent; color: inherit; font: inherit; line-height: 1; cursor: pointer; }
+.tk-paginacion-boton.tk-paginacion-numero { padding: 0; border-radius: 50%; }
+.tk-paginacion-boton.is-actual { border-color: rgb(146 146 146 / 30%); background: #efeff1; }
+.tk-paginacion-boton:not(:disabled):not(.is-actual):hover { border-color: rgb(0 0 0 / 30%); background: var(--tk-blue, #129fdc); color: #fff; }
+.tk-paginacion-boton:disabled { color: #666; cursor: default; }
+.tk-paginacion-conteo { text-align: center; }
+@media (min-width: 768px) {
+  .tk-paginacion { grid-template-columns: 1fr auto 1fr; }
+  .tk-paginacion-conteo { justify-self: end; text-align: right; }
+}

@@ -36,7 +36,7 @@ export default function RolesList() {
       </h2>
 
       <p className="mb-4">
-        Consulta los perfiles registrados en TrackOn.
+        Consulta los perfiles registrados en MultiCore ERP.
       </p>
 
       <button

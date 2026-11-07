@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { listarClientes } from '../../clientes/clientes.api'
 import { nombreCliente, type Cliente } from '../../clientes/clientes.types'
-import { DataTable, SectionSelector, type DataTableColumn, type SortDirection } from '../../erp-ui/components'
+import { DataTable, ModuleHeader, type DataTableColumn, type SortDirection } from '../../erp-ui/components'
+import { RUTAS } from '../../../shared/navigation'
+import { AccionesFila, IconButton } from '../../../shared/ui'
+import { CalculatorIcon, CheckCircleIcon, PencilSimpleIcon, ProhibitIcon } from '@phosphor-icons/react'
 import {
   actualizarConcepto, cambiarEstadoTarifa, crearConcepto, crearTarifa, listarConceptos, listarTarifas, resolverPrecio,
   type ConceptoComercial, type EstadoCatalogo, type Pagina, type PrecioResuelto, type TarifaComercial, type TipoConcepto,
@@ -26,8 +29,8 @@ const fecha = (value: string) => {
 }
 const mensaje = (cause: unknown) => cause instanceof Error ? cause.message : 'Ocurrió un error. Intenta de nuevo.'
 
-export function TarifasPage() {
-  const [seccion, setSeccion] = useState<Seccion>('conceptos')
+export function TarifasPage({ seccion: seccionInicial }: Readonly<{ seccion?: Seccion }> = {}) {
+  const seccion: Seccion = seccionInicial ?? 'conceptos'
   const [conceptos, setConceptos] = useState<ConceptoComercial[]>([])
   const [conceptosDisponibles, setConceptosDisponibles] = useState<ConceptoComercial[]>([])
   const [conceptosPagina, setConceptosPagina] = useState(1)
@@ -39,10 +42,11 @@ export function TarifasPage() {
   const [tarifas, setTarifas] = useState<TarifaComercial[]>([])
   const [pagina, setPagina] = useState(1)
   const [hayMas, setHayMas] = useState(false)
+  const [total, setTotal] = useState<number>()
   const [q, setQ] = useState('')
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoCatalogo>('todos')
-  const [sortBy, setSortBy] = useState<'nombre' | 'codigo' | 'creadoEn' | 'id' | 'creadaEn'>('nombre')
-  const [sortDir, setSortDir] = useState<SortDirection>('asc')
+  const [sortBy, setSortBy] = useState<'nombre' | 'codigo' | 'creadoEn' | 'id' | 'creadaEn'>(seccionInicial === 'tarifas' ? 'creadaEn' : 'nombre')
+  const [sortDir, setSortDir] = useState<SortDirection>(seccionInicial === 'tarifas' ? 'desc' : 'asc')
   const [carga, setCarga] = useState<Carga>('loading')
   const [error, setError] = useState('')
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -56,6 +60,8 @@ export function TarifasPage() {
   const [editar, setEditar] = useState<ConceptoComercial | null>(null)
   const [resolver, setResolver] = useState<ConceptoComercial | TarifaComercial | null>(null)
   const [clienteResolver, setClienteResolver] = useState('')
+  // Una tarifa de cliente ya sabe para quién se consulta; la estándar o un concepto piden el cliente.
+  const abrirResolver = (row: ConceptoComercial | TarifaComercial) => { setResolver(row); setPrecioResuelto(null); setErrorResolver(''); setClienteResolver('clienteId' in row && row.clienteId ? String(row.clienteId) : '') }
   const [precioResuelto, setPrecioResuelto] = useState<PrecioResuelto | null>(null)
   const [errorResolver, setErrorResolver] = useState('')
   const [resolviendo, setResolviendo] = useState(false)
@@ -74,7 +80,7 @@ export function TarifasPage() {
       if (requestId.current !== id) return
       if (seccion === 'conceptos') setConceptos((resultado as Pagina<ConceptoComercial>).items)
       else setTarifas((resultado as Pagina<TarifaComercial>).items)
-      setPagina(resultado.pagina); setHayMas(resultado.hayMas); setCarga('ready')
+      setPagina(resultado.pagina); setHayMas(resultado.hayMas); setTotal(resultado.total); setCarga('ready')
     } catch (cause) {
       if (requestId.current !== id) return
       setError(mensaje(cause)); setCarga('error')
@@ -105,10 +111,6 @@ export function TarifasPage() {
   }, [formulario, seccion, busquedaConcepto, conceptosPagina, revisionConceptos])
 
   const resetForm = () => { setFormulario(false); setEditar(null); setFormError('') }
-  const cambiarSeccion = (value: Seccion) => {
-    setSeccion(value); setPagina(1); setQ(''); setEstadoFiltro('todos'); setPendiente(null); resetForm()
-    setSortBy(value === 'conceptos' ? 'nombre' : 'creadaEn'); setSortDir(value === 'conceptos' ? 'asc' : 'desc')
-  }
   const onSort = (key: string, direction: SortDirection) => {
     setSortBy(key as typeof sortBy); setSortDir(direction); setPagina(1)
   }
@@ -155,7 +157,7 @@ export function TarifasPage() {
       resetForm(); setQ(''); setEstadoFiltro('todos'); setSortBy('creadaEn'); setSortDir('desc'); setPagina(1)
       try {
         const resultado = await listarTarifas({ estado: 'todos', pagina: 1, limite: LIMITE, sortBy: 'creadaEn', sortDir: 'desc' })
-        setTarifas(resultado.items); setPagina(resultado.pagina); setHayMas(resultado.hayMas); setCarga('ready'); setError('')
+        setTarifas(resultado.items); setPagina(resultado.pagina); setHayMas(resultado.hayMas); setTotal(resultado.total); setCarga('ready'); setError('')
       } catch (cause) { setError(mensaje(cause)); setCarga('error') }
     } catch (cause) { setFormError(mensaje(cause)) }
     finally { submitLock.current = false; setSaving(false) }
@@ -187,9 +189,11 @@ export function TarifasPage() {
     { key: 'nombre', header: 'Concepto', sortable: true, render: row => <div><strong>{row.nombre}</strong><small className="tarifas__subline">{tipos.find(type => type.value === row.tipo)?.label ?? row.tipo} · {row.unidad}</small></div> },
     { key: 'estado', header: 'Estado', render: row => <span className={`tarifas__badge ${row.activo ? 'is-active' : 'is-inactive'}`}><span aria-hidden="true">{row.activo ? '●' : '○'}</span> {row.activo ? 'Activo' : 'Inactivo'}</span> },
     { key: 'creadoEn', header: 'Creado', sortable: true, render: row => fecha(row.creadoEn) },
-    { key: 'acciones', header: 'Acciones', align: 'end', render: row => <div className="tarifas__actions">
-      <details className="tarifas__menu"><summary aria-label={`Acciones para ${row.nombre}`}>•••</summary><button type="button" onClick={() => { setEditar(row); setFormulario(true); setFormError('') }}>Editar concepto</button>{row.activo && <button type="button" onClick={() => setResolver(row)}>Resolver precio</button>}<button type="button" onClick={() => { setErrorAccion(''); setPendiente({ type: 'conceptos', id: row.id, version: row.version, name: row.codigo, activo: !row.activo }) }}>{row.activo ? 'Desactivar concepto' : 'Activar concepto'}</button></details>
-    </div> },
+    { key: 'acciones', header: 'Acciones', align: 'end', render: row => <AccionesFila>
+      <IconButton icon={PencilSimpleIcon} label="Editar concepto" onClick={() => { setEditar(row); setFormulario(true); setFormError('') }} />
+      {row.activo && <IconButton icon={CalculatorIcon} variant="secondary" label="Resolver precio" onClick={() => abrirResolver(row)} />}
+      <IconButton icon={row.activo ? ProhibitIcon : CheckCircleIcon} variant={row.activo ? 'danger' : 'secondary'} label={row.activo ? 'Desactivar concepto' : 'Activar concepto'} onClick={() => { setErrorAccion(''); setPendiente({ type: 'conceptos', id: row.id, version: row.version, name: row.codigo, activo: !row.activo }) }} />
+    </AccionesFila> },
   ], [])
   const columnasTarifas = useMemo<readonly DataTableColumn<TarifaComercial>[]>(() => [
     { key: 'concepto', header: 'Concepto', render: row => <div><strong>{row.concepto.codigo} · {row.concepto.nombre}</strong><small className="tarifas__subline">{row.concepto.tipo} · {row.concepto.unidad}</small></div> },
@@ -197,19 +201,17 @@ export function TarifasPage() {
     { key: 'precio', header: 'Precio de venta', align: 'end', render: row => <strong className="tarifas__price">{precioNio(row.precio)}</strong> },
     { key: 'estado', header: 'Estado', render: row => <span className={`tarifas__badge ${row.activo ? 'is-active' : 'is-inactive'}`}><span aria-hidden="true">{row.activo ? '●' : '○'}</span> {row.activo ? 'Activo' : 'Inactivo'}</span> },
     { key: 'creadaEn', header: 'Vigente desde', sortable: true, render: row => fecha(row.creadaEn) },
-    { key: 'acciones', header: 'Acciones', align: 'end', render: row => <div className="tarifas__actions"><details className="tarifas__menu"><summary aria-label={`Acciones para ${row.concepto.codigo} ${clienteNombre(row.clienteId)}`}>•••</summary><button type="button" onClick={() => setResolver(row)}>Resolver precio</button><button type="button" onClick={() => { setErrorAccion(''); setPendiente({ type: 'tarifas', id: row.id, version: row.version, name: row.concepto.codigo, activo: !row.activo }) }}>{row.activo ? 'Desactivar tarifa' : 'Activar tarifa'}</button></details></div> },
+    { key: 'acciones', header: 'Acciones', align: 'end', render: row => <AccionesFila><IconButton icon={CalculatorIcon} variant="secondary" label="Resolver precio" onClick={() => abrirResolver(row)} /><IconButton icon={row.activo ? ProhibitIcon : CheckCircleIcon} variant={row.activo ? 'danger' : 'secondary'} label={row.activo ? 'Desactivar tarifa' : 'Activar tarifa'} onClick={() => { setErrorAccion(''); setPendiente({ type: 'tarifas', id: row.id, version: row.version, name: row.concepto.codigo, activo: !row.activo }) }} /></AccionesFila> },
   ], [clienteNombre])
 
   const activeConcepts = conceptosDisponibles.filter(item => item.activo)
   const rows = seccion === 'conceptos' ? conceptos : tarifas
-  return <section className="tarifas" aria-labelledby="tarifas-title">
-    <header className="tarifas__header"><div><p className="tarifas__eyebrow">COMERCIAL <span>/</span> CATÁLOGO</p><h1 id="tarifas-title">Conceptos y tarifas</h1><p>Organiza los conceptos y consulta sus precios de venta vigentes.</p></div>
-      {!formulario && <button type="button" className="tarifas__primary" onClick={() => { setEditar(null); setFormulario(true); setFormError('') }}>+ {seccion === 'conceptos' ? 'Nuevo concepto' : 'Nueva tarifa'}</button>}
-    </header>
-    {exito && <p className="tarifas__success" role="status">✓ {exito}</p>}
-    <SectionSelector label="Catálogo" value={seccion} disabled={saving} onChange={value => cambiarSeccion(value as Seccion)} options={[
-      { value: 'conceptos', label: 'Conceptos' }, { value: 'tarifas', label: 'Tarifas' },
-    ]} />
+  return <section className="tarifas" aria-label="Catálogo comercial">
+    <ModuleHeader breadcrumb={[{ label: 'Comercial', ruta: RUTAS.comercial.inicio }, { label: 'Catálogo comercial', ruta: RUTAS.comercial.catalogo }, { label: formulario ? (editar ? 'Editar concepto' : seccion === 'conceptos' ? 'Nuevo concepto' : 'Nueva tarifa') : resolver ? 'Resolver tarifa' : seccion === 'conceptos' ? 'Conceptos' : 'Tarifas' }]}
+      title={formulario ? (editar ? 'Editar concepto' : seccion === 'conceptos' ? 'Nuevo concepto' : 'Nueva tarifa') : resolver ? 'Resolver tarifa' : seccion === 'conceptos' ? 'Conceptos' : 'Tarifas'}
+      description={formulario || resolver ? undefined : seccion === 'conceptos' ? 'Servicios y productos del catálogo comercial.' : 'Precios de venta vigentes por concepto y cliente.'}
+      action={!formulario && !resolver ? <button type="button" className="tarifas__primary" onClick={() => { setEditar(null); setFormulario(true); setFormError('') }}>+ {seccion === 'conceptos' ? 'Nuevo concepto' : 'Nueva tarifa'}</button> : undefined} />
+    {exito && <p className="tarifas__success tk-toast" role="status">✓ {exito}</p>}
     {formulario && <form className="tarifas__form" aria-label={editar ? 'Editar concepto' : seccion === 'conceptos' ? 'Nuevo concepto' : 'Nueva tarifa'} onSubmit={seccion === 'conceptos' ? guardarConcepto : guardarTarifa}>
       <div className="tarifas__form-heading"><div><span className="tarifas__form-icon" aria-hidden="true">{seccion === 'conceptos' ? '◇' : '₦'}</span><div><h2>{editar ? 'Editar concepto' : seccion === 'conceptos' ? 'Crear concepto' : 'Crear tarifa'}</h2><p>{seccion === 'conceptos' ? 'Define un elemento reutilizable del catálogo.' : 'El precio se guarda en córdobas y conserva su historial.'}</p></div></div><button type="button" className="tarifas__close" aria-label="Cerrar formulario" disabled={saving} onClick={resetForm}>×</button></div>
       {seccion === 'conceptos' ? <div className="tarifas__fields">
@@ -231,13 +233,13 @@ export function TarifasPage() {
     {pendiente && <div className="tarifas__confirm" role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-copy"><span aria-hidden="true">!</span><div><strong id="confirm-title">{pendiente.activo ? 'Activar' : 'Desactivar'} {pendiente.type === 'conceptos' ? 'concepto' : 'tarifa'} {pendiente.name}?</strong><p id="confirm-copy">El historial se conserva. Solo las tarifas activas participan al resolver precios.</p></div><button type="button" className="tarifas__secondary" disabled={saving} onClick={() => setPendiente(null)}>Cancelar</button><button type="button" className={pendiente.activo ? 'tarifas__primary' : 'tarifas__danger'} disabled={saving} onClick={() => void confirmarDesactivacion()}>{saving ? 'Guardando…' : pendiente.activo ? 'Activar' : 'Desactivar'}</button></div>}
     {errorAccion && <p className="tarifas__error" role="alert">{errorAccion}</p>}
     {error && <p className="tarifas__error" role="alert">{error}</p>}
-    <section className="tarifas__catalog" id="catalogo-panel" aria-label={seccion === 'conceptos' ? 'Catálogo de conceptos' : 'Listado de tarifas'}>
+    {!formulario && !resolver && <section className="tarifas__catalog" id="catalogo-panel" aria-label={seccion === 'conceptos' ? 'Catálogo de conceptos' : 'Listado de tarifas'}>
       <div className="tarifas__catalog-head"><div><h2>{seccion === 'conceptos' ? 'Catálogo de conceptos' : 'Tarifas registradas'}</h2><p>{seccion === 'conceptos' ? 'Servicios y productos disponibles para cotizar.' : 'Precios de venta estándar y por cliente.'}</p></div><label className="tarifas__status">Estado<select aria-label="Filtrar por estado" value={estadoFiltro} onChange={event => { setEstadoFiltro(event.currentTarget.value as EstadoCatalogo); setPagina(1) }}><option value="activos">Activos</option><option value="inactivos">Inactivos</option><option value="todos">Todos</option></select></label></div>
       <DataTable<ConceptoComercial | TarifaComercial> columns={seccion === 'conceptos' ? columnasConceptos as readonly DataTableColumn<ConceptoComercial | TarifaComercial>[] : columnasTarifas as readonly DataTableColumn<ConceptoComercial | TarifaComercial>[]} rows={rows} getRowKey={row => row.id}
         search={{ value: q, onChange: value => { setQ(value.slice(0, 100)); setPagina(1) }, placeholder: 'Buscar por código o concepto', label: 'Buscar' }}
-        sort={{ key: sortBy, direction: sortDir, onChange: onSort }} pagination={{ pagina, limite: LIMITE, hayMas, onPageChange: setPagina }} state={carga} error={{ description: error }} onRetry={() => void cargar()}
+        sort={{ key: sortBy, direction: sortDir, onChange: onSort }} pagination={{ pagina, limite: LIMITE, hayMas, total, onPageChange: setPagina }} state={carga} error={{ description: error }} onRetry={() => void cargar()}
         emptyTitle={q ? 'No hay resultados' : seccion === 'conceptos' ? 'No hay conceptos en este estado' : 'No hay tarifas en este estado'} emptyDescription={q ? 'Prueba con otro término.' : 'Crea el primer registro con la acción de esta pantalla.'} />
-    </section>
+    </section>}
     {resolver && <section className="tarifas__resolver" aria-labelledby="resolver-title">
         <button type="button" className="tarifas__close" aria-label="Cerrar resolución" onClick={() => { setResolver(null); setPrecioResuelto(null); setErrorResolver('') }}>×</button>
         <span className="tarifas__resolver-icon" aria-hidden="true">⌕</span><p className="tarifas__eyebrow">CONSULTA DE PRECIO</p><h2 id="resolver-title">Resolver tarifa</h2><p>{'concepto' in resolver ? `${resolver.concepto.codigo} · ${resolver.concepto.nombre}` : `${resolver.codigo} · ${resolver.nombre}`}</p>

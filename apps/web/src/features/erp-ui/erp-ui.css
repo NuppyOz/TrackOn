@@ -99,11 +99,11 @@
 .comercial-scope .erp-ui__table th,
 .fuentes-scope .erp-ui__table th,
 .inteligencia-scope .erp-ui__table th,
-.portal-scope .erp-ui__table th { padding: var(--erp-space-3) var(--erp-space-4); border-bottom: 1px solid var(--erp-color-neutral-200); background: var(--erp-color-neutral-100); color: var(--erp-color-neutral-900); font-weight: 600; white-space: nowrap; }
+.portal-scope .erp-ui__table th { border-bottom: 1px solid #d9d9d9; white-space: nowrap; }
 .comercial-scope .erp-ui__table td,
 .fuentes-scope .erp-ui__table td,
 .inteligencia-scope .erp-ui__table td,
-.portal-scope .erp-ui__table td { padding: var(--erp-space-3) var(--erp-space-4); border-bottom: 1px solid var(--erp-color-neutral-200); vertical-align: middle; }
+.portal-scope .erp-ui__table td { padding: var(--erp-space-3) var(--erp-space-4); border-bottom: 1px solid #d9d9d9; color: #424242; font-size: 14px; vertical-align: middle; }
 .comercial-scope .erp-ui__table tbody tr:last-child td,
 .fuentes-scope .erp-ui__table tbody tr:last-child td,
 .inteligencia-scope .erp-ui__table tbody tr:last-child td,
@@ -172,6 +172,11 @@
 .fuentes-scope .erp-ui__sr-only,
 .inteligencia-scope .erp-ui__sr-only,
 .portal-scope .erp-ui__sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.erp-ui__tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 var(--tk-space-5); padding-bottom: 3px; border-bottom: 3px solid var(--tk-blue, #129fdc); }
+.erp-ui__tabs [role="tab"] { min-height: 38px; padding: 0 24px; border: 0; border-radius: 6px 6px 0 0; background: #fff; color: var(--tk-blue, #129fdc); font: 600 .875rem Inter,system-ui,sans-serif; cursor: pointer; }
+.erp-ui__tabs [role="tab"]:hover:not([aria-selected="true"]) { background: #eaf6fc; }
+.erp-ui__tabs [role="tab"][aria-selected="true"] { background: var(--tk-blue, #129fdc); color: #fff; }
+.erp-ui__tabs [role="tab"]:disabled { opacity: .6; cursor: wait; }
 .erp-ui__section-selector { display: grid; grid-template-columns: auto minmax(12rem,24rem); align-items: center; gap: var(--tk-space-2); width: min(100%,36rem); margin: 0 0 var(--tk-space-6); color: #5d6470; font-size: var(--tk-font-secondary); font-weight: 600; }
 .erp-ui__section-selector select { min-height: var(--tk-control-height); min-width: 0; padding: 0 var(--tk-space-3); border: 1px solid #d8dce2; border-radius: 6px; background: #fff; color: #202124; font: inherit; }
 .erp-ui__section-selector select:focus-visible { outline: 3px solid #a3cce2; outline-offset: 2px; }
@@ -217,3 +222,17 @@
   .inteligencia-scope .erp-ui__pagination button,
   .portal-scope .erp-ui__pagination button { flex: 1; }
 }
+
+/* Migas con enlace, como el breadcrumb del SMSC. */
+.erp-ui__breadcrumb ol { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.erp-ui__breadcrumb li + li::before { content: '›'; margin-right: 6px; color: #9aa0a6; }
+.erp-ui__breadcrumb a { color: #1d609d; text-decoration: none; }
+.erp-ui__breadcrumb a:hover { text-decoration: underline; }
+.erp-ui__breadcrumb li[aria-current="page"] { color: #202124; font-weight: 600; }
+
+/* ModuleHeader en cualquier módulo (Operaciones, Órdenes), con la misma anatomía que en Comercial. */
+.workspace .erp-ui__module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+.workspace .erp-ui__module-copy h1 { margin: 0; line-height: 1.25; }
+.workspace .erp-ui__module-copy p { margin: 6px 0 0; color: #666b73; }
+.workspace .erp-ui__breadcrumb { margin-bottom: 6px; color: #666b73; }
+.workspace .erp-ui__module-action { display: flex; flex-wrap: wrap; gap: 8px; }

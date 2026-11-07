@@ -5,6 +5,7 @@
     "description": "Sistema interno de órdenes de trabajo para taller de equipos fríos",
     "packageManager": "pnpm@10.34.5",
     "scripts": {
+        "dev": "pnpm --parallel --filter @trackon/api --filter web dev",
         "build": "pnpm --filter @trackon/api build && pnpm --dir apps/web build",
         "typecheck": "pnpm --dir apps/api typecheck && pnpm --dir apps/web exec tsc -b",
         "lint": "pnpm --dir apps/web lint",

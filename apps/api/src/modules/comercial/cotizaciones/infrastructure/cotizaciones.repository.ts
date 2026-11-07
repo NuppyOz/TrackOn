@@ -27,6 +27,17 @@ export async function crearEn(tx: Prisma.TransactionClient, datos: CrearCotizaci
     const client = await cliente(datos.clienteId, tx);
     if (!client) return { tipo: 'cliente-no-encontrado' as const };
     if (!client.activo) return { tipo: 'cliente-inactivo' as const };
+    if (datos.oportunidadId !== undefined) {
+      const oportunidad = await tx.oportunidadComercial.findUnique({ where: { id: datos.oportunidadId }, select: { id: true, clienteId: true, etapa: true } });
+      if (!oportunidad) return { tipo: 'oportunidad-no-encontrada' as const };
+      if (oportunidad.clienteId !== datos.clienteId) return { tipo: 'oportunidad-cliente-distinto' as const };
+      if (oportunidad.etapa === 'GANADA' || oportunidad.etapa === 'PERDIDA') return { tipo: 'oportunidad-cerrada' as const };
+      if (oportunidad.etapa !== 'PROPUESTA') {
+        const actualizada = await tx.oportunidadComercial.updateMany({ where: { id: oportunidad.id, etapa: oportunidad.etapa }, data: { etapa: 'PROPUESTA', version: { increment: 1 } } });
+        if (!actualizada.count) return { tipo: 'conflicto' as const };
+        await tx.auditoria.create({ data: { usuarioId, tipoActor: 'USUARIO', entidad: 'OPORTUNIDAD_COMERCIAL', entidadId: String(oportunidad.id), accion: 'PROPUESTA', datosAnteriores: { etapa: oportunidad.etapa }, datosNuevos: { etapa: 'PROPUESTA' } } });
+      }
+    }
     if (datos.contactoId !== undefined) {
       const contact = await contacto(datos.clienteId, datos.contactoId, tx);
       if (!contact) return { tipo: 'contacto-no-encontrado' as const };
@@ -38,7 +49,7 @@ export async function crearEn(tx: Prisma.TransactionClient, datos: CrearCotizaci
     const lineas = await prepararLineas(datos.clienteId, datos.lineas, tx);
     const totales = totalizar(lineas);
     const creado = await tx.cotizacionComercial.create({ data: {
-      clienteId: datos.clienteId, contactoId: datos.contactoId ?? null, creadaPorId: usuarioId,
+      clienteId: datos.clienteId, contactoId: datos.contactoId ?? null, oportunidadId: datos.oportunidadId ?? null, creadaPorId: usuarioId,
       clienteNombreRegistrado: snapshot.nombre, clienteIdentificacionRegistrada: snapshot.identificacion,
       moneda: 'NIO', subtotal: totales.subtotal, descuento: totales.descuento, total: totales.total,
       venceEn: new Date(datos.venceEn), nota: datos.nota ?? null, version: 1,
@@ -116,13 +127,21 @@ export async function crearNotaEn(tx: Prisma.TransactionClient, id: number, auto
     await tx.notaCotizacionComercial.create({ data: { cotizacionId: id, autorId, texto } });
     return { tipo: 'creada' as const, cotizacion: await detalle(id, tx) };
 }
-export async function listar(filtros: ListarCotizacionesInput, ahora: Date) {
+function whereListar(filtros: ListarCotizacionesInput, ahora: Date): Prisma.CotizacionComercialWhereInput {
   const vencida = { estado: 'ENVIADA', venceEn: { lte: ahora } };
-  const where: Prisma.CotizacionComercialWhereInput = {
+  return {
     ...(filtros.clienteId ? { clienteId: filtros.clienteId } : {}),
     ...(filtros.estado === 'VENCIDA' ? vencida : filtros.estado ? { estado: filtros.estado, ...(filtros.estado === 'ENVIADA' ? { venceEn: { gt: ahora } } : {}) } : {}),
     ...(filtros.q ? { OR: [{ clienteNombreRegistrado: { contains: filtros.q, mode: 'insensitive' } }, ...( /^[1-9]\d*$/.test(filtros.q) && Number(filtros.q) <= 2_147_483_647 ? [{ id: Number(filtros.q) }] : [])] } : {}),
   };
+}
+
+export function contar(filtros: ListarCotizacionesInput, ahora: Date) {
+  return prisma.cotizacionComercial.count({ where: whereListar(filtros, ahora) });
+}
+
+export async function listar(filtros: ListarCotizacionesInput, ahora: Date) {
+  const where = whereListar(filtros, ahora);
   const orderBy = filtros.sortBy === 'id' ? [{ id: filtros.sortDir }] : [{ [filtros.sortBy]: filtros.sortDir }, { id: 'desc' as const }];
   const rows = await prisma.cotizacionComercial.findMany({ where, orderBy, skip: (filtros.pagina - 1) * filtros.limite, take: filtros.limite + 1, include: { venta: { select: { id: true } } } });
   return rows;

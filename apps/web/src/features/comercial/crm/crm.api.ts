@@ -7,7 +7,7 @@ export type FiltrosNotasDocumentos = {
   sortBy?: 'id' | 'creadaEn';
   sortDir?: 'asc' | 'desc';
 };
-export type Pagina<T> = { items: T[]; pagina: number; limite: number; hayMas: boolean };
+export type Pagina<T> = { items: T[]; pagina: number; limite: number; hayMas: boolean; total?: number };
 export type PerfilComercial = { clienteId: number; clasificacion: string | null; instruccionesFacturacion: string | null; version: number };
 export type ContactoComercial = { id: number; clienteId: number; nombre: string; email: string | null; telefono: string | null; cargo: string | null; activo: boolean; version: number; creadoEn?: string };
 export type ContactoInput = { nombre: string; email?: string | null; telefono?: string | null; cargo?: string | null };

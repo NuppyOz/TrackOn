@@ -11,6 +11,7 @@ import { cotizacionesRouter } from './cotizaciones/presentation/cotizaciones.rou
 import { ventasRouter } from './ventas/ventas.routes.js';
 import { historialComercialRouter } from './crm/historial/historial.routes.js';
 import { cuentasPortalRouter } from './portal/cuentas/cuentas.routes.js';
+import { oportunidadesRouter } from './oportunidades/oportunidades.routes.js';
 
 export const comercialRouter = Router();
 comercialRouter.use(authenticate, authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE));
@@ -20,3 +21,4 @@ comercialRouter.use('/clientes/:clienteId/cuenta-portal', cuentasPortalRouter);
 comercialRouter.use(tarifasComercialesRouter);
 comercialRouter.use(cotizacionesRouter);
 comercialRouter.use(ventasRouter);
+comercialRouter.use(oportunidadesRouter);

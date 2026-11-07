@@ -5,12 +5,14 @@ import { CotizacionesPage } from '../src/features/comercial/cotizaciones/Cotizac
 const mocks = vi.hoisted(() => ({
   listarCotizaciones: vi.fn(), obtenerCotizacion: vi.fn(), crearCotizacion: vi.fn(), actualizarCotizacion: vi.fn(), enviarCotizacion: vi.fn(), decidirCotizacion: vi.fn(), agregarNotaCotizacion: vi.fn(), convertirCotizacionEnVenta: vi.fn(),
   listarClientes: vi.fn(), listarContactos: vi.fn(), listarConceptos: vi.fn(),
+  listarOportunidades: vi.fn(), crearOportunidad: vi.fn(), actualizarOportunidad: vi.fn(),
 }))
 vi.mock('../src/features/comercial/cotizaciones/cotizaciones.api', () => mocks)
 vi.mock('../src/features/clientes/clientes.api', () => ({ listarClientes: mocks.listarClientes }))
 vi.mock('../src/features/comercial/crm/crm.api', () => ({ listarContactos: mocks.listarContactos }))
 vi.mock('../src/features/comercial/tarifas/tarifas.api', () => ({ listarConceptos: mocks.listarConceptos }))
 vi.mock('../src/features/comercial/ventas/ventas.api', () => ({ convertirCotizacionEnVenta: mocks.convertirCotizacionEnVenta }))
+vi.mock('../src/features/comercial/oportunidades/oportunidades.api', () => ({ listarOportunidades: mocks.listarOportunidades, crearOportunidad: mocks.crearOportunidad, actualizarOportunidad: mocks.actualizarOportunidad }))
 
 const page = <T,>(items: T[] = []) => ({ items, pagina: 1, limite: 25, hayMas: false })
 const quote = {
@@ -27,12 +29,13 @@ describe('CotizacionesPage FE03', () => {
     mocks.actualizarCotizacion.mockResolvedValue(quote); mocks.enviarCotizacion.mockResolvedValue(quote); mocks.decidirCotizacion.mockResolvedValue(quote); mocks.agregarNotaCotizacion.mockResolvedValue(quote)
     mocks.listarClientes.mockResolvedValue([{ id: 5, codigo: 'C-05', activo: true, telefonoComercial: null, correoComercial: null, persona: null, organizacion: { razonSocial: 'Taller Central', nombreComercial: null, identificacionTributaria: null } }])
     mocks.listarContactos.mockResolvedValue(page([])); mocks.listarConceptos.mockResolvedValue(page([{ id: 10, codigo: 'MANT-1', nombre: 'Mantenimiento', unidad: 'servicio', activo: true }]))
+    mocks.listarOportunidades.mockResolvedValue({ items: [], pagina: 1, limite: 10, hayMas: false })
   })
-  afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+  afterEach(() => { window.history.replaceState(null, '', '/'); cleanup(); vi.unstubAllGlobals() })
 
   it('abre la cotización enlazada desde los indicadores', async () => {
     const previousUrl = window.location.pathname + window.location.search
-    window.history.replaceState(null, '', '/comercial/cotizaciones-ventas?cotizacionId=41')
+    window.history.replaceState(null, '', '/comercial/ventas/cotizaciones?cotizacionId=41')
     try {
       render(<CotizacionesPage />)
       expect(await screen.findByRole('heading', { name: 'C-41 · Taller Central' })).toBeTruthy()
@@ -52,6 +55,16 @@ describe('CotizacionesPage FE03', () => {
     await waitFor(() => expect(mocks.listarCotizaciones).toHaveBeenCalledWith(expect.objectContaining({ estado: 'BORRADOR' })))
     fireEvent.change(screen.getByLabelText('Filtrar por cliente'), { target: { value: '5' } })
     await waitFor(() => expect(mocks.listarCotizaciones).toHaveBeenCalledWith(expect.objectContaining({ clienteId: 5, pagina: 1 })))
+  })
+
+  it('ofrece pipeline comercial integrado sin agregar una opción al sidebar', async () => {
+    mocks.listarOportunidades.mockResolvedValue({ items: [{ id: 9, version: 1, clienteId: 5, clienteNombre: 'Taller Central', clienteActivo: true, nombre: 'Mantenimiento anual', etapa: 'NUEVA', valorEstimado: null, proximaActividad: null, nota: null, responsableId: 1, responsableNombre: 'Comercial', creadaEn: '2026-10-01T00:00:00Z', actualizadaEn: '2026-10-01T00:00:00Z', cotizaciones: [] }], pagina: 1, limite: 10, hayMas: false })
+    render(<CotizacionesPage seccion="oportunidades" />)
+    expect(await screen.findByText('Mantenimiento anual')).toBeTruthy()
+    expect(screen.getByText('Taller Central')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Cotizar' }))
+    expect(await screen.findByRole('form', { name: 'Nueva cotización' })).toBeTruthy()
+    expect((screen.getByLabelText('Cliente') as HTMLSelectElement).value).toBe('5')
   })
 
   it('crea con selección de catálogos y reusa la misma key si el payload idéntico se reintenta', async () => {
@@ -83,13 +96,11 @@ describe('CotizacionesPage FE03', () => {
   it('oculta acciones no permitidas y muestra conversión solo cuando el DTO la permite', async () => {
     mocks.listarCotizaciones.mockResolvedValue(page([{ ...quote, accionesPermitidas: { editar: false, enviar: false, decidir: false, convertirVenta: false } }]))
     render(<CotizacionesPage />); await screen.findByRole('cell', { name: 'Taller Central' })
-    fireEvent.click(screen.getByText('⋮'))
     expect(screen.queryByRole('button', { name: 'Editar borrador' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Convertir a venta' })).toBeNull()
     cleanup()
     mocks.listarCotizaciones.mockResolvedValue(page([{ ...quote, accionesPermitidas: { editar: false, enviar: false, decidir: false, convertirVenta: true } }]))
     render(<CotizacionesPage />); await screen.findByRole('cell', { name: 'Taller Central' })
-    fireEvent.click(screen.getByText('⋮'))
     expect(screen.getByRole('button', { name: 'Convertir a venta' })).toBeTruthy()
   })
 
@@ -141,6 +152,6 @@ describe('CotizacionesPage FE03', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Convertir a venta' }))
     expect(await screen.findByText('Venta registrada. La facturación se registra por separado.')).toBeTruthy()
     expect(mocks.convertirCotizacionEnVenta).toHaveBeenCalledWith(41, 2, 'uuid-intencion')
-    expect((screen.getByLabelText('Vista comercial') as HTMLSelectElement).value).toBe('ventas')
+    expect(screen.getAllByRole('heading', { name: 'Ventas registradas' }).length).toBeGreaterThan(0)
   })
 })

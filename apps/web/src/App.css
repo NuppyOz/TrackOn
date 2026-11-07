@@ -392,7 +392,7 @@ td {
     vertical-align: middle;
 }
 
-.list-card .table-wrap th { color: #5e6672; background: #f7f8fa !important; font-size: 11px !important; font-weight: 650; letter-spacing: .045em; white-space: nowrap; }
+.list-card .table-wrap th { white-space: nowrap; }
 .list-card .table-wrap td { min-height: 52px; }
 .list-card .table-wrap tbody tr:last-child td { border-bottom: 0; }
 .list-card .table-wrap td.actions,
@@ -1444,3 +1444,4 @@ select:focus-visible {
         flex-direction: column;
     }
 }
+.nic-phone-field__control{display:flex;align-items:center;min-height:40px;border:1px solid var(--color-border,#E6E2EC);border-radius:6px;background:#fff;overflow:hidden}.nic-phone-field__control>span{padding:0 12px;color:#665B82;border-right:1px solid var(--color-border,#E6E2EC);font-weight:600}.nic-phone-field__control input{border:0!important;outline:0;min-width:0;flex:1;padding:9px 12px}.nic-phone-field__control:focus-within{outline:2px solid #129FDC;outline-offset:1px}.nic-phone-field__control input[aria-invalid="true"]{background:#fffafa}

@@ -85,14 +85,14 @@ describe("Gestión de Servicios", () => {
         expect(screen.queryByText('Mantenimiento preventivo')).toBeNull();
         expect((screen.getByLabelText('Filtrar por estado') as HTMLSelectElement).value).toBe('inactivos');
         fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }));
-        await waitFor(() => expect(mocks.listarServicios).toHaveBeenLastCalledWith('todos', ''));
+        await waitFor(() => expect(mocks.listarServicios).toHaveBeenLastCalledWith('todos', '', 1, 10));
     });
     it("consulta el catálogo al cargar", async () => {
         render(<ServiciosManager />);
 
         await cargarListado();
 
-        expect(mocks.listarServicios).toHaveBeenCalledWith("todos", "");
+        expect(mocks.listarServicios).toHaveBeenCalledWith("todos", "", 1, 10);
         expect(screen.getByText("SRV-001")).toBeTruthy();
         expect(screen.getByText("Limpieza y revisión")).toBeTruthy();
     });
@@ -141,6 +141,8 @@ describe("Gestión de Servicios", () => {
             expect(mocks.listarServicios).toHaveBeenLastCalledWith(
                 "activos",
                 "mantenimiento",
+                1,
+                10,
             );
         });
     });

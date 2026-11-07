@@ -346,14 +346,3 @@ body, #root { min-width: 0; max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .figma-sidebar { transition: none; }
 }
-
-/* Login: en tablet pequeña mantener una sola columna legible. */
-@media (min-width: 701px) and (max-width: 850px) {
-  .auth-screen { grid-template-columns: minmax(0, 1fr); }
-  .auth-screen .auth-brand-panel { display: none; }
-  .auth-screen .auth-login-area { min-height: 100dvh; padding: 32px 24px; }
-  .auth-screen .auth-mobile-brand { display: flex; width: min(100%, 430px); flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 48px; color: #2f254d; font-size: 18px; }
-  .auth-screen .auth-mobile-brand span { color: #b9b3c6; }
-  .auth-screen .auth-mobile-brand small { flex-basis: 100%; color: var(--color-neutral-600, #454b55); font-size: 12px; }
-  .auth-screen .auth-mobile-footer { display: block; width: min(100%,430px); margin-top: 40px; color: #777b84; font-size: 11px; }
-}

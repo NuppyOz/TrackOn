@@ -92,36 +92,37 @@ export function crear(datos: CrearOrdenInput, usuarioId: number, historicos: Dat
 }
 
 export async function listar(filtros: ListarOrdenesInput, tecnicoId?: number) {
-    const items = await prisma.ordenTrabajo.findMany({
-        where: {
-            ...(tecnicoId ? { asignaciones: { some: {
-                fin: null,
-                OR: [
-                    { empleadoResponsableId: tecnicoId },
-                    { tecnicos: { some: { empleadoId: tecnicoId } } },
-                    { cuadrilla: { is: { miembros: { some: { empleadoId: tecnicoId, fin: null } } } } },
-                ],
-            } } } : {}),
-            ...(filtros.estado ? { estadoCodigo: filtros.estado } : {}),
-            ...(filtros.prioridad ? { prioridad: filtros.prioridad } : {}),
-            ...(filtros.clienteId ? { ubicacion: { clienteId: filtros.clienteId } } : {}),
-            ...((filtros.desde || filtros.hasta) ? { fechaProgramada: {
-                ...(filtros.desde ? { gte: new Date(`${filtros.desde}T00:00:00-06:00`) } : {}),
-                ...(filtros.hasta ? { lt: new Date(new Date(`${filtros.hasta}T00:00:00-06:00`).getTime() + 86400000) } : {}),
-            } } : {}),
-            ...(filtros.buscar ? {
-                OR: [
-                    { clienteNombreRegistrado: { contains: filtros.buscar, mode: 'insensitive' as const } },
-                    { solicitud: { contains: filtros.buscar, mode: 'insensitive' as const } },
-                ],
-            } : {}),
-        },
+    const where: Prisma.OrdenTrabajoWhereInput = {
+        ...(tecnicoId ? { asignaciones: { some: {
+            fin: null,
+            OR: [
+                { empleadoResponsableId: tecnicoId },
+                { tecnicos: { some: { empleadoId: tecnicoId } } },
+                { cuadrilla: { is: { miembros: { some: { empleadoId: tecnicoId, fin: null } } } } },
+            ],
+        } } } : {}),
+        ...(filtros.estado ? { estadoCodigo: filtros.estado } : {}),
+        ...(filtros.prioridad ? { prioridad: filtros.prioridad } : {}),
+        ...(filtros.clienteId ? { ubicacion: { clienteId: filtros.clienteId } } : {}),
+        ...((filtros.desde || filtros.hasta) ? { fechaProgramada: {
+            ...(filtros.desde ? { gte: new Date(`${filtros.desde}T00:00:00-06:00`) } : {}),
+            ...(filtros.hasta ? { lt: new Date(new Date(`${filtros.hasta}T00:00:00-06:00`).getTime() + 86400000) } : {}),
+        } } : {}),
+        ...(filtros.buscar ? {
+            OR: [
+                { clienteNombreRegistrado: { contains: filtros.buscar, mode: 'insensitive' as const } },
+                { solicitud: { contains: filtros.buscar, mode: 'insensitive' as const } },
+            ],
+        } : {}),
+    };
+    const [items, total] = await Promise.all([prisma.ordenTrabajo.findMany({
+        where,
         select: resumenSelect,
         orderBy: filtros.desde || filtros.hasta ? [{ fechaProgramada: 'asc' }, { id: 'asc' }] : [{ creadaEn: 'desc' }, { id: 'desc' }],
         skip: (filtros.pagina - 1) * filtros.limite,
         take: filtros.limite + 1,
-    });
-    return paginaDesde(items, filtros);
+    }), prisma.ordenTrabajo.count({ where })]);
+    return paginaDesde(items, filtros, total);
 }
 
 export function buscarPorId(id: number) {

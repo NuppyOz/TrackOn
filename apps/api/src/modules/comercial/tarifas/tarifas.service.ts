@@ -34,13 +34,14 @@ function normalizarPrecio(valor: string): string {
     return `${(centavos / 100n).toString()}.${(centavos % 100n).toString().padStart(2, '0')}`;
 }
 
-function paginar<T>(rows: T[], filtros: { pagina: number; limite: number }) {
+function paginar<T>(rows: T[], filtros: { pagina: number; limite: number }, total: number) {
     const hayMas = rows.length > filtros.limite;
-    return { items: rows.slice(0, filtros.limite), pagina: filtros.pagina, limite: filtros.limite, hayMas };
+    return { items: rows.slice(0, filtros.limite), pagina: filtros.pagina, limite: filtros.limite, hayMas, total };
 }
 
 export async function listarConceptos(filtros: ListarConceptos) {
-    return paginar(await repository.listarConceptos(filtros), filtros);
+    const [rows, total] = await Promise.all([repository.listarConceptos(filtros), repository.contarConceptos(filtros)]);
+    return paginar(rows, filtros, total);
 }
 
 export async function crearConcepto(datos: CrearConcepto) {
@@ -71,8 +72,8 @@ export async function actualizarConcepto(id: number, datos: ActualizarConcepto) 
 }
 
 export async function listarTarifas(filtros: ListarTarifas) {
-    const rows = await repository.listarTarifas(filtros);
-    return paginar(rows.map(row => ({ ...row, precio: normalizarPrecio(row.precio.toString()) })), filtros);
+    const [rows, total] = await Promise.all([repository.listarTarifas(filtros), repository.contarTarifas(filtros)]);
+    return paginar(rows.map(row => ({ ...row, precio: normalizarPrecio(row.precio.toString()) })), filtros, total);
 }
 
 export async function crearTarifa(datos: CrearTarifa) {

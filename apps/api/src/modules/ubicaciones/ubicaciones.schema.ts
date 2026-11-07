@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { telefonoNicaraguenseSchema } from "../../shared/contacto.schema.js";
 import { paginacionQueryShape } from "../../shared/pagination.js";
 
 const idTextoSchema = z
@@ -50,7 +51,7 @@ const camposUbicacion = {
     direccion: textoRequerido("La dirección", 2000),
     referencia: textoOpcional("La referencia", 2000),
     contactoNombre: textoOpcional("El nombre del contacto", 200),
-    contactoTelefono: textoOpcional("El teléfono del contacto", 25),
+    contactoTelefono: telefonoNicaraguenseSchema,
 };
 
 export const ubicacionParamsSchema = z.strictObject({
