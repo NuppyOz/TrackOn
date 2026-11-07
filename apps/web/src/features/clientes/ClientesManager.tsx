@@ -5,7 +5,8 @@ import {
 } from "./clientes.api";
 import { nombreCliente, type Cliente, type ClienteNuevo, type TipoCliente,
     type TipoDocumento, type UbicacionCliente, type UbicacionNueva } from "./clientes.types";
-import { DataTable, TablePagination } from "../../shared/ui";
+import { DataTable, RowActions, TablePagination } from "../../shared/ui";
+import TableActionButton from "../../shared/TableActionButton";
 import { DEFAULT_PAGE_SIZE } from "../../shared/pagination";
 import ConfirmDialog from "../../shared/ConfirmDialog";
 
@@ -280,8 +281,9 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                                 <td data-label="Tipo">{etiquetaTipo(cliente)}</td>
                                 <td data-label="Estado" data-align="center"><span className={`status ${cliente.activo ? "active" : "inactive"}`}>
                                     {cliente.activo ? "Activo" : "Inactivo"}</span></td>
-                                <td data-label="Acción" data-align="actions" className="actions"><button type="button" className="secondary-button"
-                                    onClick={() => abrirCliente(cliente.id)}>Ver detalle</button></td>
+                                <td data-label="Acción" data-align="actions" className="tk-shared-actions-cell"><RowActions className="tk-table-actions" label={`Acciones de cliente ${cliente.codigo}`}>
+                                    <TableActionButton action="view" onClick={() => abrirCliente(cliente.id)}>Ver detalle</TableActionButton>
+                                </RowActions></td>
                             </tr>)}</tbody>
                         </DataTable>}
                     <TablePagination pagina={paginaClientes} limite={limiteClientes} hayMas={hayMasClientes} cargando={cargando} cantidad={filtrados.length} etiqueta="clientes"
