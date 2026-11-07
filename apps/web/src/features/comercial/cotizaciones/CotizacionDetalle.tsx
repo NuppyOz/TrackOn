@@ -1,12 +1,10 @@
+import { formatearMoneda } from '../../../shared/formato'
 import { useState } from 'react'
 import { Button } from '../../../shared/ui'
 import { EstadoCotizacionBadge } from './EstadoCotizacionBadge'
 import type { Cotizacion } from './cotizaciones.types'
 
-const money = (value: string) => {
-  const [whole, fraction = ''] = value.split('.')
-  return `C$ ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${fraction.padEnd(2, '0')}`
-}
+const money = (value: string) => formatearMoneda(value)
 const date = (value: string) => {
   const parsed = new Date(value)
   return Number.isNaN(parsed.getTime()) ? 'Fecha no válida' : new Intl.DateTimeFormat('es-NI', { dateStyle: 'medium', timeZone: 'America/Managua' }).format(parsed)

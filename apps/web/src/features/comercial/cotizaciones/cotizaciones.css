@@ -35,3 +35,13 @@
 .cotizaciones__notice { padding: .75rem; background: var(--erp-color-neutral-100); border-radius: var(--erp-radius-sm); }
 .cotizaciones__error { color: var(--erp-color-error); }
 @media (max-width: 700px) { .cotizaciones__header, .cotizaciones__detail-heading { align-items: flex-start; flex-direction: column; } .cotizaciones__line { grid-template-columns: 1fr; } }
+
+/* Cálculo previo: mismo formato de tabla que el detalle, para que el importe
+   que se ve mientras se escribe sea el que se guarda. */
+.cotizaciones__preview { margin-top: var(--erp-space-4); padding-top: var(--erp-space-3); border-top: 1px solid var(--erp-color-neutral-200); }
+.cotizaciones__preview h3 { font-size: .95rem; font-weight: 600; margin-bottom: var(--erp-space-2); }
+.cotizaciones__preview-totales { display: flex; flex-wrap: wrap; gap: var(--erp-space-4); justify-content: flex-end; margin-top: var(--erp-space-2); }
+.cotizaciones__preview-totales dt { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--erp-color-neutral-600); }
+.cotizaciones__preview-totales dd { font-weight: 600; font-variant-numeric: tabular-nums; }
+.cotizaciones__preview-totales div:last-child dd { font-size: 1.05rem; }
+.cotizaciones__preview-note { font-size: .8rem; color: var(--erp-color-neutral-600); margin-top: var(--erp-space-2); }

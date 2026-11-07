@@ -57,7 +57,7 @@ describe('FE04 ventas e historial comercial', () => {
 
   it('muestra decimales exactos de la venta, incluidos los máximos del DTO', async () => {
     render(<VentasPage ventaInicialId={12} />)
-    expect((await screen.findAllByText(/C\$ 99,999,999,999,999\.99/)).length).toBe(3)
+    expect((await screen.findAllByText(/C\$99,999,999,999,999\.99/)).length).toBe(3)
     expect(screen.getByText('1.005')).toBeTruthy()
     expect(screen.getByText('Ana')).toBeTruthy()
   })
