@@ -26,6 +26,13 @@ const siguientes: Partial<Record<EstadoOrden, EstadoOrden[]>> = {
     EN_EJECUCION: ['EN_REVISION'],
     EN_REVISION: ['EN_EJECUCION', 'CERRADA'],
 };
+function permiteTransicion(estadoActual: EstadoOrden, destino: EstadoOrden, puedeGestionar: boolean): boolean {
+    if (!(siguientes[estadoActual] ?? []).includes(destino)) return false;
+    return puedeGestionar ||
+        (estadoActual === 'ASIGNADA' && destino === 'EN_EJECUCION') ||
+        (estadoActual === 'EN_EJECUCION' && destino === 'EN_REVISION');
+}
+
 const indicacionesEstado: Record<EstadoOrden, string> = {
     BORRADOR: 'Publica la orden para poder asignar una cuadrilla.',
     PENDIENTE: 'Pendiente de asignar una cuadrilla.',
@@ -181,8 +188,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
         const boton = (event.nativeEvent as SubmitEvent).submitter;
         if (!detalle || guardando || !(boton instanceof HTMLButtonElement)) return;
         const nuevoEstado = boton.value as EstadoOrden;
-        const opciones = siguientes[detalle.estadoCodigo] ?? [];
-        if (!opciones.includes(nuevoEstado) || (!puedeGestionar && nuevoEstado !== 'EN_EJECUCION' && nuevoEstado !== 'EN_REVISION')) return;
+        if (!permiteTransicion(detalle.estadoCodigo, nuevoEstado, puedeGestionar)) return;
         if (motivo.trim().length < 3) { setMensaje({ tipo: 'error', texto: 'Indica un motivo de al menos tres caracteres.' }); return; }
         setGuardando(true); setMensaje(null);
         try {
@@ -205,7 +211,7 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
 
     function contenidoDetalle() {
         if (!detalle) return null;
-        const opciones = (siguientes[detalle.estadoCodigo] ?? []).filter(estado => puedeGestionar || estado === 'EN_EJECUCION' || estado === 'EN_REVISION');
+        const opciones = (siguientes[detalle.estadoCodigo] ?? []).filter(estado => permiteTransicion(detalle.estadoCodigo, estado, puedeGestionar));
         const asignacion = detalle.asignaciones?.[0];
         const etiquetaCambio = (estado: EstadoOrden) => estado === 'PENDIENTE' ? 'Publicar orden'
             : estado === 'EN_REVISION' ? 'Enviar a revisión' : estado === 'CERRADA' ? 'Cerrar orden'
