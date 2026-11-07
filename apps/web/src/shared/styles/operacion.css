@@ -111,3 +111,8 @@
 .tk-order-section[open] > summary::before { transform:rotate(90deg); }
 .tk-order-section[open] > summary { border-bottom:1px solid var(--tk-border); }
 .tk-order-section > :not(summary) { padding:12px 14px; }
+
+/* Filtros de órdenes: Buscar y Limpiar juntos al final, alineados con los campos. */
+.tk-orders .tk-filters { align-items: flex-end; }
+.tk-orders .tk-filters__acciones { display: flex; gap: 8px; align-self: flex-end; }
+.tk-orders .tk-filters__acciones .tk-search-submit { height: 40px; }

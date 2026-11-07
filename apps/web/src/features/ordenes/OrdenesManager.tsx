@@ -418,8 +418,6 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                             <option value="">Todos los estados</option>
                             {estados.map(item => <option key={item} value={item}>{nombreEstado(item)}</option>)}
                         </select>
-                        <button type="submit" className="secondary-button tk-search-submit">Buscar</button>
-                        <button type="button" className="text-button" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
                         <label>Prioridad<select aria-label="Filtrar prioridad" value={filtros.prioridad ?? ''} onChange={event => filtrar({ ...filtros, prioridad: event.target.value as PrioridadOrden | '' })}>
                             <option value="">Todas</option>{(['BAJA', 'MEDIA', 'ALTA', 'URGENTE'] as const).map(item => <option key={item} value={item}>{item.charAt(0) + item.slice(1).toLowerCase()}</option>)}
                         </select></label>
@@ -428,6 +426,10 @@ export default function OrdenesManager({ puedeGestionar = true, ordenInicial, cr
                         </select></label>
                         <label>Programada desde<input type="date" aria-label="Programada desde" value={filtros.desde ?? ''} max={filtros.hasta || undefined} onChange={event => filtrar({ ...filtros, desde: event.target.value })} /></label>
                         <label>Programada hasta<input type="date" aria-label="Programada hasta" value={filtros.hasta ?? ''} min={filtros.desde || undefined} onChange={event => filtrar({ ...filtros, hasta: event.target.value })} /></label>
+                        <div className="tk-filters__acciones">
+                            <button type="submit" className="secondary-button tk-search-submit">Buscar</button>
+                            <button type="button" className="secondary-button tk-search-submit" onClick={() => filtrar(filtrosIniciales)}>Limpiar</button>
+                        </div>
                     </form>
                     <div className="card tk-table-card">
                         {contenidoLista()}
