@@ -21,9 +21,10 @@ export async function crear(req: Request, res: Response, next: NextFunction) {
 
 export async function listar(req: Request, res: Response, next: NextFunction) {
     try {
-        const actor = obtenerActorOrden(req);
+        if (!req.auth) throw new AppError(401, 'Se requiere autenticación.');
+        const actor = req.auth.usuario.rol.cod === 'TEC' ? obtenerActorOrden(req) : undefined;
         const filtros = listarOrdenesSchema.parse(req.query);
-        const data = actor.rol === 'TEC'
+        const data = actor
             ? await service.listar(filtros, actor)
             : await cached('ordenes', { tipo: 'lista', filtros }, 30, () => service.listar(filtros));
         res.json({ data });
@@ -32,9 +33,10 @@ export async function listar(req: Request, res: Response, next: NextFunction) {
 
 export async function obtener(req: Request, res: Response, next: NextFunction) {
     try {
-        const actor = obtenerActorOrden(req);
+        if (!req.auth) throw new AppError(401, 'Se requiere autenticación.');
+        const esTecnico = req.auth.usuario.rol.cod === 'TEC';
         const { id } = ordenParamsSchema.parse(req.params);
-        const data = actor.rol === 'TEC' ? await service.obtener(id)
+        const data = esTecnico ? await service.obtener(id)
             : await cached('ordenes', { tipo: 'detalle', id }, 30, () => service.obtener(id));
         res.json({ data });
     } catch (error) { next(error); }
