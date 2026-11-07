@@ -423,3 +423,155 @@ body, #root { min-width: 0; max-width: 100%; }
   .auth-screen .auth-mobile-brand small { flex-basis: 100%; color: var(--color-neutral-600, #454b55); font-size: 12px; }
   .auth-screen .auth-mobile-footer { display: block; width: min(100%,430px); margin-top: 40px; color: #777b84; font-size: 11px; }
 }
+
+
+/* PR30 follow-up: tablas como tarjetas legibles en pantallas estrechas.
+ * No truncar acciones ni permitir botones con texto vertical.
+ * En escritorio se conserva la tabla de seis columnas.
+ */
+.tk-diagnostico-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: 42px;
+  margin-top: 12px;
+  padding: 10px 18px;
+  font-weight: 700;
+}
+@media (max-width: 1199px) {
+  .tk-dashboard,
+  .tk-dashboard-body,
+  .tk-dashboard-body > div,
+  .tk-dashboard-body > aside,
+  .tk-orders,
+  .tk-orders .tk-table-card {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .tk-dashboard-body { grid-template-columns: minmax(0, 1fr); }
+  .tk-dashboard-body > aside { min-width: 0; }
+  .tk-dashboard .tk-heading-actions > * { white-space: nowrap; overflow-wrap: normal; }
+  .tk-orders .table-wrap,
+  .tk-dashboard .tk-attention .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+  .tk-orders .table-wrap .tk-orders-table,
+  .tk-dashboard .tk-attention .table-wrap .tk-attention-table {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    border: 0;
+    background: transparent;
+  }
+  .tk-orders .tk-orders-table thead,
+  .tk-dashboard .tk-attention-table thead { display: none !important; }
+  .tk-orders .tk-orders-table tbody,
+  .tk-dashboard .tk-attention-table tbody {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .tk-orders .tk-orders-table tbody tr,
+  .tk-dashboard .tk-attention-table tbody tr {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px 14px;
+    width: 100% !important;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid var(--tk-border);
+    border-radius: 10px;
+    background: var(--tk-surface);
+  }
+  .tk-orders .tk-orders-table tbody td,
+  .tk-dashboard .tk-attention-table tbody td {
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100%;
+    height: auto;
+    padding: 0 !important;
+    border: 0;
+    text-align: left !important;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+  }
+  .tk-orders .tk-orders-table tbody td::before,
+  .tk-dashboard .tk-attention-table tbody td::before {
+    content: attr(data-label) !important;
+    display: block !important;
+    margin-bottom: 1px;
+    color: var(--tk-muted);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tk-orders .tk-orders-table tbody td:nth-child(2),
+  .tk-orders .tk-orders-table tbody td[data-align="actions"],
+  .tk-dashboard .tk-attention-table tbody td:nth-child(3),
+  .tk-dashboard .tk-attention-table tbody td[data-align="actions"] {
+    grid-column: 1 / -1;
+  }
+  .tk-orders .tk-orders-table tbody td[data-align="actions"]::before { content: "Acciones" !important; }
+  .tk-orders .tk-order-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    justify-content: stretch !important;
+    gap: 8px;
+    width: 100%;
+  }
+  .tk-orders .tk-order-icon-action {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+    min-height: 42px;
+    padding: 8px;
+    border: 1px solid var(--tk-border);
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: normal;
+  }
+  .tk-orders .tk-order-icon-action span {
+    white-space: nowrap !important;
+    word-break: normal;
+    overflow-wrap: normal;
+    font-size: 12px;
+  }
+  .tk-dashboard .tk-attention-action .button {
+    width: 100%;
+    min-height: 42px;
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: normal;
+  }
+  .tk-dashboard .tk-attention-client,
+  .tk-dashboard .tk-attention-description {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  .tk-dashboard-context { flex-wrap: wrap; }
+}
+@media (max-width: 767px) {
+  .tk-orders .tk-orders-table tbody tr,
+  .tk-dashboard .tk-attention-table tbody tr { padding: 12px; gap: 12px; }
+  .tk-dashboard .tk-attention-table tbody td[data-align="actions"] {
+    grid-column: 1 / -1;
+  }
+  .tk-orders .tk-order-icon-action { min-height: 44px; }
+  .tk-diagnostico-cta { width: 100%; }
+}
