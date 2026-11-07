@@ -1,4 +1,8 @@
 import { Router, raw } from 'express';
+import { prisma } from '../../infrastructure/prisma.js';
+import { AppError } from '../../errors/AppError.js';
+import { obtenerActorOrden } from './ordenes.actor.js';
+import type { Request, Response, NextFunction } from 'express';
 import { authenticate } from '../../middlewares/authenticate.js';
 import { authorize } from '../../middlewares/authorize.js';
 import { ROLE_CODES } from '../../security/roles.js';
@@ -12,6 +16,35 @@ export const ordenesRouter = Router();
 ordenesRouter.use(authenticate);
 
 ordenesRouter.get('/', authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE, ROLE_CODES.TEC), controller.listar);
+// Restringir todas las rutas anidadas de una OT a técnicos con asignación vigente.
+async function autorizarConsultaOrden(req: Request, _res: Response, next: NextFunction) {
+    try {
+        const actor = obtenerActorOrden(req);
+        if (actor.rol === 'TEC') {
+            const id = Number(req.params.id);
+            if (!Number.isSafeInteger(id) || id <= 0) throw new AppError(400, 'ID de orden inválido.');
+            const visible = await prisma.ordenTrabajo.findFirst({
+                where: {
+                    id,
+                    estadoCodigo: { in: ['ASIGNADA', 'EN_EJECUCION', 'EN_REVISION'] },
+                    asignaciones: { some: {
+                        fin: null,
+                        OR: [
+                            { empleadoResponsableId: actor.empleadoId },
+                            { tecnicos: { some: { empleadoId: actor.empleadoId } } },
+                            { cuadrilla: { is: { miembros: { some: { empleadoId: actor.empleadoId, fin: null } } } } },
+                        ],
+                    } },
+                },
+                select: { id: true },
+            });
+            if (!visible) throw new AppError(404, 'La orden no está disponible para este técnico.');
+        }
+        next();
+    } catch (error) { next(error); }
+}
+ordenesRouter.use('/:id', autorizarConsultaOrden);
+
 ordenesRouter.get('/:id', authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE, ROLE_CODES.TEC), controller.obtener);
 ordenesRouter.post('/', authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE), controller.crear);
 ordenesRouter.patch('/:id', authorize(ROLE_CODES.ADMIN, ROLE_CODES.GTE_OPE), controller.editar);
