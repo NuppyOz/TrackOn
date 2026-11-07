@@ -23,7 +23,7 @@ vi.mock('../src/modules/ordenes/ordenes.service.js', () => ({
 vi.mock('../src/middlewares/authenticate.js', () => ({
     authenticate: (req: Request, ...rest: [Response, NextFunction]) => {
         if (mocks.autenticado) {
-            Object.assign(req, { auth: { usuario: { id: 9, rol: { cod: mocks.rol } } } });
+            Object.assign(req, { auth: { usuario: { id: 9, empleado: { id: 19 }, rol: { cod: mocks.rol } } } });
         }
         rest[1]();
     },
@@ -55,7 +55,7 @@ describe('API de órdenes y permisos', () => {
         const respuesta = await request(app).get('/api/ordenes');
         expect(respuesta.status).toBe(200);
         expect(respuesta.body.data.items).toHaveLength(1);
-        expect(mocks.listar).toHaveBeenCalledWith({ pagina: 1, limite: 25 });
+        expect(mocks.listar).toHaveBeenCalledWith({ pagina: 1, limite: 25 }, { id: 9, empleadoId: 19, rol: 'TEC' });
     });
 
     it('impide consultar órdenes sin autenticación', async () => {
