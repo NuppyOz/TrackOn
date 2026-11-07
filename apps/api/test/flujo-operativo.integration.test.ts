@@ -113,7 +113,7 @@ describe('Flujo operativo real de TrackOn', () => {
         expect(vinculada.status).toBe(201);
         const trabajo = `${base}/equipos/${vinculada.body.data.id}`;
         expect((await request(app).patch(`${trabajo}/diagnostico`).set('Authorization', auth()).send({ diagnostico: 'Falta refrigerante en el circuito' })).status).toBe(409);
-        const asignada = await request(app).post(`${base}/asignacion`).set('Authorization', auth()).send({ cuadrillaId, motivo: 'Atención de mantenimiento' });
+        const asignada = await request(app).post(`${base}/asignacion`).set('Authorization', auth()).send({ cuadrillaId, motivo: 'Atención de mantenimiento', fechaProgramada: '2026-11-09T10:30:00-06:00' });
         expect(asignada.status).toBe(200);
         expect((await request(app).patch(`${base}/ejecucion`).set('Authorization', auth('otro')).send({ estado: 'EN_EJECUCION', motivo: 'Inicio no autorizado' })).status).toBe(403);
         expect((await request(app).patch(`${base}/ejecucion`).set('Authorization', auth('tecnico')).send({ estado: 'EN_EJECUCION', motivo: 'Inicio de trabajo' })).status).toBe(200);
