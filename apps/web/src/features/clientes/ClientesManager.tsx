@@ -144,6 +144,13 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
         return texto.includes(busqueda.toLocaleLowerCase("es").trim());
     });
 
+    function limpiarFiltros() {
+        if (busqueda === "" && filtroTipo === "todos" && filtroEstado === "todos" && paginaClientes === 1) return;
+        setError(null);
+        setCargando(true);
+        setBusqueda(""); setFiltroTipo("todos"); setFiltroEstado("todos"); setPaginaClientes(1);
+    }
+
     function volver() {
         setVista("listado"); setError(null); setMensaje(null);
         setRegistrandoUbicacion(false); setFormUbicacion(ubicacionVacia);
@@ -259,7 +266,7 @@ export default function ClientesManager({ puedeGestionar }: Readonly<Props>) {
                             <option value="inactivos">Inactivos</option>
                         </select>
                     </label>
-                    <button type="button" className="text-button" onClick={() => { setCargando(true); setBusqueda(''); setFiltroTipo('todos'); setFiltroEstado('todos'); setPaginaClientes(1); }}>Limpiar</button>
+                    <button type="button" className="text-button" onClick={limpiarFiltros}>Limpiar</button>
                 </div>
                 <div className="card list-card">
                     {cargando ? <p className="empty">Cargando clientes…</p> : filtrados.length === 0 ?
